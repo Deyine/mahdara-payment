@@ -25,6 +25,9 @@ echo -e "${BLUE}=======================================${NC}"
 echo -e "${BLUE}  BestCar - Initial Server Setup${NC}"
 echo -e "${BLUE}=======================================${NC}"
 echo ""
+echo -e "${YELLOW}Note: It's recommended to run this script from outside /var/www/bestcar${NC}"
+echo -e "${YELLOW}      (e.g., from /root or /tmp)${NC}"
+echo ""
 
 # Step 1: Check if running as root or with sudo
 echo -e "${YELLOW}[1/10] Checking permissions...${NC}"
@@ -77,14 +80,23 @@ echo ""
 echo -e "${YELLOW}[3/10] Cloning repository...${NC}"
 if [ -d "$INSTALL_DIR" ]; then
   echo -e "${YELLOW}⚠ Directory $INSTALL_DIR already exists${NC}"
-  read -p "Remove and re-clone? (y/N): " -n 1 -r
-  echo
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    rm -rf "$INSTALL_DIR"
-    git clone "$REPO_URL" "$INSTALL_DIR"
-    echo -e "${GREEN}✓ Repository cloned${NC}"
+
+  # Check if we're running from within the target directory
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if [[ "$SCRIPT_DIR" == "$INSTALL_DIR"* ]]; then
+    echo -e "${YELLOW}⚠ Setup script is running from within $INSTALL_DIR${NC}"
+    echo -e "${YELLOW}  Cannot remove directory while script is running from it${NC}"
+    echo -e "${YELLOW}  Using existing directory...${NC}"
   else
-    echo -e "${YELLOW}⚠ Skipping clone, using existing directory${NC}"
+    read -p "Remove and re-clone? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      rm -rf "$INSTALL_DIR"
+      git clone "$REPO_URL" "$INSTALL_DIR"
+      echo -e "${GREEN}✓ Repository cloned${NC}"
+    else
+      echo -e "${YELLOW}⚠ Skipping clone, using existing directory${NC}"
+    fi
   fi
 else
   git clone "$REPO_URL" "$INSTALL_DIR"
