@@ -19,6 +19,17 @@ BACKEND_DIR="$PROJECT_DIR/backend"
 CLIENT_DIR="$PROJECT_DIR/client"
 SERVICE_NAME="bestcar"
 
+# Load environment variables from .env file (needed for Rails commands)
+if [ -f "$BACKEND_DIR/.env" ]; then
+  set -a
+  source "$BACKEND_DIR/.env"
+  set +a
+  echo -e "${GREEN}✓ Environment variables loaded from .env${NC}"
+else
+  echo -e "${YELLOW}⚠ Warning: .env file not found at $BACKEND_DIR/.env${NC}"
+fi
+echo ""
+
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  Bestcar Dealership Management Deployment${NC}"
 echo -e "${BLUE}========================================${NC}"
@@ -62,10 +73,6 @@ echo ""
 # Step 6: Run database migrations
 echo -e "${YELLOW}[6/7] Running database migrations...${NC}"
 cd "$BACKEND_DIR"
-# Load environment variables from .env file
-set -a
-source "$BACKEND_DIR/.env"
-set +a
 RAILS_ENV=production bundle exec rails db:migrate
 echo -e "${GREEN}✓ Database migrations completed${NC}"
 echo ""
