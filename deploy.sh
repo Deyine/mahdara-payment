@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Glamova Stock Management Deployment Script
+# Bestcar Dealership Management Deployment Script
 # This script handles deployment updates for production environment
 # Prerequisites: Initial server configuration must be complete (nginx, systemd, postgresql)
 
@@ -17,10 +17,10 @@ NC='\033[0m' # No Color
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$PROJECT_DIR/backend"
 CLIENT_DIR="$PROJECT_DIR/client"
-SERVICE_NAME="glamova"
+SERVICE_NAME="bestcar"
 
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  Glamova Stock Management Deployment${NC}"
+echo -e "${BLUE}  Bestcar Dealership Management Deployment${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 

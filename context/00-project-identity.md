@@ -50,11 +50,13 @@ BestCar is a **multi-tenant salvage car inventory and expense tracking system** 
 
 **In Scope:**
 - Vehicle inventory management (VIN, model, purchase details)
+- Seller/auction house management (name, location)
 - Expense tracking by category and vehicle
 - Cost calculation (purchase + clearance + towing + repairs)
 - Multi-tenant data isolation
 - Car model library management
 - Expense category configuration
+- Bulk vehicle import from Excel data
 
 **Out of Scope:**
 - Customer/buyer management

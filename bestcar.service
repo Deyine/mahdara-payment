@@ -1,0 +1,34 @@
+[Unit]
+Description=BestCar Rails Application
+After=network.target
+
+[Service]
+# Puma supports systemd's `Type=notify` and watchdog service
+# monitoring, as of Puma 5.1 or later.
+# On earlier versions of Puma or JRuby, change this to `Type=simple` and remove
+# the `WatchdogSec` line.
+Type=notify
+
+# If your Puma process locks up, systemd's watchdog will restart it within seconds.
+WatchdogSec=10
+
+# Preferably configure a non-privileged user
+User=root
+
+# The path to your application code root directory.
+WorkingDirectory=/var/www/bestcar/backend
+
+# Environment file
+EnvironmentFile=/var/www/bestcar/backend/.env
+
+# SystemD will not run puma even if it is in your path. You must specify
+# an absolute URL to puma. For example /usr/local/bin/puma
+# Alternatively, create a binstub with `bundle binstubs puma --path ./sbin` in the WorkingDirectory
+ExecStart=/root/.rbenv/bin/rbenv exec bundle exec puma -C config/puma.rb
+StandardOutput=append:/var/www/bestcar/backend/log/puma.stdout.log
+StandardError=append:/var/www/bestcar/backend/log/puma.stderr.log
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
