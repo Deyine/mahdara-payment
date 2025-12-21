@@ -7,7 +7,8 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins "*"  # Allow all origins in development (restrict in production)
+    # Allow requests from development and production frontends
+    origins "http://localhost:5173", "https://bestcar-mr.com"
 
     resource "*",
       headers: :any,
