@@ -119,6 +119,7 @@ DATABASE_URL=postgresql://bestcar:bestcar_password@localhost/bestcar_production
 RAILS_SERVE_STATIC_FILES=true
 RAILS_MAX_THREADS=5
 WEB_CONCURRENCY=2
+PORT=3061
 # Set to true after SSL setup with certbot
 FORCE_SSL=false
 EOF
