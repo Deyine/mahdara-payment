@@ -62,6 +62,10 @@ echo ""
 # Step 6: Run database migrations
 echo -e "${YELLOW}[6/7] Running database migrations...${NC}"
 cd "$BACKEND_DIR"
+# Load environment variables from .env file
+set -a
+source "$BACKEND_DIR/.env"
+set +a
 RAILS_ENV=production bundle exec rails db:migrate
 echo -e "${GREEN}✓ Database migrations completed${NC}"
 echo ""

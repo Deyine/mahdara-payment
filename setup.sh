@@ -107,6 +107,8 @@ DATABASE_URL=postgresql://bestcar:bestcar_password@localhost/bestcar_production
 RAILS_SERVE_STATIC_FILES=true
 RAILS_MAX_THREADS=5
 WEB_CONCURRENCY=2
+# Set to true after SSL setup with certbot
+FORCE_SSL=false
 EOF
   echo -e "${GREEN}✓ .env file created${NC}"
   echo -e "${YELLOW}⚠ IMPORTANT: Edit $INSTALL_DIR/backend/.env and update database credentials${NC}"
@@ -131,7 +133,12 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   sudo -u postgres psql -c "CREATE DATABASE bestcar_production OWNER bestcar;" || true
   sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE bestcar_production TO bestcar;" || true
 
-  # Run migrations
+  # Load environment variables from .env file
+  set -a
+  source "$INSTALL_DIR/backend/.env"
+  set +a
+
+  # Run migrations with environment variables loaded
   RAILS_ENV=production bundle exec rails db:migrate
 
   # Run seeds (optional)
@@ -145,7 +152,10 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   echo -e "${GREEN}✓ Database setup complete${NC}"
 else
   echo -e "${YELLOW}⚠ Skipping database setup${NC}"
-  echo -e "${YELLOW}  Run manually: RAILS_ENV=production bundle exec rails db:create db:migrate${NC}"
+  echo -e "${YELLOW}  Run manually:${NC}"
+  echo -e "${YELLOW}    cd $INSTALL_DIR/backend${NC}"
+  echo -e "${YELLOW}    source .env${NC}"
+  echo -e "${YELLOW}    RAILS_ENV=production bundle exec rails db:create db:migrate${NC}"
 fi
 echo ""
 
