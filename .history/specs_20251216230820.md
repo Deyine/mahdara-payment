@@ -1,0 +1,88 @@
+# Salvage Car Business Tracking System
+
+## Multi-Tenant Architecture
+
+The system implements a multi-tenant architecture where each tenant represents a separate business or organizational unit. All data is isolated by tenant, ensuring complete separation between different businesses using the system.
+
+### Tenant Model
+- **ID**: UUID primary key
+- **Name**: Business or organization name
+- **Subdomain**: Unique subdomain for tenant access (optional)
+- **Created At**: Timestamp of tenant creation
+- **Updated At**: Last modification timestamp
+- **Active**: Boolean flag to enable/disable tenant
+
+### Data Isolation
+- All entities (cars, purchases, sales, etc.) are linked to a tenant
+- Users can only access data belonging to their tenant
+- API endpoints include tenant context for all operations
+- Database queries automatically filter by tenant
+
+## Feature 1: Record New Car Orders
+
+### Car Information
+- **ID**: UUID primary key
+- **Tenant ID**: UUID foreign key linking to tenant (required)
+- **VIN**: Vehicle Identification Number (17 characters)
+- **Model**: Specific model name
+- **Year**: Manufacturing year
+- **Color**: Primary exterior color
+- **Mileage**: Current odometer reading
+
+### Purchase Details
+- **Purchase Date**: Date when car was ordered/bought
+- **Purchase Price**: Amount paid for the vehicle
+- **Seller**: Name/company where car was purchased from
+- **Location**: Auction house, dealer, or private seller location
+
+### Required Fields
+- Tenant ID (automatically assigned based on authenticated user)
+- VIN, Model, Year
+- Purchase Date, Purchase Price
+- Model is a table in settings where we define all models that we sell
+
+### Optional Fields
+- All other fields can be added later as information becomes available
+
+### Tenant Relationships
+- Each car belongs to exactly one tenant
+- Cars can only be viewed/modified by users within the same tenant
+- VIN uniqueness is enforced per tenant (same VIN can exist across different tenants)
+
+## Feature 2: car Order view cycle
+- We can add later the price of clearance
+- after that we can add price of towing
+- Then we can add expenses on the car which are mainly reparation costs
+- an expense is defined by the category and a type (reparation or purchase)
+- categories should be defined in settings
+
+## Tenant Implementation Requirements
+
+### Database Level
+- All tenant-aware models include `tenant_id` UUID column with foreign key constraint
+- Database indexes include `tenant_id` for optimal query performance
+- Multi-column unique constraints include `tenant_id` where applicable (e.g., VIN + tenant_id)
+
+### Application Level
+- Tenant context automatically injected into all database queries
+- Controller-level tenant scoping for all CRUD operations
+- Authentication system associates users with specific tenants
+- Authorization ensures users can only access their tenant's data
+
+### API Design
+- All API endpoints operate within tenant context
+- Tenant ID derived from authenticated user, not passed in requests
+- Consistent error handling for cross-tenant access attempts
+- API responses never leak data from other tenants
+
+### User Management
+- Users belong to exactly one tenant
+- User authentication includes tenant validation
+- Admin users can manage tenant settings and users within their tenant
+- Super admin role for cross-tenant system administration
+
+## Feature 2: Tenant Management (Admin Only)
+
+Super admins can perform full CRUD operations on tenants to manage different businesses using the system.
+
+
