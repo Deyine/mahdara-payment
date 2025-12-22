@@ -61,6 +61,7 @@ export default function ImportCars() {
       const lines = pasteData.split('\n').map(line => line.trim()).filter(line => line);
       const cars = [];
       let currentCar = null;
+      let inExpensesSection = false; // Track if we're in an "expenses" section
 
       lines.forEach((line) => {
         // Check if line starts with # (new car entry)
@@ -72,9 +73,17 @@ export default function ImportCars() {
 
           // Parse new car header
           currentCar = parseCarHeader(line);
+          inExpensesSection = false; // Reset expenses flag for new car
         } else if (currentCar) {
+          // Check if this line is an "expenses" header
+          const lineLower = line.toLowerCase();
+          if (lineLower === 'expenses' || lineLower === 'dépenses' || lineLower === 'depenses') {
+            inExpensesSection = true;
+            return; // Skip this header line
+          }
+
           // Parse expense/cost line
-          parseExpenseLine(line, currentCar);
+          parseExpenseLine(line, currentCar, inExpensesSection);
         }
       });
 
@@ -165,27 +174,92 @@ export default function ImportCars() {
     };
   };
 
-  // Parse expense line (tab or space separated: category amount)
-  const parseExpenseLine = (line, car) => {
-    // Split by tab or multiple spaces
-    const parts = line.split(/\t+|\s{2,}/).map(p => p.trim()).filter(p => p);
+  // Parse expense line - handles multiple formats
+  const parseExpenseLine = (line, car, inExpensesSection = false) => {
+    // Remove emojis and special characters from the beginning
+    const cleanLine = line.replace(/^[^\w\s]+\s*/, '').trim();
 
-    if (parts.length < 2) return;
+    if (!cleanLine) return;
 
-    const category = parts[0];
-    const amountStr = parts[1].replace(/\s+/g, ''); // Remove spaces from number
-    // Convert from MRO (old currency) to MRU (new currency): divide by 10
-    // Example: 1,000,000 MRO = 100,000 MRU
-    const amount = parseFloat(amountStr) / 10;
+    let category = '';
+    let amount = 0;
+    let parts = [];
 
-    if (isNaN(amount)) return;
+    // Try different separators: :: (double colon), tab, or multiple spaces
+    if (cleanLine.includes('::')) {
+      parts = cleanLine.split('::').map(p => p.trim());
+    } else if (cleanLine.includes('\t')) {
+      parts = cleanLine.split('\t').map(p => p.trim()).filter(p => p);
+    } else {
+      parts = cleanLine.split(/\s{2,}/).map(p => p.trim()).filter(p => p);
+    }
+
+    // If we don't have clear parts, try to extract amount from anywhere in the line
+    if (parts.length < 2) {
+      // Look for numbers in the line (with spaces, commas, or periods)
+      const amountMatch = cleanLine.match(/[\d\s,\.]+(?:\s*(?:MRO|MRU))?$/i);
+      if (amountMatch) {
+        const amountStr = amountMatch[0].replace(/MRO|MRU/gi, '').replace(/\s+/g, '').trim();
+        const parsedAmount = parseFloat(amountStr.replace(/,/g, ''));
+
+        if (!isNaN(parsedAmount)) {
+          amount = parsedAmount;
+          // Category is everything before the amount
+          category = cleanLine.substring(0, amountMatch.index).trim();
+          // Remove leading numbers and special chars from category
+          category = category.replace(/^\d+\s*/, '').trim();
+        }
+      }
+    } else {
+      // We have parts from separator
+      // Check if first part is the amount or category
+      const firstPartNum = parseFloat(parts[0].replace(/[^\d\.]/g, ''));
+      const lastPartNum = parseFloat(parts[parts.length - 1].replace(/[^\d\.]/g, ''));
+
+      if (!isNaN(lastPartNum) && lastPartNum > 0) {
+        // Amount is last part
+        const amountStr = parts[parts.length - 1].replace(/MRO|MRU/gi, '').replace(/\s+/g, '').replace(/,/g, '');
+        amount = parseFloat(amountStr);
+        category = parts.slice(0, -1).join(' ').trim();
+        // Remove leading numbers from category
+        category = category.replace(/^\d+\s*/, '').trim();
+      } else if (!isNaN(firstPartNum) && firstPartNum > 0) {
+        // Amount might be first part
+        const amountStr = parts[0].replace(/MRO|MRU/gi, '').replace(/\s+/g, '').replace(/,/g, '');
+        amount = parseFloat(amountStr);
+        category = parts.slice(1).join(' ').trim();
+      }
+    }
+
+    // Check if amount is in MRO (old currency) - if no MRU suffix and large number, assume MRO
+    const originalLine = line.toLowerCase();
+    if (!originalLine.includes('mru') && amount >= 1000) {
+      // Convert from MRO to MRU: divide by 10
+      amount = amount / 10;
+    }
+
+    if (!category || isNaN(amount) || amount <= 0) return;
+
+    // If we're in an expenses section, treat all lines as expenses
+    if (inExpensesSection) {
+      car.expenses.push({
+        category: category,
+        amount: amount,
+        description: line, // Keep original line for reference
+        needsCategory: true, // Flag to check if category exists
+      });
+      return;
+    }
 
     // Map known categories to car fields
     const categoryLower = category.toLowerCase();
 
-    if (categoryLower.includes('achat') || categoryLower === 'purchase') {
+    if (categoryLower.includes('achat') && !categoryLower.includes('pièce') && !categoryLower.includes('piece')) {
       car.purchase_price = amount;
-    } else if (categoryLower.includes('dedouane') || categoryLower.includes('douane') || categoryLower === 'clearance') {
+    } else if (categoryLower.includes('dedouannement') || categoryLower.includes('dedouanement') ||
+               categoryLower.includes('dédouanement') || categoryLower.includes('dédouanement') ||
+               categoryLower.includes('dedouane') || categoryLower.includes('douane') ||
+               categoryLower === 'clearance') {
       car.clearance_cost = amount;
     } else if (categoryLower.includes('remorquage') || categoryLower.includes('transport') || categoryLower === 'towing') {
       car.towing_cost = amount;
@@ -194,7 +268,8 @@ export default function ImportCars() {
       car.expenses.push({
         category: category,
         amount: amount,
-        description: '',
+        description: line,
+        needsCategory: true,
       });
     }
   };
@@ -226,6 +301,25 @@ export default function ImportCars() {
       errors.push(`Modèle "${car.model}" non trouvé`);
     }
 
+    // Check expense categories and mark which ones need to be created
+    const enrichedExpenses = car.expenses.map(expense => {
+      const matchedCategory = expenseCategories.find(ec =>
+        ec.name.toLowerCase().includes(expense.category.toLowerCase()) ||
+        expense.category.toLowerCase().includes(ec.name.toLowerCase())
+      );
+
+      return {
+        ...expense,
+        matched_category_id: matchedCategory?.id || null,
+        matched_category_name: matchedCategory?.name || null,
+        will_create_category: !matchedCategory,
+      };
+    });
+
+    // Calculate totals
+    const totalExpenses = enrichedExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const totalCost = (car.purchase_price || 0) + (car.clearance_cost || 0) + (car.towing_cost || 0) + totalExpenses;
+
     // Generate VIN if not present
     const generatedVin = car.vin || `NO-VIN-${Date.now()}-${index}`;
 
@@ -237,6 +331,9 @@ export default function ImportCars() {
       purchase_date: today,
       seller_id: '',
       mileage: null,
+      expenses: enrichedExpenses,
+      total_expenses: totalExpenses,
+      total_cost: totalCost,
       errors: errors,
       isValid: errors.length === 0,
     };
@@ -294,6 +391,9 @@ export default function ImportCars() {
     let failCount = 0;
     const errors = [];
 
+    // Cache for created categories during this import
+    const createdCategoriesCache = {};
+
     for (const car of validCars) {
       try {
         // Create car
@@ -315,21 +415,39 @@ export default function ImportCars() {
 
         // Create expenses if any
         for (const expense of car.expenses) {
-          // Try to match expense category
-          const matchedCategory = expenseCategories.find(ec =>
-            ec.name.toLowerCase().includes(expense.category.toLowerCase()) ||
-            expense.category.toLowerCase().includes(ec.name.toLowerCase())
-          );
+          let categoryId = expense.matched_category_id;
 
-          if (matchedCategory) {
-            await carsAPI.createExpense({
-              car_id: createdCar.id,
-              expense_category_id: matchedCategory.id,
-              amount: expense.amount,
-              description: expense.description || `Import: ${expense.category}`,
-              expense_date: car.purchase_date,
-            });
+          // If category doesn't exist, create it
+          if (!categoryId) {
+            // Check if we already created this category in this import session
+            if (createdCategoriesCache[expense.category]) {
+              categoryId = createdCategoriesCache[expense.category];
+            } else {
+              // Create new expense category
+              try {
+                const categoryResponse = await expenseCategoriesAPI.create({
+                  name: expense.category,
+                  description: `Créée automatiquement lors de l'importation`,
+                  expense_type: 'reparation', // Default to reparation for imported expenses
+                  active: true,
+                });
+                categoryId = categoryResponse.data.id;
+                createdCategoriesCache[expense.category] = categoryId;
+              } catch (categoryError) {
+                console.error(`Error creating category ${expense.category}:`, categoryError);
+                continue; // Skip this expense if category creation fails
+              }
+            }
           }
+
+          // Create the expense
+          await carsAPI.createExpense({
+            car_id: createdCar.id,
+            expense_category_id: categoryId,
+            amount: expense.amount,
+            description: expense.description || `Import: ${expense.category}`,
+            expense_date: car.purchase_date,
+          });
         }
 
         successCount++;
@@ -395,23 +513,37 @@ export default function ImportCars() {
           style={{ backgroundColor: '#eff6ff', border: '1px solid #93c5fd' }}
         >
           <h3 className="font-bold mb-2" style={{ color: '#1e40af' }}>
-            📝 Format Attendu
+            📝 Formats Acceptés (Très Flexibles)
           </h3>
           <pre className="text-sm" style={{ color: '#1e40af' }}>
 {`#1 : Toyota Corolla SE 2018 Marron
 Achat	2 600 000
 Dedouannement	755 000
+Remorquage	50 000
+Expenses
+Batterie :: 10,000
+Peinture :: 85,000 MRU
+1 Parabrise & joint 2700
+Changement Plafond :: 3,500 MRU
+Lavage :: 6,000 MRO
 
 #2 : LE 2015 - 377014 - Brown
-Achat	1 500 000
-Remorquage	50 000`}
+Achat	1 500 000`}
           </pre>
           <p className="text-sm mt-2" style={{ color: '#1e40af' }}>
-            <strong>Note:</strong> Chaque véhicule commence par #. Le VIN est optionnel (format: Modèle - VIN - Couleur).
+            <strong>✨ Formats supportés:</strong> Tabulations, "::", espaces multiples, avec/sans emojis
+            <br />Montant peut être au début ou à la fin de la ligne
           </p>
           <p className="text-sm mt-2" style={{ color: '#1e40af' }}>
-            <strong>💱 Conversion automatique:</strong> Les montants en MRO (ancienne monnaie) seront automatiquement convertis en MRU (÷10).
-            <br />Exemple: 2 600 000 MRO → 260 000 MRU
+            <strong>📋 Catégories reconnues:</strong> Achat (prix), Dedouannement/Dedouanement (dédouanement), Remorquage (transport).
+            <br />Après "Expenses", toutes les lignes sont des dépenses.
+          </p>
+          <p className="text-sm mt-2" style={{ color: '#1e40af' }}>
+            <strong>💱 Conversion automatique:</strong> MRO → MRU (÷10). Les montants ≥1000 sans "MRU" sont convertis.
+            <br />Exemple: 2 600 000 → 260 000 MRU | 3,500 MRU → 3 500 MRU (déjà en MRU)
+          </p>
+          <p className="text-sm mt-2" style={{ color: '#1e40af' }}>
+            <strong>🔧 Catégories de dépenses:</strong> Les catégories manquantes seront créées automatiquement!
           </p>
         </div>
 
@@ -665,7 +797,7 @@ Remorquage	50 000`}
                 </div>
 
                 {/* Cost Summary */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                   <div className="rounded-lg p-3" style={{ backgroundColor: '#f0fdf4', border: '1px solid #10b981' }}>
                     <p className="text-xs mb-1" style={{ color: '#166534' }}>Prix d'achat</p>
                     <p className="font-bold" style={{ color: '#166534' }}>
@@ -673,7 +805,7 @@ Remorquage	50 000`}
                     </p>
                   </div>
 
-                  {car.clearance_cost && (
+                  {car.clearance_cost > 0 && (
                     <div className="rounded-lg p-3" style={{ backgroundColor: '#eff6ff', border: '1px solid #3b82f6' }}>
                       <p className="text-xs mb-1" style={{ color: '#1e40af' }}>Dédouanement</p>
                       <p className="font-bold" style={{ color: '#1e40af' }}>
@@ -682,7 +814,7 @@ Remorquage	50 000`}
                     </div>
                   )}
 
-                  {car.towing_cost && (
+                  {car.towing_cost > 0 && (
                     <div className="rounded-lg p-3" style={{ backgroundColor: '#eff6ff', border: '1px solid #3b82f6' }}>
                       <p className="text-xs mb-1" style={{ color: '#1e40af' }}>Remorquage</p>
                       <p className="font-bold" style={{ color: '#1e40af' }}>
@@ -691,33 +823,71 @@ Remorquage	50 000`}
                     </div>
                   )}
 
-                  {car.expenses.length > 0 && (
+                  {car.total_expenses > 0 && (
                     <div className="rounded-lg p-3" style={{ backgroundColor: '#fef3c7', border: '1px solid #f59e0b' }}>
-                      <p className="text-xs mb-1" style={{ color: '#92400e' }}>Autres dépenses</p>
+                      <p className="text-xs mb-1" style={{ color: '#92400e' }}>Dépenses</p>
                       <p className="font-bold" style={{ color: '#92400e' }}>
-                        {car.expenses.reduce((sum, exp) => sum + exp.amount, 0).toLocaleString('fr-FR')} MRU
+                        {car.total_expenses.toLocaleString('fr-FR')} MRU
                       </p>
                     </div>
                   )}
+                </div>
+
+                {/* Total Cost Summary */}
+                <div className="rounded-lg p-4 mb-4" style={{ backgroundColor: '#fafbfc', border: '2px solid #167bff' }}>
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-lg" style={{ color: '#1e293b' }}>
+                      💰 Coût Total du Véhicule
+                    </span>
+                    <span className="font-bold text-2xl" style={{ color: '#167bff' }}>
+                      {car.total_cost.toLocaleString('fr-FR')} MRU
+                    </span>
+                  </div>
+                  <p className="text-xs mt-1" style={{ color: '#64748b' }}>
+                    Achat + Dédouanement + Remorquage + Dépenses
+                  </p>
                 </div>
 
                 {/* Expenses List */}
                 {car.expenses.length > 0 && (
                   <div className="mt-4">
                     <p className="text-sm font-medium mb-2" style={{ color: '#64748b' }}>
-                      Dépenses détectées ({car.expenses.length}):
+                      📋 Dépenses détectées ({car.expenses.length}):
                     </p>
                     <div className="space-y-1">
                       {car.expenses.map((expense, i) => (
                         <div
                           key={i}
-                          className="flex justify-between items-center px-3 py-2 rounded text-sm"
-                          style={{ backgroundColor: '#f1f5f9' }}
+                          className="px-3 py-2 rounded text-sm"
+                          style={{
+                            backgroundColor: expense.will_create_category ? '#fef3c7' : '#f1f5f9',
+                            border: expense.will_create_category ? '1px solid #f59e0b' : 'none'
+                          }}
                         >
-                          <span style={{ color: '#475569' }}>{expense.category}</span>
-                          <span className="font-medium" style={{ color: '#1e293b' }}>
-                            {expense.amount.toLocaleString('fr-FR')} MRU
-                          </span>
+                          <div className="flex justify-between items-center">
+                            <div className="flex-1">
+                              <span className="font-medium" style={{ color: '#1e293b' }}>
+                                {expense.category}
+                              </span>
+                              {expense.will_create_category ? (
+                                <span className="ml-2 text-xs px-2 py-0.5 rounded" style={{ backgroundColor: '#f59e0b', color: 'white' }}>
+                                  📝 Sera créée
+                                </span>
+                              ) : (
+                                <span className="ml-2 text-xs" style={{ color: '#10b981' }}>
+                                  ✓ {expense.matched_category_name}
+                                </span>
+                              )}
+                            </div>
+                            <span className="font-bold ml-4" style={{ color: '#1e293b' }}>
+                              {expense.amount.toLocaleString('fr-FR')} MRU
+                            </span>
+                          </div>
+                          {expense.description && expense.description !== expense.category && (
+                            <p className="text-xs mt-1" style={{ color: '#64748b' }}>
+                              Original: {expense.description}
+                            </p>
+                          )}
                         </div>
                       ))}
                     </div>
