@@ -47,13 +47,15 @@ export default function CarModels() {
     try {
       if (editingModel) {
         await carModelsAPI.update(editingModel.id, formData);
+        resetForm();
+        fetchCarModels();
         await showAlert('Modèle modifié avec succès', 'success');
       } else {
         await carModelsAPI.create(formData);
+        resetForm();
+        fetchCarModels();
         await showAlert('Modèle créé avec succès', 'success');
       }
-      resetForm();
-      fetchCarModels();
     } catch (error) {
       await showAlert(
         error.response?.data?.errors?.[0] || 'Erreur lors de l\'enregistrement',

@@ -112,13 +112,15 @@ export default function Cars() {
     try {
       if (editingCar) {
         await carsAPI.update(editingCar.id, formData);
+        resetForm();
+        fetchCars();
         await showAlert('Véhicule modifié avec succès', 'success');
       } else {
         await carsAPI.create(formData);
+        resetForm();
+        fetchCars();
         await showAlert('Véhicule ajouté avec succès', 'success');
       }
-      resetForm();
-      fetchCars();
     } catch (error) {
       await showAlert(
         error.response?.data?.errors?.[0] || 'Erreur lors de l\'enregistrement',

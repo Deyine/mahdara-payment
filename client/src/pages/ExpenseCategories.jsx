@@ -52,13 +52,15 @@ export default function ExpenseCategories() {
     try {
       if (editingCategory) {
         await expenseCategoriesAPI.update(editingCategory.id, formData);
+        resetForm();
+        fetchCategories();
         await showAlert('Catégorie modifiée avec succès', 'success');
       } else {
         await expenseCategoriesAPI.create(formData);
+        resetForm();
+        fetchCategories();
         await showAlert('Catégorie créée avec succès', 'success');
       }
-      resetForm();
-      fetchCategories();
     } catch (error) {
       await showAlert(
         error.response?.data?.errors?.[0] || 'Erreur lors de l\'enregistrement',

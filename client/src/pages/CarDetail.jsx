@@ -152,9 +152,9 @@ export default function CarDetail() {
 
     try {
       await carsAPI.update(id, formData);
-      await showAlert('Véhicule modifié avec succès', 'success');
       resetForm();
       fetchCarDetails();
+      await showAlert('Véhicule modifié avec succès', 'success');
     } catch (error) {
       await showAlert(
         error.response?.data?.errors?.[0] || 'Erreur lors de l\'enregistrement',
