@@ -52,13 +52,15 @@ export default function Sellers() {
     try {
       if (editingSeller) {
         await sellersAPI.update(editingSeller.id, formData);
+        resetForm(); // Close dialog before showing alert
+        fetchSellers();
         await showAlert('Vendeur modifié avec succès', 'success');
       } else {
         await sellersAPI.create(formData);
+        resetForm(); // Close dialog before showing alert
+        fetchSellers();
         await showAlert('Vendeur créé avec succès', 'success');
       }
-      resetForm();
-      fetchSellers();
     } catch (error) {
       await showAlert(
         error.response?.data?.errors?.[0] || 'Erreur lors de l\'enregistrement',
