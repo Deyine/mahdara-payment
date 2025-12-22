@@ -34,6 +34,10 @@ BestCar is a **multi-tenant salvage car inventory and expense tracking system** 
 
 ### Key Features
 - Complete vehicle lifecycle tracking (purchase → repair → sale-ready)
+- Bulk vehicle import from Excel/text data with flexible parsing
+- Automatic MRO to MRU currency conversion during import
+- Smart expense category matching and auto-creation
+- Comprehensive import recap with totals and visual indicators
 - Expense categorization (reparation: engine, body, paint; purchase: fees, shipping, clearance)
 - Real-time cost calculation and profitability analysis
 - Multi-tenant architecture with subdomain support
@@ -50,13 +54,18 @@ BestCar is a **multi-tenant salvage car inventory and expense tracking system** 
 
 **In Scope:**
 - Vehicle inventory management (VIN, model, purchase details)
-- Seller/auction house management (name, location)
+- Seller/auction house management (name, location, active status)
 - Expense tracking by category and vehicle
 - Cost calculation (purchase + clearance + towing + repairs)
 - Multi-tenant data isolation
 - Car model library management
 - Expense category configuration
-- Bulk vehicle import from Excel data
+- Bulk vehicle import from Excel/text data with:
+  - Flexible parsing (supports ::, tabs, spaces, emojis)
+  - MRO to MRU currency auto-conversion (old to new Mauritanian Ouguiya)
+  - Smart expense category matching and auto-creation
+  - Comprehensive recap showing totals and what will be created
+  - Support for clearance costs and multi-line expense sections
 
 **Out of Scope:**
 - Customer/buyer management

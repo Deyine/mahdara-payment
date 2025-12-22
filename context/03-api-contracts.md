@@ -709,6 +709,116 @@ invoices[]: File (PDF, JPG, or PNG file)
 
 ---
 
+## Sellers
+
+### List All Sellers
+
+**Endpoint**: `GET /api/sellers`
+**Access**: Authenticated (admin, super_admin)
+**Description**: Returns all sellers/auction houses for the current tenant
+
+**Response**:
+```json
+[
+  {
+    "id": 1,
+    "name": "Copart Auto Auction",
+    "location": "Dallas, TX",
+    "active": true,
+    "tenant_id": "uuid",
+    "created_at": "2025-12-07T12:00:00.000Z",
+    "updated_at": "2025-12-07T12:00:00.000Z"
+  }
+]
+```
+
+**Notes**:
+
+- Sellers are ordered by name alphabetically
+- Scoped to current user's tenant
+
+### List Active Sellers
+
+**Endpoint**: `GET /api/sellers/active`
+**Access**: Authenticated (admin, super_admin)
+**Description**: Returns only active sellers (for dropdowns in car purchase forms)
+
+**Response**: Same format, filtered by `active: true`
+
+### Create Seller
+
+**Endpoint**: `POST /api/sellers`
+**Access**: Admin only
+
+**Request**:
+```json
+{
+  "seller": {
+    "name": "IAA Insurance Auto Auctions",
+    "location": "Phoenix, AZ",
+    "active": true
+  }
+}
+```
+
+**Response**: Created seller object (status 201)
+
+**Response** (Error - validation failure):
+```json
+{
+  "errors": [
+    "Name has already been taken for this tenant"
+  ]
+}
+```
+
+**Validation Rules**:
+
+- `name`: required, unique per tenant
+- `location`: optional
+- `active`: defaults to true
+- tenant_id automatically set from current_user
+
+### Update Seller
+
+**Endpoint**: `PUT /api/sellers/:id`
+**Access**: Admin only
+
+**Request**: Same structure as Create
+
+**Response**: Updated seller object
+
+### Delete Seller
+
+**Endpoint**: `DELETE /api/sellers/:id`
+**Access**: Admin only
+
+**Response** (Success):
+```json
+{
+  "message": "Seller deleted successfully"
+}
+```
+
+**Response** (Error - has cars):
+```json
+{
+  "error": "Cannot delete seller with associated cars"
+}
+```
+
+**Status Codes**:
+
+- `200 OK` - Success
+- `422 Unprocessable Entity` - Seller has associated cars
+
+**Notes**:
+
+- Sellers cannot be deleted if they have cars referencing them
+- Consider marking as inactive instead of deleting
+
+---
+
 ## Data Type Notes
 
 ### Decimal/Float Handling
@@ -818,6 +928,9 @@ All errors return JSON with `error` key:
 | GET | `/api/expense_categories/active` | Auth | Active categories only |
 | POST/PUT/DELETE | `/api/expense_categories` | Admin | Expense category CUD |
 | GET/POST/PUT/DELETE | `/api/expenses` | Auth/Admin | Expense CRUD |
+| GET | `/api/sellers` | Auth | All sellers |
+| GET | `/api/sellers/active` | Auth | Active sellers only |
+| POST/PUT/DELETE | `/api/sellers` | Admin | Seller CUD |
 
 **Legend**:
 - **Public**: No authentication required
