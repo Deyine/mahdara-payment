@@ -139,7 +139,7 @@ export default function CarDetail() {
       mileage: car.mileage || '',
       purchase_date: car.purchase_date,
       purchase_price: car.purchase_price,
-      seller: car.seller || '',
+      seller: car.seller?.name || '',
       location: car.location || '',
       clearance_cost: car.clearance_cost || '',
       towing_cost: car.towing_cost || ''
@@ -317,7 +317,7 @@ export default function CarDetail() {
             {car.seller && (
               <div>
                 <p className="text-sm mb-1" style={{ color: '#64748b' }}>Vendeur</p>
-                <p className="font-semibold" style={{ color: '#1e293b' }}>{car.seller}</p>
+                <p className="font-semibold" style={{ color: '#1e293b' }}>{car.seller.name}</p>
               </div>
             )}
             {car.location && (
