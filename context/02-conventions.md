@@ -1,4 +1,4 @@
-# Glamova - Code Conventions & Patterns
+# BestCar - Code Conventions & Patterns
 
 ## Development Workflow
 
@@ -14,7 +14,7 @@
 
 ```bash
 # Good - Specific files only
-git add backend/app/models/product.rb backend/app/controllers/api/products_controller.rb
+git add backend/app/models/car.rb backend/app/controllers/api/cars_controller.rb
 
 # Bad - Stages everything including unrelated changes
 git add .
@@ -71,18 +71,18 @@ git add .
 
 ```ruby
 # Good - Explains why
-# Stock is NEVER manually edited to maintain data integrity
-# Only updated via purchase completion/uncompletion
-def product_params
-  params.require(:product).permit(:name, :sku, :reorder_level)
-  # current_stock intentionally omitted
+# Soft delete used to preserve historical data
+# deleted_at timestamp instead of hard delete
+def car_params
+  params.require(:car).permit(:vin, :car_model_id, :year, :color, :mileage, :purchase_price)
+  # deleted_at intentionally omitted (set via destroy action)
 end
 
 # Bad - States the obvious
-# This method gets product parameters
-def product_params
-  # Permit name, sku, and reorder_level
-  params.require(:product).permit(:name, :sku, :reorder_level)
+# This method gets car parameters
+def car_params
+  # Permit VIN, model, year, etc.
+  params.require(:car).permit(:vin, :car_model_id, :year, :color)
 end
 ```
 
@@ -1046,28 +1046,33 @@ const getCurrencySymbol = (currency) => {
 - `destroy` - DELETE delete
 
 ### Association Naming
-- `belongs_to :product` - expects `product_id` column
-- `has_many :purchase_items` - PurchaseItem model has foreign key
+- `belongs_to :car_model` - expects `car_model_id` column
+- `belongs_to :tenant` - all models scoped by tenant
+- `has_many :expenses` - Expense model has car_id foreign key
 - `dependent: :destroy` - cascade delete
 - `dependent: :restrict_with_error` - prevent deletion if associated records exist
 
 ### Strong Parameters
 
-**ProductsController**:
+**CarsController**:
 ```ruby
-def product_params
-  params.require(:product).permit(:name, :description, :sku, :reorder_level, :image_url)
-  # NOTE: current_stock is NOT permitted (auto-calculated)
+def car_params
+  params.require(:car).permit(
+    :vin, :car_model_id, :year, :color, :mileage,
+    :purchase_date, :purchase_price, :seller, :location,
+    :clearance_cost, :towing_cost
+  )
+  # NOTE: deleted_at is NOT permitted (set via destroy action)
+  # NOTE: tenant_id set automatically from current_user
 end
 ```
 
-**PurchasesController**:
+**ExpensesController**:
 ```ruby
-def purchase_params
-  params.require(:purchase).permit(
-    :purchase_date, :supplier, :delivery_cost, :total_product_cost, :notes, :status,
-    :currency, :exchange_rate,
-    purchase_items_attributes: [:id, :product_id, :quantity, :unit_cost, :_destroy]
+def expense_params
+  params.require(:expense).permit(
+    :expense_date, :expense_category_id, :car_id, :amount,
+    :description, :currency, :exchange_rate
   )
 end
 ```
@@ -1076,13 +1081,14 @@ end
 
 ```ruby
 # Good - Use scopes for reusable queries
-scope :active, -> { where(active: true) }
+scope :active, -> { where(deleted_at: nil) }
+scope :for_tenant, ->(tenant_id) { where(tenant_id: tenant_id) }
 
 # Good - Use eager loading to avoid N+1
-Purchase.includes(purchase_items: :product)
+Car.includes(:car_model, :expenses)
 
 # Good - Use validations
-validates :sku, uniqueness: true, presence: true
+validates :vin, uniqueness: { scope: :tenant_id }, presence: true
 
 # Good - Use transactions for multi-step operations
 ActiveRecord::Base.transaction do
@@ -1161,10 +1167,10 @@ csv = CSV.parse(csv_text, headers: false, col_sep: separator)
 ### Avoid N+1 Queries
 ```ruby
 # Good - eager load associations
-User.includes(:filiere).where(role: 'operator')
+Car.includes(:car_model, :expenses).where(tenant_id: tenant.id)
 
 # Bad - N+1 query
-User.where(role: 'operator').each { |u| u.filiere.name }
+Car.where(tenant_id: tenant.id).each { |c| c.car_model.name }
 ```
 
 ### Frontend Sorting
@@ -1188,6 +1194,6 @@ Currently using **Ruby 3.2.1** (changed from 3.3.0)
 
 ### Unique Constraints
 - `users.username` - unique
-- `products.sku` - unique
-- `expense_types.name` - unique
-- `purchase_items[purchase_id, product_id]` - composite unique
+- `tenants.subdomain` - unique
+- `cars[tenant_id, vin]` - composite unique (VIN unique per tenant)
+- `car_models[tenant_id, name]` - composite unique (model name unique per tenant)

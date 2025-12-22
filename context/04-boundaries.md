@@ -1,4 +1,4 @@
-# Glamova - Frontend ↔ Backend Boundaries
+# BestCar - Frontend ↔ Backend Boundaries
 
 This document describes how the React frontend integrates with the Rails backend.
 
