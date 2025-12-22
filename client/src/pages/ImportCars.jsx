@@ -174,7 +174,9 @@ export default function ImportCars() {
 
     const category = parts[0];
     const amountStr = parts[1].replace(/\s+/g, ''); // Remove spaces from number
-    const amount = parseFloat(amountStr);
+    // Convert from MRO (old currency) to MRU (new currency): divide by 10
+    // Example: 1,000,000 MRO = 100,000 MRU
+    const amount = parseFloat(amountStr) / 10;
 
     if (isNaN(amount)) return;
 
@@ -406,6 +408,10 @@ Remorquage	50 000`}
           </pre>
           <p className="text-sm mt-2" style={{ color: '#1e40af' }}>
             <strong>Note:</strong> Chaque véhicule commence par #. Le VIN est optionnel (format: Modèle - VIN - Couleur).
+          </p>
+          <p className="text-sm mt-2" style={{ color: '#1e40af' }}>
+            <strong>💱 Conversion automatique:</strong> Les montants en MRO (ancienne monnaie) seront automatiquement convertis en MRU (÷10).
+            <br />Exemple: 2 600 000 MRO → 260 000 MRU
           </p>
         </div>
 
