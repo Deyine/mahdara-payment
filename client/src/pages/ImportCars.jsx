@@ -363,6 +363,25 @@ export default function ImportCars() {
     });
   };
 
+  // Update expense category for a specific car
+  const updateExpenseCategory = (carIndex, expenseIndex, categoryId) => {
+    setParsedCars(prev => {
+      const updated = [...prev];
+      const matchedCategory = expenseCategories.find(ec => ec.id === categoryId);
+
+      if (matchedCategory) {
+        updated[carIndex].expenses[expenseIndex] = {
+          ...updated[carIndex].expenses[expenseIndex],
+          matched_category_id: matchedCategory.id,
+          matched_category_name: matchedCategory.name,
+          will_create_category: false,
+        };
+      }
+
+      return updated;
+    });
+  };
+
   // Remove a parsed car from the list
   const removeCarFromList = (index) => {
     setParsedCars(prev => prev.filter((_, i) => i !== index));
@@ -854,7 +873,7 @@ Achat	1 500 000`}
                     <p className="text-sm font-medium mb-2" style={{ color: '#64748b' }}>
                       📋 Dépenses détectées ({car.expenses.length}):
                     </p>
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                       {car.expenses.map((expense, i) => (
                         <div
                           key={i}
@@ -887,6 +906,35 @@ Achat	1 500 000`}
                             <p className="text-xs mt-1" style={{ color: '#64748b' }}>
                               Original: {expense.description}
                             </p>
+                          )}
+
+                          {/* Manual category selection for unmatched categories */}
+                          {expense.will_create_category && (
+                            <div className="mt-2 pt-2" style={{ borderTop: '1px solid #fcd34d' }}>
+                              <label className="block text-xs font-medium mb-1" style={{ color: '#92400e' }}>
+                                Ou sélectionner une catégorie existante:
+                              </label>
+                              <select
+                                value={expense.matched_category_id || ''}
+                                onChange={(e) => updateExpenseCategory(index, i, e.target.value)}
+                                className="w-full px-2 py-1.5 rounded text-sm"
+                                style={{
+                                  border: '1px solid #fbbf24',
+                                  backgroundColor: 'white',
+                                  color: '#1e293b'
+                                }}
+                              >
+                                <option value="">-- Ou choisir une catégorie existante --</option>
+                                {expenseCategories.map(cat => (
+                                  <option key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                  </option>
+                                ))}
+                              </select>
+                              <p className="text-xs mt-1" style={{ color: '#92400e' }}>
+                                💡 Si la catégorie existe avec un nom différent, sélectionnez-la ici pour éviter les doublons
+                              </p>
+                            </div>
                           )}
                         </div>
                       ))}
