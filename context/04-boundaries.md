@@ -2127,3 +2127,304 @@ export const expensesAPI = {
 - Amount and date fields
 - Impacts car's total_cost calculation
 - Admin-only modifications
+
+---
+
+## Seller Relationship Handling
+
+### Seller Object Structure
+
+Cars have a `seller` relationship that returns a full seller object (not a simple string field).
+
+**Backend Response** (after Excel import or API fetch):
+```json
+{
+  "id": "car-uuid",
+  "vin": "ABC123",
+  "seller_id": "seller-uuid",
+  "seller": {
+    "id": "seller-uuid",
+    "name": "Arrivage Canada",
+    "location": "Canada/USA",
+    "active": true,
+    "tenant_id": "tenant-uuid"
+  }
+}
+```
+
+### Frontend Display
+
+**Car List** (`Cars.jsx`):
+```jsx
+// Seller not displayed in list cards (only in detail view)
+```
+
+**Car Detail** (`CarDetail.jsx`):
+```jsx
+{car.seller && (
+  <div>
+    <p className="text-sm mb-1" style={{ color: '#64748b' }}>Vendeur</p>
+    <p className="font-semibold" style={{ color: '#1e293b' }}>{car.seller.name}</p>
+  </div>
+)}
+```
+
+**Edit Form** (`CarDetail.jsx`):
+```jsx
+// When opening edit form, extract name from seller object
+const handleEdit = () => {
+  setFormData({
+    vin: car.vin,
+    seller: car.seller?.name || '',  // Extract name, not entire object
+    // ...
+  });
+};
+```
+
+**Search Filter** (`Cars.jsx`):
+```jsx
+const filteredCars = cars.filter((car) =>
+  car.vin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  car.car_model?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  car.seller?.name?.toLowerCase().includes(searchTerm.toLowerCase())  // Search by seller name
+);
+```
+
+### Implementation Notes
+
+**Object vs String**:
+
+- Backend returns `seller` as a full object with id, name, location, active, etc.
+- Frontend must access `car.seller.name` (not just `car.seller`)
+- Attempting to render `{car.seller}` directly causes React error: "Objects are not valid as a React child"
+
+**Optional Chaining**:
+
+- Always use `car.seller?.name` to handle cases where seller is null/undefined
+- Prevents crashes when car has no seller assigned
+
+**Form Handling**:
+
+- Forms use `seller_id` (UUID) for creating/updating cars
+- Display extracts `seller.name` from the relationship object
+- Edit mode populates text field with seller name (legacy compatibility)
+
+---
+
+## Car List Enhanced Cards
+
+### Card Components
+
+Car list cards display comprehensive vehicle information including photos, financial details, and status.
+
+### Photo Swiper Component
+
+**Display** (`Cars.jsx` - lines 325-381):
+
+```jsx
+{/* Shows first 5 salvage photos in horizontal scrollable gallery */}
+{car.salvage_photos && car.salvage_photos.length > 0 && (
+  <div style={{ marginBottom: '15px', position: 'relative' }}>
+    <div
+      style={{
+        display: 'flex',
+        gap: '8px',
+        overflowX: 'auto',
+        scrollbarWidth: 'none',
+        scrollSnapType: 'x mandatory'
+      }}
+      className="car-photos-swiper"
+    >
+      {car.salvage_photos.slice(0, 5).map((photo, index) => (
+        <div
+          key={photo.id || index}
+          style={{
+            minWidth: '100px',
+            height: '100px',
+            borderRadius: '6px',
+            overflow: 'hidden',
+            scrollSnapAlign: 'start',
+            cursor: 'pointer',
+            position: 'relative'
+          }}
+          onClick={() => handleView(car)}
+        >
+          <img
+            src={photo.url}
+            alt={`Photo ${index + 1}`}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover'
+            }}
+          />
+          {/* Show +X overlay on 5th photo if more than 5 exist */}
+          {index === 4 && car.salvage_photos.length > 5 && (
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: 'bold',
+              fontSize: '16px'
+            }}>
+              +{car.salvage_photos.length - 5}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+```
+
+**CSS for Hidden Scrollbar**:
+
+```jsx
+<style>{`
+  .car-photos-swiper::-webkit-scrollbar {
+    display: none;
+  }
+  .car-photos-swiper {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+`}</style>
+```
+
+**Features**:
+
+- Horizontal scroll with snap-to-photo behavior
+- Hidden scrollbar for clean appearance
+- Touch-optimized scrolling
+- Clickable photos navigate to car detail page
+- "+X" overlay shows count of additional photos (e.g., "+3" if 8 total)
+- Only shows first 5 photos to keep cards compact
+
+### Enhanced Financial Display
+
+**Cost Breakdown** (`Cars.jsx` - lines 383-442):
+
+```jsx
+<div style={{ marginBottom: '15px', fontSize: '14px' }}>
+  {/* Basic info: year, color, mileage */}
+
+  {/* Visual separator */}
+  <div style={{
+    borderTop: '1px solid #e5e7eb',
+    paddingTop: '8px',
+    marginTop: '8px',
+    marginBottom: '8px'
+  }} />
+
+  {/* Purchase price */}
+  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+    <span style={{ color: '#6b7280' }}>Prix d'achat:</span>
+    <span style={{ fontWeight: '500' }}>
+      {formatCurrency(car.purchase_price)}
+    </span>
+  </div>
+
+  {/* Clearance cost (Dédouanement) - only if > 0 */}
+  {car.clearance_cost && parseFloat(car.clearance_cost) > 0 && (
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+      <span style={{ color: '#6b7280' }}>Dédouanement:</span>
+      <span style={{ fontWeight: '500' }}>
+        {formatCurrency(car.clearance_cost)}
+      </span>
+    </div>
+  )}
+
+  {/* Total expenses - orange color to highlight repair costs */}
+  {car.total_expenses && parseFloat(car.total_expenses) > 0 && (
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+      <span style={{ color: '#6b7280' }}>Total dépenses:</span>
+      <span style={{ fontWeight: '500', color: '#f59e0b' }}>
+        {formatCurrency(car.total_expenses)}
+      </span>
+    </div>
+  )}
+
+  {/* Total cost - bold red with larger font */}
+  {car.total_cost && (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginTop: '8px',
+      paddingTop: '8px',
+      borderTop: '1px solid #e5e7eb'
+    }}>
+      <span style={{ color: '#1e293b', fontWeight: 'bold' }}>Coût total:</span>
+      <span style={{ fontWeight: 'bold', color: '#dc2626', fontSize: '16px' }}>
+        {formatCurrency(car.total_cost)}
+      </span>
+    </div>
+  )}
+</div>
+```
+
+**Color Coding**:
+
+- Regular costs: Default color (#1e293b)
+- Total expenses: Orange (#f59e0b) - highlights repair costs
+- Total cost: Red (#dc2626) with larger font - emphasizes final investment
+
+**Conditional Display**:
+
+- Clearance cost: Only shown if value exists and > 0
+- Total expenses: Only shown if value exists and > 0
+- Separators: Used to visually group related information
+
+### Card Layout Structure
+
+**Complete Card Structure**:
+
+1. **Header Section**: Model name and VIN
+2. **Photo Swiper**: First 5 salvage photos (if available)
+3. **Basic Info**: Year, color, mileage (if available)
+4. **Separator**
+5. **Financial Details**:
+   - Purchase price
+   - Clearance cost (conditional)
+   - Total expenses (conditional)
+   - **Separator**
+   - Total cost (emphasized)
+6. **Action Buttons**: "Voir Détails" + Delete/Restore
+
+**Grid Layout**:
+
+```jsx
+<div style={{
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+  gap: '20px'
+}}>
+  {/* Car cards */}
+</div>
+```
+
+### Design Benefits and Performance
+
+**Photo Swiper Benefits**:
+
+- Provides visual preview without opening detail page
+- Horizontal scroll conserves vertical space
+- Snap scrolling ensures clean photo transitions
+- Clickable photos provide quick navigation to details
+
+**Financial Summary Benefits**:
+
+- At-a-glance cost overview
+- Color coding helps identify high-expense vehicles
+- Conditional display keeps cards compact
+- Separators improve readability
+
+**Performance Considerations**:
+
+- Photos lazy-loaded by browser
+- Only first 5 photos loaded per card
+- CSS-only scrollbar hiding (no JS needed)
+- Slice operation prevents rendering excess photos
