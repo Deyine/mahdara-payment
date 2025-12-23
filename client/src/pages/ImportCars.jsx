@@ -15,6 +15,9 @@ export default function ImportCars() {
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
 
+  // State for searchable category dropdowns: {carIndex-expenseIndex: {search: '', isOpen: false}}
+  const [categoryDropdowns, setCategoryDropdowns] = useState({});
+
   useEffect(() => {
     fetchCarModels();
     fetchExpenseCategories();
@@ -376,10 +379,64 @@ export default function ImportCars() {
           matched_category_name: matchedCategory.name,
           will_create_category: false,
         };
+
+        // Close the dropdown after selection
+        const key = `${carIndex}-${expenseIndex}`;
+        setCategoryDropdowns(prev => ({
+          ...prev,
+          [key]: { search: '', isOpen: false }
+        }));
       }
 
       return updated;
     });
+  };
+
+  // Helper functions for searchable category dropdown
+  const getDropdownKey = (carIndex, expenseIndex) => `${carIndex}-${expenseIndex}`;
+
+  const toggleCategoryDropdown = (carIndex, expenseIndex) => {
+    const key = getDropdownKey(carIndex, expenseIndex);
+    setCategoryDropdowns(prev => ({
+      ...prev,
+      [key]: {
+        search: prev[key]?.search || '',
+        isOpen: !prev[key]?.isOpen
+      }
+    }));
+  };
+
+  const updateCategorySearch = (carIndex, expenseIndex, searchTerm) => {
+    const key = getDropdownKey(carIndex, expenseIndex);
+    setCategoryDropdowns(prev => ({
+      ...prev,
+      [key]: {
+        search: searchTerm,
+        isOpen: true
+      }
+    }));
+  };
+
+  const getFilteredCategories = (carIndex, expenseIndex) => {
+    const key = getDropdownKey(carIndex, expenseIndex);
+    const searchTerm = categoryDropdowns[key]?.search?.toLowerCase() || '';
+
+    if (!searchTerm) return expenseCategories;
+
+    return expenseCategories.filter(cat =>
+      cat.name.toLowerCase().includes(searchTerm)
+    );
+  };
+
+  const closeCategoryDropdown = (carIndex, expenseIndex) => {
+    const key = getDropdownKey(carIndex, expenseIndex);
+    // Add small delay to allow click events to fire
+    setTimeout(() => {
+      setCategoryDropdowns(prev => ({
+        ...prev,
+        [key]: { ...prev[key], isOpen: false }
+      }));
+    }, 200);
   };
 
   // Remove a parsed car from the list
@@ -914,25 +971,59 @@ Achat	1 500 000`}
                               <label className="block text-xs font-medium mb-1" style={{ color: '#92400e' }}>
                                 Ou sélectionner une catégorie existante:
                               </label>
-                              <select
-                                value={expense.matched_category_id || ''}
-                                onChange={(e) => updateExpenseCategory(index, i, e.target.value)}
-                                className="w-full px-2 py-1.5 rounded text-sm"
-                                style={{
-                                  border: '1px solid #fbbf24',
-                                  backgroundColor: 'white',
-                                  color: '#1e293b'
-                                }}
-                              >
-                                <option value="">-- Ou choisir une catégorie existante --</option>
-                                {expenseCategories.map(cat => (
-                                  <option key={cat.id} value={cat.id}>
-                                    {cat.name}
-                                  </option>
-                                ))}
-                              </select>
+
+                              {/* Searchable Dropdown */}
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  value={categoryDropdowns[getDropdownKey(index, i)]?.search || ''}
+                                  onChange={(e) => updateCategorySearch(index, i, e.target.value)}
+                                  onFocus={() => toggleCategoryDropdown(index, i)}
+                                  onBlur={() => closeCategoryDropdown(index, i)}
+                                  placeholder="Tapez pour rechercher une catégorie..."
+                                  className="w-full px-3 py-2 rounded text-sm"
+                                  style={{
+                                    border: '1px solid #fbbf24',
+                                    backgroundColor: 'white',
+                                    color: '#1e293b'
+                                  }}
+                                />
+
+                                {/* Dropdown List */}
+                                {categoryDropdowns[getDropdownKey(index, i)]?.isOpen && (
+                                  <div
+                                    className="absolute z-10 w-full mt-1 rounded shadow-lg"
+                                    style={{
+                                      backgroundColor: 'white',
+                                      border: '1px solid #fbbf24',
+                                      maxHeight: '200px',
+                                      overflowY: 'auto'
+                                    }}
+                                  >
+                                    {getFilteredCategories(index, i).length > 0 ? (
+                                      getFilteredCategories(index, i).map(cat => (
+                                        <div
+                                          key={cat.id}
+                                          onClick={() => updateExpenseCategory(index, i, cat.id)}
+                                          className="px-3 py-2 cursor-pointer text-sm"
+                                          style={{ borderBottom: '1px solid #fef3c7' }}
+                                          onMouseEnter={(e) => e.target.style.backgroundColor = '#fef3c7'}
+                                          onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                                        >
+                                          {cat.name}
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="px-3 py-2 text-sm" style={{ color: '#64748b' }}>
+                                        Aucune catégorie trouvée
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+
                               <p className="text-xs mt-1" style={{ color: '#92400e' }}>
-                                💡 Si la catégorie existe avec un nom différent, sélectionnez-la ici pour éviter les doublons
+                                💡 Si la catégorie existe avec un nom différent, tapez pour la rechercher et éviter les doublons
                               </p>
                             </div>
                           )}
