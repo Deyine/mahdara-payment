@@ -202,6 +202,15 @@ export default function Cars() {
 
   return (
     <div style={{ padding: '20px' }}>
+      <style>{`
+        .car-photos-swiper::-webkit-scrollbar {
+          display: none;
+        }
+        .car-photos-swiper {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+      `}</style>
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -322,6 +331,64 @@ export default function Cars() {
                 </p>
               </div>
 
+              {/* Salvage Photos Swiper */}
+              {car.salvage_photos && car.salvage_photos.length > 0 && (
+                <div style={{ marginBottom: '15px', position: 'relative' }}>
+                  <div style={{
+                    display: 'flex',
+                    gap: '8px',
+                    overflowX: 'auto',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch',
+                    scrollSnapType: 'x mandatory'
+                  }}
+                  className="car-photos-swiper"
+                  >
+                    {car.salvage_photos.slice(0, 5).map((photo, index) => (
+                      <div
+                        key={photo.id || index}
+                        style={{
+                          minWidth: '100px',
+                          height: '100px',
+                          borderRadius: '6px',
+                          overflow: 'hidden',
+                          scrollSnapAlign: 'start',
+                          cursor: 'pointer',
+                          position: 'relative'
+                        }}
+                        onClick={() => handleView(car)}
+                      >
+                        <img
+                          src={photo.url}
+                          alt={`Photo ${index + 1}`}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                        {index === 4 && car.salvage_photos.length > 5 && (
+                          <div style={{
+                            position: 'absolute',
+                            inset: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: 'bold',
+                            fontSize: '16px'
+                          }}>
+                            +{car.salvage_photos.length - 5}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div style={{ marginBottom: '15px', fontSize: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
                   <span style={{ color: '#6b7280' }}>Année:</span>
@@ -339,16 +406,44 @@ export default function Cars() {
                     <span style={{ fontWeight: '500' }}>{car.mileage.toLocaleString()} km</span>
                   </div>
                 )}
+                <div style={{
+                  borderTop: '1px solid #e5e7eb',
+                  paddingTop: '8px',
+                  marginTop: '8px',
+                  marginBottom: '8px'
+                }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
                   <span style={{ color: '#6b7280' }}>Prix d'achat:</span>
-                  <span style={{ fontWeight: '500', color: '#167bff' }}>
+                  <span style={{ fontWeight: '500' }}>
                     {formatCurrency(car.purchase_price)}
                   </span>
                 </div>
-                {car.total_cost && (
+                {car.clearance_cost && parseFloat(car.clearance_cost) > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                    <span style={{ color: '#6b7280' }}>Coût total:</span>
-                    <span style={{ fontWeight: 'bold', color: '#dc2626' }}>
+                    <span style={{ color: '#6b7280' }}>Dédouanement:</span>
+                    <span style={{ fontWeight: '500' }}>
+                      {formatCurrency(car.clearance_cost)}
+                    </span>
+                  </div>
+                )}
+                {car.total_expenses && parseFloat(car.total_expenses) > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                    <span style={{ color: '#6b7280' }}>Total dépenses:</span>
+                    <span style={{ fontWeight: '500', color: '#f59e0b' }}>
+                      {formatCurrency(car.total_expenses)}
+                    </span>
+                  </div>
+                )}
+                {car.total_cost && (
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginTop: '8px',
+                    paddingTop: '8px',
+                    borderTop: '1px solid #e5e7eb'
+                  }}>
+                    <span style={{ color: '#1e293b', fontWeight: 'bold' }}>Coût total:</span>
+                    <span style={{ fontWeight: 'bold', color: '#dc2626', fontSize: '16px' }}>
                       {formatCurrency(car.total_cost)}
                     </span>
                   </div>
