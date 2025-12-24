@@ -357,11 +357,73 @@ cd client && npm run dev
 ```
 
 ### Production Build
+
 ```bash
 cd client
 npm run build              # Creates dist/ folder
 # Deploy dist/ to nginx
 ```
+
+## Server Configuration
+
+### Puma Web Server
+
+The Rails backend uses Puma configured to bind only to localhost for security with reverse proxy deployment.
+
+**Configuration** (`backend/config/puma.rb`):
+
+```ruby
+# Bind to localhost only for reverse proxy setup (nginx)
+# This prevents direct external access to the Rails app
+bind "tcp://127.0.0.1:#{ENV.fetch('PORT', 3061)}"
+```
+
+**Security Benefits**:
+
+- Backend not directly accessible from external network
+- All traffic must go through reverse proxy (nginx)
+- Defense in depth - even if nginx config has issues, backend isn't reachable
+- Only localhost connections accepted on port 3061
+
+**Reverse Proxy Integration**:
+
+The Puma server listens on `127.0.0.1:3061` and should be accessed via nginx reverse proxy:
+
+```nginx
+upstream rails_backend {
+  server 127.0.0.1:3061;
+}
+
+server {
+  listen 80;
+  server_name api.yourdomain.com;
+
+  location / {
+    proxy_pass http://rails_backend;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+}
+```
+
+**Local Development**:
+
+In development, the localhost binding is still accessible from the same machine:
+
+```bash
+# Works - same machine
+curl http://localhost:3061/api/health
+
+# Connection refused - external access blocked
+curl http://server-ip:3061/api/health
+```
+
+**Environment Variables**:
+
+- `PORT`: Server port (default: 3061)
+- `RAILS_MAX_THREADS`: Thread pool size (default: 3)
 
 ## Seeded Data
 

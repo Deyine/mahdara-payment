@@ -2428,3 +2428,245 @@ Car list cards display comprehensive vehicle information including photos, finan
 - Only first 5 photos loaded per card
 - CSS-only scrollbar hiding (no JS needed)
 - Slice operation prevents rendering excess photos
+
+---
+
+## Excel Import with Searchable Category Matching
+
+### Overview
+
+The Excel import feature (`ImportCars.jsx`) allows bulk vehicle import with intelligent expense category matching and manual selection when auto-detection fails.
+
+### Unmatched Category Handling
+
+When the import cannot automatically match an expense category name, users can manually select from existing categories using a searchable dropdown to prevent duplicate category creation.
+
+**Visual Indicator**:
+- Yellow/amber highlighted expense card
+- Badge: "📝 Sera créée" (will be created)
+
+### Searchable Dropdown Component
+
+**Implementation** (`ImportCars.jsx` - lines 964-1016):
+
+```jsx
+{/* Manual category selection for unmatched categories */}
+{expense.will_create_category && (
+  <div className="mt-2 pt-2" style={{ borderTop: '1px solid #fcd34d' }}>
+    <label className="block text-xs font-medium mb-1" style={{ color: '#92400e' }}>
+      Ou sélectionner une catégorie existante:
+    </label>
+
+    {/* Searchable Dropdown */}
+    <div className="relative">
+      <input
+        type="text"
+        value={categoryDropdowns[getDropdownKey(index, i)]?.search || ''}
+        onChange={(e) => updateCategorySearch(index, i, e.target.value)}
+        onFocus={() => toggleCategoryDropdown(index, i)}
+        onBlur={() => closeCategoryDropdown(index, i)}
+        placeholder="Tapez pour rechercher une catégorie..."
+        className="w-full px-3 py-2 rounded text-sm"
+        style={{
+          border: '1px solid #fbbf24',
+          backgroundColor: 'white',
+          color: '#1e293b'
+        }}
+      />
+
+      {/* Dropdown List */}
+      {categoryDropdowns[getDropdownKey(index, i)]?.isOpen && (
+        <div
+          className="absolute z-10 w-full mt-1 rounded shadow-lg"
+          style={{
+            backgroundColor: 'white',
+            border: '1px solid #fbbf24',
+            maxHeight: '200px',
+            overflowY: 'auto'
+          }}
+        >
+          {getFilteredCategories(index, i).length > 0 ? (
+            getFilteredCategories(index, i).map(cat => (
+              <div
+                key={cat.id}
+                onClick={() => updateExpenseCategory(index, i, cat.id)}
+                className="px-3 py-2 cursor-pointer text-sm"
+                style={{ borderBottom: '1px solid #fef3c7' }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#fef3c7'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+              >
+                {cat.name}
+              </div>
+            ))
+          ) : (
+            <div className="px-3 py-2 text-sm" style={{ color: '#64748b' }}>
+              Aucune catégorie trouvée
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+
+    <p className="text-xs mt-1" style={{ color: '#92400e' }}>
+      💡 Si la catégorie existe avec un nom différent, tapez pour la rechercher et éviter les doublons
+    </p>
+  </div>
+)}
+```
+
+### State Management
+
+**Dropdown State** (`ImportCars.jsx` - lines 18-19):
+```jsx
+// State for searchable category dropdowns: {carIndex-expenseIndex: {search: '', isOpen: false}}
+const [categoryDropdowns, setCategoryDropdowns] = useState({});
+```
+
+**Helper Functions**:
+```jsx
+// Generate unique key for each expense dropdown
+const getDropdownKey = (carIndex, expenseIndex) => `${carIndex}-${expenseIndex}`;
+
+// Toggle dropdown open/closed
+const toggleCategoryDropdown = (carIndex, expenseIndex) => {
+  const key = getDropdownKey(carIndex, expenseIndex);
+  setCategoryDropdowns(prev => ({
+    ...prev,
+    [key]: {
+      search: prev[key]?.search || '',
+      isOpen: !prev[key]?.isOpen
+    }
+  }));
+};
+
+// Update search term and keep dropdown open
+const updateCategorySearch = (carIndex, expenseIndex, searchTerm) => {
+  const key = getDropdownKey(carIndex, expenseIndex);
+  setCategoryDropdowns(prev => ({
+    ...prev,
+    [key]: {
+      search: searchTerm,
+      isOpen: true
+    }
+  }));
+};
+
+// Filter categories based on search term
+const getFilteredCategories = (carIndex, expenseIndex) => {
+  const key = getDropdownKey(carIndex, expenseIndex);
+  const searchTerm = categoryDropdowns[key]?.search?.toLowerCase() || '';
+
+  if (!searchTerm) return expenseCategories;
+
+  return expenseCategories.filter(cat =>
+    cat.name.toLowerCase().includes(searchTerm)
+  );
+};
+
+// Close dropdown with delay to allow click events
+const closeCategoryDropdown = (carIndex, expenseIndex) => {
+  const key = getDropdownKey(carIndex, expenseIndex);
+  setTimeout(() => {
+    setCategoryDropdowns(prev => ({
+      ...prev,
+      [key]: { ...prev[key], isOpen: false }
+    }));
+  }, 200);
+};
+```
+
+**Update Category Selection**:
+```jsx
+const updateExpenseCategory = (carIndex, expenseIndex, categoryId) => {
+  setParsedCars(prev => {
+    const updated = [...prev];
+    const matchedCategory = expenseCategories.find(ec => ec.id === categoryId);
+
+    if (matchedCategory) {
+      updated[carIndex].expenses[expenseIndex] = {
+        ...updated[carIndex].expenses[expenseIndex],
+        matched_category_id: matchedCategory.id,
+        matched_category_name: matchedCategory.name,
+        will_create_category: false,
+      };
+
+      // Close the dropdown after selection
+      const key = `${carIndex}-${expenseIndex}`;
+      setCategoryDropdowns(prev => ({
+        ...prev,
+        [key]: { search: '', isOpen: false }
+      }));
+    }
+
+    return updated;
+  });
+};
+```
+
+### User Flow Example
+
+**Scenario**: Import detects "Retro viseurs L" but system has "Rétroviseurs"
+
+1. **Initial State**:
+   - Expense shows yellow highlight
+   - Badge: "📝 Sera créée"
+   - Manual selection section appears
+
+2. **User Action**:
+   - Click/focus on search input
+   - Dropdown opens showing all categories
+   - Type "retro"
+
+3. **Filtering**:
+   - Dropdown updates in real-time
+   - Shows only: "Rétroviseurs"
+
+4. **Selection**:
+   - Click "Rétroviseurs"
+   - Expense updates to use existing category
+   - Badge changes to: "✓ Rétroviseurs" (green)
+   - Dropdown closes
+
+5. **Import Result**:
+   - Expense uses existing "Rétroviseurs" category
+   - No duplicate category created
+
+### Features
+
+**Type-to-Search**:
+- Real-time case-insensitive filtering
+- Shows all categories when empty
+- Placeholder text guides users
+
+**Smart Behavior**:
+- Opens on focus
+- Closes on blur (200ms delay for click events)
+- Auto-closes after selection
+- Clears search after selection
+
+**Visual Feedback**:
+- Hover states on dropdown items (yellow highlight)
+- Empty state message when no matches
+- Amber border matching warning theme
+- Shadow for depth
+
+**Performance**:
+- Independent state for each expense dropdown
+- Efficient filtering with `.includes()`
+- Minimal re-renders
+
+### Benefits
+
+**Prevents Duplicates**:
+- User can search and find existing categories with different names
+- Example: "Peinture" vs "Paint Job", "Retro" vs "Rétroviseurs"
+
+**Improved UX**:
+- Much faster than scrolling through long select dropdown
+- Type-ahead feels natural and responsive
+- Clear visual feedback for matches
+
+**Data Quality**:
+- Reduces category proliferation
+- Maintains consistent naming
+- Users can still create new categories if truly needed
