@@ -201,7 +201,7 @@ export default function Cars() {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="page-container" style={{ padding: '20px' }}>
       <style>{`
         .car-photos-swiper::-webkit-scrollbar {
           display: none;
@@ -210,58 +210,52 @@ export default function Cars() {
           scrollbar-width: none;
           -ms-overflow-style: none;
         }
+        @media (max-width: 768px) {
+          .cars-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
       `}</style>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '20px'
-      }}>
-        <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>
+      <div className="mb-5">
+        <h1 className="text-2xl font-bold mb-4" style={{ color: '#1e293b' }}>
           Véhicules
         </h1>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        {/* Action buttons - stack on mobile */}
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setShowDeleted(!showDeleted)}
+            className="px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base flex-1 sm:flex-none"
             style={{
               backgroundColor: showDeleted ? '#dc2626' : '#f3f4f6',
               color: showDeleted ? 'white' : '#374151',
-              padding: '10px 20px',
-              borderRadius: '6px',
               border: showDeleted ? 'none' : '1px solid #e5e7eb',
-              cursor: 'pointer',
-              fontWeight: '500'
             }}
           >
-            {showDeleted ? '🗑️ Véhicules supprimés' : '📋 Véhicules actifs'}
+            {showDeleted ? '🗑️ Supprimés' : '📋 Actifs'}
           </button>
           <button
             onClick={() => navigate('/cars/import')}
+            className="px-4 py-2 rounded-lg font-bold transition-colors text-sm sm:text-base flex-1 sm:flex-none"
             style={{
               backgroundColor: '#10b981',
               color: 'white',
-              padding: '10px 20px',
-              borderRadius: '6px',
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: 'bold'
+              border: 'none'
             }}
           >
-            📋 Importer Excel
+            <span className="hidden sm:inline">📋 Importer Excel</span>
+            <span className="sm:hidden">📋 Import</span>
           </button>
           <button
             onClick={handleCreate}
+            className="px-4 py-2 rounded-lg font-bold transition-colors text-sm sm:text-base flex-1 sm:flex-none"
             style={{
               backgroundColor: '#167bff',
               color: 'white',
-              padding: '10px 20px',
-              borderRadius: '6px',
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: 'bold'
+              border: 'none'
             }}
           >
-            + Nouveau Véhicule
+            <span className="hidden sm:inline">+ Nouveau Véhicule</span>
+            <span className="sm:hidden">+ Nouveau</span>
           </button>
         </div>
       </div>
@@ -291,9 +285,9 @@ export default function Cars() {
           />
         </div>
       ) : (
-        <div style={{
+        <div className="cars-grid" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 350px), 1fr))',
           gap: '20px'
         }}>
           {filteredCars.map((car) => (
@@ -531,23 +525,28 @@ export default function Cars() {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1000,
-          padding: '20px'
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            padding: '30px',
-            maxWidth: '600px',
-            width: '100%',
-            maxHeight: '90vh',
-            overflowY: 'auto'
-          }}>
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold' }}>
+          padding: '0'
+        }}
+        className="sm:p-5"
+        >
+          <div
+            className="modal-container"
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              padding: '20px',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '100vh',
+              overflowY: 'auto'
+            }}
+          >
+            <h2 className="text-lg sm:text-xl font-bold mb-4" style={{ margin: '0 0 20px 0' }}>
               {editingCar ? 'Modifier le véhicule' : 'Nouveau véhicule'}
             </h2>
 
             <form onSubmit={handleSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>
                     VIN *

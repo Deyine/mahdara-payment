@@ -1,0 +1,90 @@
+/* Mobile Responsive Styles for BestCar */
+
+/* Touch-friendly minimum sizes */
+@media (max-width: 768px) {
+  /* Ensure buttons are at least 44px tall (Apple's recommended touch target) */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Modals full-width on mobile */
+  .modal-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    max-height: 100vh !important;
+    overflow-y: auto !important;
+  }
+
+  /* Smaller text for compact mobile display */
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.25rem !important;
+  }
+
+  /* Stack action buttons on mobile */
+  .action-buttons-container {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .action-buttons-container button {
+    width: 100% !important;
+  }
+
+  /* Card grid responsive */
+  .cars-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Reduce padding on small screens */
+  .page-container {
+    padding: 12px !important;
+  }
+
+  /* Form inputs full width */
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="email"],
+  select,
+  textarea {
+    width: 100% !important;
+    font-size: 16px !important; /* Prevents iOS zoom */
+  }
+
+  /* Horizontal scrolling for tables */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+/* Very small screens (phones in portrait) */
+@media (max-width: 480px) {
+  /* Even smaller text */
+  h1 {
+    font-size: 1.25rem !important;
+  }
+
+  /* Tighter spacing */
+  .page-container {
+    padding: 8px !important;
+  }
+
+  /* Smaller stat cards */
+  .stat-card {
+    padding: 12px !important;
+  }
+
+  .stat-card .stat-value {
+    font-size: 1.5rem !important;
+  }
+}

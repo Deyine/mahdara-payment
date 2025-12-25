@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -5,6 +6,7 @@ export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -21,21 +23,25 @@ export default function Layout({ children }) {
     { path: '/settings', label: 'Paramètres', icon: '⚙️', adminOnly: true },
   ];
 
+  const handleNavClick = () => {
+    setMobileMenuOpen(false);
+  };
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#fafbfc' }}>
       {/* Header */}
-      <header className="bg-white shadow-sm" style={{ borderBottom: '1px solid #e2e8f0' }}>
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      <header className="bg-white shadow-sm sticky top-0 z-40" style={{ borderBottom: '1px solid #e2e8f0' }}>
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4">
           <div className="flex justify-between items-center">
             {/* Logo/Brand */}
             <div className="flex items-center gap-2">
               <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center text-xl font-bold text-white"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-lg sm:text-xl font-bold text-white"
                 style={{ backgroundColor: '#167bff' }}
               >
                 B
               </div>
-              <div>
+              <div className="hidden sm:block">
                 <h1 className="text-xl font-bold" style={{ color: '#1e293b' }}>
                   BestCar
                 </h1>
@@ -43,17 +49,17 @@ export default function Layout({ children }) {
               </div>
             </div>
 
-            {/* User Info & Logout */}
-            <div className="flex items-center gap-4">
+            {/* Desktop: User Info & Logout */}
+            <div className="hidden md:flex items-center gap-4">
               <div className="text-right">
-                <p className="font-medium" style={{ color: '#1e293b' }}>{user?.name}</p>
+                <p className="font-medium text-sm" style={{ color: '#1e293b' }}>{user?.name}</p>
                 <p className="text-xs" style={{ color: '#64748b' }}>
                   {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Administrateur' : 'Opérateur'}
                 </p>
               </div>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 rounded-lg font-medium transition-colors"
+                className="px-4 py-2 rounded-lg font-medium transition-colors text-sm"
                 style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#fee2e2'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#fef2f2'}
@@ -61,12 +67,87 @@ export default function Layout({ children }) {
                 Déconnexion
               </button>
             </div>
+
+            {/* Mobile: Hamburger Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg transition-colors"
+              style={{
+                backgroundColor: mobileMenuOpen ? '#eff6ff' : 'transparent',
+                color: '#1e293b'
+              }}
+              aria-label="Menu"
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div
+            className="md:hidden bg-white"
+            style={{ borderTop: '1px solid #e2e8f0' }}
+          >
+            {/* Mobile Navigation */}
+            <div className="px-4 py-2">
+              {navItems.map((item) => {
+                if (item.adminOnly && user?.role !== 'admin') return null;
+
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={handleNavClick}
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors mb-1"
+                    style={{
+                      backgroundColor: isActive(item.path) ? '#eff6ff' : 'transparent',
+                      color: isActive(item.path) ? '#167bff' : '#64748b',
+                    }}
+                  >
+                    <span className="text-xl">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Mobile User Info & Logout */}
+            <div
+              className="px-4 py-3 flex items-center justify-between"
+              style={{
+                borderTop: '1px solid #e2e8f0',
+                backgroundColor: '#fafbfc'
+              }}
+            >
+              <div>
+                <p className="font-medium text-sm" style={{ color: '#1e293b' }}>{user?.name}</p>
+                <p className="text-xs" style={{ color: '#64748b' }}>
+                  {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Administrateur' : 'Opérateur'}
+                </p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 rounded-lg font-medium transition-colors text-sm"
+                style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}
+              >
+                Déconnexion
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm" style={{ borderBottom: '1px solid #e2e8f0' }}>
+      {/* Desktop Navigation */}
+      <nav className="hidden md:block bg-white shadow-sm" style={{ borderBottom: '1px solid #e2e8f0' }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-1">
             {navItems.map((item) => {
@@ -98,7 +179,7 @@ export default function Layout({ children }) {
       </nav>
 
       {/* Main Content */}
-      <main>{children}</main>
+      <main className="pb-8">{children}</main>
     </div>
   );
 }
