@@ -409,39 +409,39 @@ export default function Cars() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
                   <span style={{ color: '#6b7280' }}>Prix d'achat:</span>
                   <span style={{ fontWeight: '500' }}>
-                    {formatCurrency(car.purchase_price)}
+                    {formatCurrency(car.purchase_price || 0)}
                   </span>
                 </div>
-                {car.clearance_cost && parseFloat(car.clearance_cost) > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                    <span style={{ color: '#6b7280' }}>Dédouanement:</span>
-                    <span style={{ fontWeight: '500' }}>
-                      {formatCurrency(car.clearance_cost)}
-                    </span>
-                  </div>
-                )}
-                {car.total_expenses && parseFloat(car.total_expenses) > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                    <span style={{ color: '#6b7280' }}>Total dépenses:</span>
-                    <span style={{ fontWeight: '500', color: '#f59e0b' }}>
-                      {formatCurrency(car.total_expenses)}
-                    </span>
-                  </div>
-                )}
-                {car.total_cost && (
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginTop: '8px',
-                    paddingTop: '8px',
-                    borderTop: '1px solid #e5e7eb'
-                  }}>
-                    <span style={{ color: '#1e293b', fontWeight: 'bold' }}>Coût total:</span>
-                    <span style={{ fontWeight: 'bold', color: '#dc2626', fontSize: '16px' }}>
-                      {formatCurrency(car.total_cost)}
-                    </span>
-                  </div>
-                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                  <span style={{ color: '#6b7280' }}>Dédouanement:</span>
+                  <span style={{ fontWeight: '500' }}>
+                    {formatCurrency(car.clearance_cost || 0)}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                  <span style={{ color: '#6b7280' }}>Remorquage:</span>
+                  <span style={{ fontWeight: '500' }}>
+                    {formatCurrency(car.towing_cost || 0)}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                  <span style={{ color: '#6b7280' }}>Total dépenses:</span>
+                  <span style={{ fontWeight: '500', color: '#f59e0b' }}>
+                    {formatCurrency(car.total_expenses || 0)}
+                  </span>
+                </div>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginTop: '8px',
+                  paddingTop: '8px',
+                  borderTop: '1px solid #e5e7eb'
+                }}>
+                  <span style={{ color: '#1e293b', fontWeight: 'bold' }}>Coût total:</span>
+                  <span style={{ fontWeight: 'bold', color: '#dc2626', fontSize: '16px' }}>
+                    {formatCurrency(car.total_cost || 0)}
+                  </span>
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
