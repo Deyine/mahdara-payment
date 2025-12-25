@@ -56,42 +56,7 @@ class Car < ApplicationRecord
     deleted_at.present?
   end
 
-  # Serialize photo URLs and invoices for JSON response
-  def as_json(options = {})
-    super(options).merge(
-      salvage_photos: salvage_photos_data,
-      after_repair_photos: after_repair_photos_data,
-      invoices: invoices_data,
-      deleted_at: deleted_at,
-      deleted: deleted?
-    )
-  end
-
   private
-
-  def salvage_photos_data
-    salvage_photos.map do |photo|
-      {
-        id: photo.id,
-        url: Rails.application.routes.url_helpers.rails_blob_url(photo, only_path: true),
-        filename: photo.filename.to_s,
-        size: photo.byte_size,
-        content_type: photo.content_type
-      }
-    end
-  end
-
-  def after_repair_photos_data
-    after_repair_photos.map do |photo|
-      {
-        id: photo.id,
-        url: Rails.application.routes.url_helpers.rails_blob_url(photo, only_path: true),
-        filename: photo.filename.to_s,
-        size: photo.byte_size,
-        content_type: photo.content_type
-      }
-    end
-  end
 
   def salvage_photos_size_validation
     validate_photos_size(salvage_photos, 'Salvage photos')
@@ -106,18 +71,6 @@ class Car < ApplicationRecord
       if photo.byte_size > 5.megabytes
         errors.add(:base, "#{group_name}: #{photo.filename} must be less than 5MB")
       end
-    end
-  end
-
-  def invoices_data
-    invoices.map do |invoice|
-      {
-        id: invoice.id,
-        url: Rails.application.routes.url_helpers.rails_blob_url(invoice, only_path: true),
-        filename: invoice.filename.to_s,
-        size: invoice.byte_size,
-        content_type: invoice.content_type
-      }
     end
   end
 

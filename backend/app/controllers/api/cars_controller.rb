@@ -23,11 +23,11 @@ class Api::CarsController < ApplicationController
     end
 
     @cars = cars_scope.includes(:car_model, :expenses, :seller).recent
-    render json: @cars, include: [:car_model, :expenses, :seller]
+    render json: @cars.map { |car| CarSerializer.new(car).as_json }
   end
 
   def show
-    render json: @car, include: [:car_model, :expenses, :seller], methods: [:total_cost, :total_expenses]
+    render json: CarSerializer.new(@car).as_json
   end
 
   def create
@@ -35,7 +35,7 @@ class Api::CarsController < ApplicationController
     @car.tenant = current_tenant
 
     if @car.save
-      render json: @car, status: :created
+      render json: CarSerializer.new(@car).as_json, status: :created
     else
       render json: { errors: @car.errors.full_messages }, status: :unprocessable_entity
     end
@@ -43,7 +43,7 @@ class Api::CarsController < ApplicationController
 
   def update
     if @car.update(car_params)
-      render json: @car
+      render json: CarSerializer.new(@car).as_json
     else
       render json: { errors: @car.errors.full_messages }, status: :unprocessable_entity
     end
@@ -60,7 +60,7 @@ class Api::CarsController < ApplicationController
 
   def restore
     if @car.restore!
-      render json: { message: 'Car restored successfully', car: @car }
+      render json: { message: 'Car restored successfully', car: CarSerializer.new(@car).as_json }
     else
       render json: { error: 'Error restoring car' }, status: :unprocessable_entity
     end
@@ -72,7 +72,7 @@ class Api::CarsController < ApplicationController
       @car.salvage_photos.attach(params[:photos])
 
       if @car.save
-        render json: @car
+        render json: CarSerializer.new(@car).as_json
       else
         render json: { errors: @car.errors.full_messages }, status: :unprocessable_entity
       end
@@ -96,7 +96,7 @@ class Api::CarsController < ApplicationController
       @car.after_repair_photos.attach(params[:photos])
 
       if @car.save
-        render json: @car
+        render json: CarSerializer.new(@car).as_json
       else
         render json: { errors: @car.errors.full_messages }, status: :unprocessable_entity
       end
@@ -120,7 +120,7 @@ class Api::CarsController < ApplicationController
       @car.invoices.attach(params[:invoices])
 
       if @car.save
-        render json: @car
+        render json: CarSerializer.new(@car).as_json
       else
         render json: { errors: @car.errors.full_messages }, status: :unprocessable_entity
       end
