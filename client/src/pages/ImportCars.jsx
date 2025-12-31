@@ -114,10 +114,43 @@ export default function ImportCars() {
     }
   };
 
+  // Helper function to parse and convert mileage
+  const parseMileage = (mileageStr) => {
+    if (!mileageStr) return null;
+
+    // Match patterns like "116k", "116k Km", "50k mi", "100 MI", "5000 km"
+    const match = mileageStr.match(/(\d+(?:\.\d+)?)\s*([kK])?\s*(km|mi|KM|MI)?/i);
+    if (!match) return null;
+
+    let value = parseFloat(match[1]);
+    const hasK = match[2]; // 'k' or 'K'
+    const unit = match[3]?.toLowerCase(); // 'km' or 'mi'
+
+    // Apply 'k' multiplier if present
+    if (hasK) {
+      value *= 1000;
+    }
+
+    // Convert miles to kilometers
+    if (unit === 'mi') {
+      value *= 1.609344;
+    }
+
+    return Math.round(value); // Return as integer
+  };
+
   // Parse car header line
   // Format 1: #1 : Toyota Corolla SE 2018 Marron
   // Format 2: #6 : LE 2015 - 377014 - Brown
+  // Format 3: #11 : LE 2017 - 752981 - 116k Km - Dark Gray
   const parseCarHeader = (line) => {
+    // Extract ref number from the beginning (#11 → 11)
+    let ref = null;
+    const refMatch = line.match(/^#(\d+)/);
+    if (refMatch) {
+      ref = parseInt(refMatch[1]);
+    }
+
     // Remove # and split by :
     const content = line.substring(line.indexOf(':') + 1).trim();
 
@@ -128,12 +161,22 @@ export default function ImportCars() {
     let year = null;
     let vin = null;
     let color = '';
+    let mileage = null;
 
     if (parts.length >= 3) {
-      // Format 2: Model - VIN - Color
+      // Format 2/3: Model - VIN - [Mileage -] Color
       model = parts[0];
       vin = parts[1];
-      color = parts[2];
+
+      // Check if we have 4 parts (includes mileage)
+      if (parts.length >= 4) {
+        // Format 3: Model - VIN - Mileage - Color
+        mileage = parseMileage(parts[2]);
+        color = parts[3];
+      } else {
+        // Format 2: Model - VIN - Color
+        color = parts[2];
+      }
 
       // Extract year from model if present
       const yearMatch = model.match(/\b(19|20)\d{2}\b/);
@@ -165,10 +208,12 @@ export default function ImportCars() {
 
     return {
       originalLine: line,
+      ref: ref,
       model: model.trim(),
       year: year,
       vin: vin,
       color: color.trim(),
+      mileage: mileage,
       purchase_price: null,
       clearance_cost: null,
       towing_cost: null,
@@ -333,7 +378,6 @@ export default function ImportCars() {
       vin: generatedVin,
       purchase_date: today,
       seller_id: '',
-      mileage: null,
       expenses: enrichedExpenses,
       total_expenses: totalExpenses,
       total_cost: totalCost,
@@ -475,6 +519,7 @@ export default function ImportCars() {
         // Create car
         const carData = {
           vin: car.vin,
+          ref: car.ref || null,
           car_model_id: car.car_model_id,
           year: car.year,
           color: car.color,
@@ -599,16 +644,20 @@ Remorquage	50 000
 Expenses
 Batterie :: 10,000
 Peinture :: 85,000 MRU
-1 Parabrise & joint 2700
-Changement Plafond :: 3,500 MRU
-Lavage :: 6,000 MRO
 
-#2 : LE 2015 - 377014 - Brown
-Achat	1 500 000`}
+#11 : LE 2017 - 752981 - 116k Km - Dark Gray
+Achat	1 500 000
+
+#8 : LE 2016 - 713407 - 50k mi - Silver Metallic
+Achat	2 300 000`}
           </pre>
           <p className="text-sm mt-2" style={{ color: '#1e40af' }}>
             <strong>✨ Formats supportés:</strong> Tabulations, "::", espaces multiples, avec/sans emojis
             <br />Montant peut être au début ou à la fin de la ligne
+          </p>
+          <p className="text-sm mt-2" style={{ color: '#1e40af' }}>
+            <strong>🔢 Référence & Kilométrage:</strong> Le numéro après # devient la référence (ex: #11 → ref 11)
+            <br />Kilométrage supporté: 116k Km, 50k mi, 100 MI (conversion auto: mi→km, k=×1000)
           </p>
           <p className="text-sm mt-2" style={{ color: '#1e40af' }}>
             <strong>📋 Catégories reconnues:</strong> Achat (prix), Dedouannement/Dedouanement (dédouanement), Remorquage (transport).
@@ -800,6 +849,26 @@ Achat	1 500 000`}
 
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: '#64748b' }}>
+                      Référence
+                    </label>
+                    <input
+                      type="number"
+                      value={car.ref || ''}
+                      onChange={(e) => updateCarField(index, 'ref', e.target.value ? parseInt(e.target.value) : null)}
+                      className="w-full px-3 py-2 rounded-lg transition-colors"
+                      style={{ border: '1px solid #e2e8f0', color: '#1e293b' }}
+                      placeholder="Ex: 11"
+                      min="1"
+                    />
+                    {car.ref && (
+                      <p className="text-xs mt-1" style={{ color: '#10b981' }}>
+                        ✓ Détecté: #{car.ref}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1" style={{ color: '#64748b' }}>
                       VIN
                     </label>
                     <input
@@ -837,6 +906,26 @@ Achat	1 500 000`}
                       className="w-full px-3 py-2 rounded-lg transition-colors"
                       style={{ border: '1px solid #e2e8f0', color: '#1e293b' }}
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1" style={{ color: '#64748b' }}>
+                      Kilométrage (km)
+                    </label>
+                    <input
+                      type="number"
+                      value={car.mileage || ''}
+                      onChange={(e) => updateCarField(index, 'mileage', e.target.value ? parseInt(e.target.value) : null)}
+                      className="w-full px-3 py-2 rounded-lg transition-colors"
+                      style={{ border: '1px solid #e2e8f0', color: '#1e293b' }}
+                      placeholder="Ex: 116000"
+                      min="0"
+                    />
+                    {car.mileage && (
+                      <p className="text-xs mt-1" style={{ color: '#10b981' }}>
+                        ✓ Détecté: {car.mileage.toLocaleString('fr-FR')} km
+                      </p>
+                    )}
                   </div>
 
                   <div>
