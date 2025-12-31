@@ -11,6 +11,7 @@ class Car < ApplicationRecord
   has_many_attached :invoices             # Purchase invoices and receipts
 
   validates :vin, presence: true, uniqueness: { scope: :tenant_id }
+  validates :ref, uniqueness: { scope: :tenant_id }, allow_nil: true, numericality: { only_integer: true, greater_than: 0 }, if: -> { ref.present? }
   validates :year, presence: true, numericality: { only_integer: true, greater_than: 1900, less_than_or_equal_to: ->(_) { Date.current.year + 1 } }
   validates :purchase_date, presence: true
   validates :purchase_price, presence: true, numericality: { greater_than_or_equal_to: 0 }

@@ -72,6 +72,7 @@ export default function Cars() {
     setEditingCar(null);
     setFormData({
       vin: '',
+      ref: '',
       car_model_id: '',
       year: new Date().getFullYear(),
       color: '',
@@ -89,6 +90,7 @@ export default function Cars() {
     setEditingCar(car);
     setFormData({
       vin: car.vin,
+      ref: car.ref || '',
       car_model_id: car.car_model_id || '',
       year: car.year,
       color: car.color || '',
@@ -175,6 +177,7 @@ export default function Cars() {
     setEditingCar(null);
     setFormData({
       vin: '',
+      ref: '',
       car_model_id: '',
       year: new Date().getFullYear(),
       color: '',
@@ -329,7 +332,7 @@ export default function Cars() {
 
               <div style={{ marginBottom: '15px' }}>
                 <h3 style={{ margin: '0 0 5px 0', fontSize: '18px', fontWeight: 'bold' }}>
-                  {car.car_model?.name || 'N/A'}
+                  {car.display_name || car.car_model?.name || 'N/A'}
                 </h3>
                 <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>
                   VIN: {car.vin}
@@ -577,6 +580,26 @@ export default function Cars() {
                     value={formData.vin}
                     onChange={(e) => setFormData({ ...formData, vin: e.target.value })}
                     required
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      borderRadius: '6px',
+                      border: '1px solid #ddd',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>
+                    Référence
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.ref || ''}
+                    onChange={(e) => setFormData({ ...formData, ref: e.target.value })}
+                    placeholder="Ex: 12"
+                    min="1"
                     style={{
                       width: '100%',
                       padding: '8px',

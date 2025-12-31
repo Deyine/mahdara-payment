@@ -201,6 +201,7 @@ export default function CarDetail() {
   const handleEdit = () => {
     setFormData({
       vin: car.vin,
+      ref: car.ref || '',
       car_model_id: car.car_model_id || '',
       year: car.year,
       color: car.color || '',
@@ -235,6 +236,7 @@ export default function CarDetail() {
     setShowEditForm(false);
     setFormData({
       vin: '',
+      ref: '',
       car_model_id: '',
       year: new Date().getFullYear(),
       color: '',
@@ -308,7 +310,7 @@ export default function CarDetail() {
             </button>
             <div>
               <h1 className="text-3xl font-bold" style={{ color: '#1e293b' }}>
-                {car.car_model?.name} {car.year}
+                {car.display_name || `${car.car_model?.name} ${car.year}`}
               </h1>
               <p className="text-lg" style={{ color: '#64748b' }}>
                 VIN: {car.vin}
@@ -546,6 +548,26 @@ export default function CarDetail() {
                     value={formData.vin}
                     onChange={(e) => setFormData({ ...formData, vin: e.target.value })}
                     required
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      borderRadius: '6px',
+                      border: '1px solid #ddd',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>
+                    Référence
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.ref || ''}
+                    onChange={(e) => setFormData({ ...formData, ref: e.target.value })}
+                    placeholder="Ex: 12"
+                    min="1"
                     style={{
                       width: '100%',
                       padding: '8px',

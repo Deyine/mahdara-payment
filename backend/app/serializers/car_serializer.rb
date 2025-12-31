@@ -7,6 +7,8 @@ class CarSerializer
     {
       id: @car.id,
       vin: @car.vin,
+      ref: @car.ref,
+      display_name: display_name,
       year: @car.year,
       color: @car.color,
       mileage: @car.mileage,
@@ -52,6 +54,11 @@ class CarSerializer
   end
 
   private
+
+  def display_name
+    car_name = "#{@car.car_model.name} #{@car.year}"
+    @car.ref.present? ? "##{@car.ref} #{car_name}" : car_name
+  end
 
   def salvage_photos_data
     @car.salvage_photos.map do |photo|

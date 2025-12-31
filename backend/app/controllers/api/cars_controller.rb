@@ -182,7 +182,7 @@ class Api::CarsController < ApplicationController
 
   def car_params
     params.require(:car).permit(
-      :vin, :car_model_id, :year, :color, :mileage,
+      :vin, :ref, :car_model_id, :year, :color, :mileage,
       :purchase_date, :purchase_price, :seller_id,
       :clearance_cost, :towing_cost,
       salvage_photos: [],

@@ -132,7 +132,7 @@ export default function Dashboard() {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-semibold" style={{ color: '#1e293b' }}>
-                          {car.car_model?.name || 'N/A'}
+                          {car.display_name || car.car_model?.name || 'N/A'}
                         </p>
                         <p className="text-sm" style={{ color: '#64748b' }}>
                           VIN: {car.vin}

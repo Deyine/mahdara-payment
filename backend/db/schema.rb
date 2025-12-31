@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_31_143253) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_31_153328) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -72,11 +72,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_31_143253) do
     t.string "status", default: "active", null: false
     t.decimal "sale_price", precision: 10, scale: 2
     t.date "sale_date"
+    t.integer "ref"
     t.index ["car_model_id"], name: "index_cars_on_car_model_id"
     t.index ["deleted_at"], name: "index_cars_on_deleted_at"
     t.index ["purchase_date"], name: "index_cars_on_purchase_date"
     t.index ["seller_id"], name: "index_cars_on_seller_id"
     t.index ["status"], name: "index_cars_on_status"
+    t.index ["tenant_id", "ref"], name: "index_cars_on_tenant_id_and_ref", unique: true
     t.index ["tenant_id", "vin"], name: "index_cars_on_tenant_id_and_vin", unique: true
     t.index ["tenant_id"], name: "index_cars_on_tenant_id"
   end
