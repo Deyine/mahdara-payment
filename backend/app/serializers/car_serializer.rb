@@ -64,7 +64,7 @@ class CarSerializer
     @car.salvage_photos.map do |photo|
       {
         id: photo.id,
-        url: Rails.application.routes.url_helpers.rails_blob_url(photo, only_path: true),
+        url: Rails.application.routes.url_helpers.rails_blob_url(photo, only_path: false),
         filename: photo.filename.to_s,
         size: photo.byte_size,
         content_type: photo.content_type
@@ -76,7 +76,7 @@ class CarSerializer
     @car.after_repair_photos.map do |photo|
       {
         id: photo.id,
-        url: Rails.application.routes.url_helpers.rails_blob_url(photo, only_path: true),
+        url: Rails.application.routes.url_helpers.rails_blob_url(photo, only_path: false),
         filename: photo.filename.to_s,
         size: photo.byte_size,
         content_type: photo.content_type
@@ -88,7 +88,7 @@ class CarSerializer
     @car.invoices.map do |invoice|
       {
         id: invoice.id,
-        url: Rails.application.routes.url_helpers.rails_blob_url(invoice, only_path: true),
+        url: Rails.application.routes.url_helpers.rails_blob_url(invoice, only_path: false),
         filename: invoice.filename.to_s,
         size: invoice.byte_size,
         content_type: invoice.content_type
