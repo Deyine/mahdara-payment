@@ -32,7 +32,7 @@ class Car < ApplicationRecord
   validate :invoices_validation
 
   scope :for_tenant, ->(tenant_id) { where(tenant_id: tenant_id) }
-  scope :recent, -> { order(purchase_date: :desc) }
+  scope :recent, -> { order(Arel.sql('ref ASC NULLS LAST, purchase_date DESC')) }
 
   # Soft deletion scopes
   scope :active, -> { where(deleted_at: nil) }
