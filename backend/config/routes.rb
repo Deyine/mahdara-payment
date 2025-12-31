@@ -17,6 +17,8 @@ Rails.application.routes.draw do
     resources :cars do
       member do
         post 'restore', to: 'cars#restore'
+        post 'sell', to: 'cars#sell'
+        post 'unsell', to: 'cars#unsell'
         post 'salvage_photos', to: 'cars#add_salvage_photos'
         delete 'salvage_photos/:photo_id', to: 'cars#delete_salvage_photo'
         post 'after_repair_photos', to: 'cars#add_after_repair_photos'
@@ -47,7 +49,17 @@ Rails.application.routes.draw do
       end
     end
 
+    # Payment Methods
+    resources :payment_methods do
+      collection do
+        get 'active'
+      end
+    end
+
     # Expenses
     resources :expenses
+
+    # Payments
+    resources :payments
   end
 end

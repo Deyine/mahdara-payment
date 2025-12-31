@@ -270,7 +270,66 @@ const [showDeleted, setShowDeleted] = useState(false);
 
 ---
 
-### Rule 6: Required Car Fields
+### Rule 6: Car Sale Status
+
+**CRITICAL**: Cars can be marked as sold to track sales and payments.
+
+**Car Status Values**:
+- `active` - Default status, available for sale (default)
+- `sold` - Car has been sold, payment tracking enabled
+
+**Sale Fields**:
+- `status` - Sale status (string, required, default: 'active')
+- `sale_price` - Sale price when sold (decimal > 0, required when sold)
+- `sale_date` - Date the car was sold (date, required when sold)
+
+**Backend Validation** (`app/models/car.rb`):
+```ruby
+validates :status, presence: true, inclusion: { in: %w[active sold] }
+validates :sale_price, numericality: { greater_than: 0 }, if: -> { status == 'sold' }
+validates :sale_date, presence: true, if: -> { status == 'sold' }
+```
+
+**Workflow**:
+```
+1. Car created with status='active'
+2. Admin marks car as sold (POST /api/cars/:id/sell)
+   - Sets status='sold', sale_price, sale_date
+3. Admin can record payments until fully paid
+4. Admin can revert to active only if no payments exist (POST /api/cars/:id/unsell)
+```
+
+**Sale Calculations**:
+```ruby
+# In Car model
+def total_paid
+  payments.sum(:amount).to_f
+end
+
+def remaining_balance
+  return 0 unless sold?
+  (sale_price.to_f - total_paid).round(2)
+end
+
+def fully_paid?
+  return false unless sold?
+  total_paid >= sale_price.to_f
+end
+
+def payment_percentage
+  return 0 unless sold? && sale_price.to_f > 0
+  ((total_paid / sale_price.to_f) * 100).round(2)
+end
+
+def profit
+  return nil unless sold?
+  sale_price.to_f - total_cost
+end
+```
+
+---
+
+### Rule 7: Required Car Fields
 
 **CRITICAL**: Minimum required information to create a car.
 
@@ -320,9 +379,52 @@ validates :clearance_cost, :towing_cost,
 
 ---
 
+## Payment Management
+
+### Rule 7: Payment Tracking
+
+**CRITICAL**: Payments track money received for sold cars until fully paid.
+
+**Payment Model**:
+- Belongs to car and tenant
+- Can only be created for sold cars
+- Total payments cannot exceed sale price
+
+**Required Fields**:
+- `car_id` - Associated sold car (UUID)
+- `amount` - Payment amount (decimal > 0)
+- `payment_date` - Date of payment (date)
+
+**Optional Fields**:
+- `payment_method` - Payment method ('cash', 'bank_transfer', 'check', 'other')
+- `notes` - Additional notes (text)
+
+**Backend Validation**:
+```ruby
+validates :amount, presence: true, numericality: { greater_than: 0 }
+validates :payment_date, presence: true
+validates :payment_method, inclusion: { in: PAYMENT_METHODS }, allow_nil: true
+```
+
+**API Endpoints**:
+- `GET /api/payments?car_id=:id` - List payments for a car
+- `POST /api/payments` - Create payment
+- `PUT /api/payments/:id` - Update payment
+- `DELETE /api/payments/:id` - Delete payment
+
+**Frontend PaymentManager Component**:
+- Displays payment progress bar
+- Shows total paid vs sale price
+- Calculates remaining balance
+- Shows profit/loss
+- Lists payment history
+- Allows recording new payments
+
+---
+
 ## Expense Management
 
-### Rule 7: Expense Types (Categories)
+### Rule 8: Expense Types (Categories)
 
 **CRITICAL**: Expenses are categorized as either "reparation" or "purchase".
 

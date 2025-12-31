@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_21_191953) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_31_143253) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -69,10 +69,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_21_191953) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.uuid "seller_id"
+    t.string "status", default: "active", null: false
+    t.decimal "sale_price", precision: 10, scale: 2
+    t.date "sale_date"
     t.index ["car_model_id"], name: "index_cars_on_car_model_id"
     t.index ["deleted_at"], name: "index_cars_on_deleted_at"
     t.index ["purchase_date"], name: "index_cars_on_purchase_date"
     t.index ["seller_id"], name: "index_cars_on_seller_id"
+    t.index ["status"], name: "index_cars_on_status"
     t.index ["tenant_id", "vin"], name: "index_cars_on_tenant_id_and_vin", unique: true
     t.index ["tenant_id"], name: "index_cars_on_tenant_id"
   end
@@ -104,6 +108,33 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_21_191953) do
     t.index ["expense_date"], name: "index_expenses_on_expense_date"
     t.index ["tenant_id", "car_id"], name: "index_expenses_on_tenant_id_and_car_id"
     t.index ["tenant_id"], name: "index_expenses_on_tenant_id"
+  end
+
+  create_table "payment_methods", force: :cascade do |t|
+    t.uuid "tenant_id", null: false
+    t.string "name", null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_payment_methods_on_active"
+    t.index ["tenant_id", "name"], name: "index_payment_methods_on_tenant_id_and_name", unique: true
+    t.index ["tenant_id"], name: "index_payment_methods_on_tenant_id"
+  end
+
+  create_table "payments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "tenant_id", null: false
+    t.uuid "car_id", null: false
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.date "payment_date", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "payment_method_id"
+    t.index ["car_id", "payment_date"], name: "index_payments_on_car_id_and_payment_date"
+    t.index ["car_id"], name: "index_payments_on_car_id"
+    t.index ["payment_date"], name: "index_payments_on_payment_date"
+    t.index ["payment_method_id"], name: "index_payments_on_payment_method_id"
+    t.index ["tenant_id"], name: "index_payments_on_tenant_id"
   end
 
   create_table "sellers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -151,6 +182,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_21_191953) do
   add_foreign_key "expenses", "cars"
   add_foreign_key "expenses", "expense_categories"
   add_foreign_key "expenses", "tenants"
+  add_foreign_key "payment_methods", "tenants"
+  add_foreign_key "payments", "cars"
+  add_foreign_key "payments", "payment_methods"
+  add_foreign_key "payments", "tenants"
   add_foreign_key "sellers", "tenants"
   add_foreign_key "users", "tenants"
 end

@@ -302,20 +302,36 @@ export default function Cars() {
                 opacity: car.deleted ? 0.7 : 1
               }}
             >
-              {car.deleted && (
-                <div style={{
-                  backgroundColor: '#dc2626',
-                  color: 'white',
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  marginBottom: '10px',
-                  display: 'inline-block'
-                }}>
-                  🗑️ SUPPRIMÉ
-                </div>
-              )}
+              {/* Status Badges */}
+              <div style={{ marginBottom: '10px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {car.deleted && (
+                  <div style={{
+                    backgroundColor: '#dc2626',
+                    color: 'white',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    display: 'inline-block'
+                  }}>
+                    🗑️ SUPPRIMÉ
+                  </div>
+                )}
+                {car.status === 'sold' && !car.deleted && (
+                  <div style={{
+                    backgroundColor: car.fully_paid ? '#10b981' : '#167bff',
+                    color: 'white',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    display: 'inline-block'
+                  }}>
+                    {car.fully_paid ? '✓ PAYÉ INTÉGRALEMENT' : '💰 VENDU'}
+                  </div>
+                )}
+              </div>
+
               <div style={{ marginBottom: '15px' }}>
                 <h3 style={{ margin: '0 0 5px 0', fontSize: '18px', fontWeight: 'bold' }}>
                   {car.car_model?.name || 'N/A'}
@@ -323,6 +339,16 @@ export default function Cars() {
                 <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>
                   VIN: {car.vin}
                 </p>
+                {car.status === 'sold' && car.sale_price && (
+                  <p style={{ margin: '5px 0 0 0', color: '#10b981', fontSize: '14px', fontWeight: '600' }}>
+                    Prix de vente: {formatCurrency(car.sale_price)} MRU
+                    {car.payment_percentage > 0 && (
+                      <span style={{ marginLeft: '8px', fontSize: '12px', color: '#64748b' }}>
+                        ({car.payment_percentage}% payé)
+                      </span>
+                    )}
+                  </p>
+                )}
               </div>
 
               {/* Salvage Photos Swiper */}

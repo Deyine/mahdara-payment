@@ -7,8 +7,8 @@ puts "🌱 Seeding BestCar database..."
 # Create Super Admin user (no tenant)
 # Super admin can manage all tenants and has system-wide access
 # Note: In production, you should create a proper tenant for super_admin or handle auth differently
-demo_tenant = Tenant.find_or_create_by!(name: 'Demo Salvage Cars') do |tenant|
-  tenant.subdomain = 'demo'
+demo_tenant = Tenant.find_or_create_by!(name: 'AHD') do |tenant|
+  tenant.subdomain = 'ahd'
   tenant.active = true
 end
 puts "✅ Demo tenant created: #{demo_tenant.name}"
@@ -23,10 +23,10 @@ end
 puts "✅ Super Admin user created: username=superadmin, password=superadmin123"
 
 # Create default admin user for demo tenant
-admin = User.find_or_create_by!(username: 'admin') do |user|
-  user.name = 'Demo Administrator'
-  user.password = 'admin123'
-  user.password_confirmation = 'admin123'
+admin = User.find_or_create_by!(username: 'ahd-admin') do |user|
+  user.name = 'Ahmed Administrator'
+  user.password = 'admin;123'
+  user.password_confirmation = 'admin;123'
   user.role = 'admin'
   user.tenant = demo_tenant
 end
@@ -78,6 +78,21 @@ expense_categories_data.each do |data|
   end
 end
 puts "✅ #{expense_categories_data.count} expense categories created for #{demo_tenant.name}"
+
+# Create payment methods for demo tenant
+payment_methods_data = [
+  'Espèces',
+  'Virement Bancaire',
+  'Chèque',
+  'Autre'
+]
+
+payment_methods_data.each do |method_name|
+  PaymentMethod.find_or_create_by!(name: method_name, tenant: demo_tenant) do |method|
+    method.active = true
+  end
+end
+puts "✅ #{payment_methods_data.count} payment methods created for #{demo_tenant.name}"
 
 # Create sample cars for development environment only
 if Rails.env.development?

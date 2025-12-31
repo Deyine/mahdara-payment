@@ -22,14 +22,27 @@ class CarSerializer
       deleted_at: @car.deleted_at,
       deleted: @car.deleted?,
 
+      # Sale fields
+      status: @car.status,
+      sale_price: @car.sale_price&.to_f,
+      sale_date: @car.sale_date,
+
       # Calculated fields
       total_expenses: @car.total_expenses,
       total_cost: @car.total_cost,
+
+      # Sale calculations
+      total_paid: @car.total_paid,
+      remaining_balance: @car.remaining_balance,
+      fully_paid: @car.fully_paid?,
+      payment_percentage: @car.payment_percentage,
+      profit: @car.profit,
 
       # Associations
       car_model: @car.car_model,
       seller: @car.seller,
       expenses: @car.expenses,
+      payments: payments_data,
 
       # Photos and invoices
       salvage_photos: salvage_photos_data,
@@ -73,6 +86,12 @@ class CarSerializer
         size: invoice.byte_size,
         content_type: invoice.content_type
       }
+    end
+  end
+
+  def payments_data
+    @car.payments.map do |payment|
+      PaymentSerializer.new(payment).as_json
     end
   end
 end

@@ -139,11 +139,15 @@ t.string :location
 t.decimal :clearance_cost, precision: 10, scale: 2
 t.decimal :towing_cost, precision: 10, scale: 2
 t.datetime :deleted_at
+t.string :status, default: 'active', null: false  # 'active' or 'sold'
+t.decimal :sale_price, precision: 10, scale: 2
+t.date :sale_date
 t.timestamps
 
 # Indexes
 add_index :cars, [:tenant_id, :vin], unique: true
 add_index :cars, :deleted_at
+add_index :cars, :status
 
 # Active Storage
 has_many_attached :salvage_photos
@@ -176,6 +180,34 @@ t.timestamps
 add_index :expenses, :expense_date
 ```
 
+### payment_methods
+```ruby
+t.integer :id, primary_key: true
+t.references :tenant, null: false, foreign_key: true, type: :uuid
+t.string :name, null: false
+t.boolean :active, default: true, null: false
+t.timestamps
+
+# Indexes
+add_index :payment_methods, [:tenant_id, :name], unique: true
+```
+
+### payments
+```ruby
+t.uuid :id, primary_key: true
+t.references :tenant, null: false, foreign_key: true, type: :uuid
+t.references :car, null: false, foreign_key: true, type: :uuid
+t.decimal :amount, precision: 10, scale: 2, null: false
+t.date :payment_date, null: false
+t.references :payment_method, foreign_key: true, type: :integer  # optional
+t.text :notes
+t.timestamps
+
+# Indexes
+add_index :payments, :payment_date
+add_index :payments, [:car_id, :payment_date]
+```
+
 
 ## Entity Relationships
 
@@ -186,6 +218,8 @@ Tenant
   has_many :cars
   has_many :expense_categories
   has_many :expenses
+  has_many :payment_methods
+  has_many :payments
 
 User
   belongs_to :tenant
@@ -198,6 +232,7 @@ Car
   belongs_to :tenant
   belongs_to :car_model
   has_many :expenses
+  has_many :payments (dependent: :restrict_with_error)
   has_many_attached :salvage_photos
   has_many_attached :after_repair_photos
   has_many_attached :invoices
@@ -210,6 +245,15 @@ Expense
   belongs_to :tenant
   belongs_to :car, optional: true
   belongs_to :expense_category
+
+PaymentMethod
+  belongs_to :tenant
+  has_many :payments (dependent: :restrict_with_error)
+
+Payment
+  belongs_to :tenant
+  belongs_to :car
+  belongs_to :payment_method, optional: true
 ```
 
 ## Data Flow Architecture
@@ -223,17 +267,32 @@ Expense
 6. `Authenticable` concern validates token and sets `@current_user`
 
 ### Car Management Workflow
-1. Admin creates car record (active status)
+1. Admin creates car record (status='active')
 2. Car linked to car_model and tenant
 3. Upload salvage photos, invoices via Active Storage
 4. Track expenses linked to specific car
-5. Soft delete (deleted_at timestamp) when car sold/removed
+5. When ready to sell: Mark as sold with sale price
+6. Track payments until fully paid
+7. Soft delete (deleted_at timestamp) if needed
 
 ### Expense Tracking Workflow
 1. Create expense linked to car (optional) and category
 2. Support multi-currency with exchange rates
 3. Track repair expenses vs purchase-related expenses
 4. Expenses scoped by tenant for multi-tenancy
+
+### Sales & Payment Workflow
+1. Admin marks car as sold (POST /api/cars/:id/sell)
+   - Sets status='sold', sale_price, sale_date
+   - Profit automatically calculated
+2. Admin records payments (POST /api/payments)
+   - Track installment payments
+   - System prevents overpayment
+   - Calculate remaining balance
+3. Payment progress tracked until fully paid
+   - payment_percentage updated
+   - fully_paid flag set when complete
+4. Cannot revert to active once payments recorded
 
 ## Deployment Architecture
 

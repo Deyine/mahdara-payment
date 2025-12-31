@@ -1197,3 +1197,155 @@ Currently using **Ruby 3.2.1** (changed from 3.3.0)
 - `tenants.subdomain` - unique
 - `cars[tenant_id, vin]` - composite unique (VIN unique per tenant)
 - `car_models[tenant_id, name]` - composite unique (model name unique per tenant)
+
+## Backend Serialization Pattern
+
+### CRITICAL: Always Use Serializers
+
+**NEVER override `as_json` in models. ALWAYS use dedicated serializer classes.**
+
+❌ **Wrong - Don't do this**:
+```ruby
+class Car < ApplicationRecord
+  def as_json(options = {})
+    super(options).merge(
+      total_cost: total_cost,
+      total_expenses: total_expenses,
+      photos: photos_data
+    )
+  end
+end
+```
+
+✅ **Correct - Use a serializer**:
+```ruby
+# app/serializers/car_serializer.rb
+class CarSerializer
+  def initialize(car)
+    @car = car
+  end
+
+  def as_json
+    {
+      id: @car.id,
+      vin: @car.vin,
+      year: @car.year,
+      purchase_price: @car.purchase_price,
+
+      # Calculated fields
+      total_cost: @car.total_cost,
+      total_expenses: @car.total_expenses,
+
+      # Associations
+      car_model: @car.car_model,
+      expenses: @car.expenses,
+
+      # Complex data
+      salvage_photos: salvage_photos_data
+    }
+  end
+
+  private
+
+  def salvage_photos_data
+    @car.salvage_photos.map do |photo|
+      {
+        id: photo.id,
+        url: Rails.application.routes.url_helpers.rails_blob_url(photo, only_path: true),
+        filename: photo.filename.to_s
+      }
+    end
+  end
+end
+```
+
+**Controller Usage**:
+```ruby
+# app/controllers/api/cars_controller.rb
+def index
+  @cars = tenant_scope(Car).includes(:car_model, :expenses).recent
+  render json: @cars.map { |car| CarSerializer.new(car).as_json }
+end
+
+def show
+  render json: CarSerializer.new(@car).as_json
+end
+
+def create
+  @car = tenant_scope(Car).new(car_params)
+
+  if @car.save
+    render json: CarSerializer.new(@car).as_json, status: :created
+  else
+    render json: { errors: @car.errors.full_messages }, status: :unprocessable_entity
+  end
+end
+```
+
+### Why Serializers Are Required
+
+**Separation of Concerns**:
+
+- Models handle **business logic** (validations, calculations, relationships)
+- Serializers handle **presentation logic** (JSON structure, formatting)
+
+**Benefits**:
+
+1. ✅ **Testability** - Easy to test serialization independently
+2. ✅ **Maintainability** - All JSON formatting in one place
+3. ✅ **Reusability** - Can create different serializers for same model (e.g., `CarListSerializer` vs `CarDetailSerializer`)
+4. ✅ **Clean Models** - Models stay focused on domain logic
+5. ✅ **Explicit Control** - Clear what's exposed in API responses
+6. ✅ **No Magic** - Obvious where data transformation happens
+
+**When to Create a Serializer**:
+
+- ✅ Any model exposed via API endpoints
+- ✅ Models with calculated fields (e.g., `total_cost`)
+- ✅ Models with complex associations
+- ✅ Models with Active Storage attachments
+- ✅ Any time you need custom JSON structure
+
+**Serializer Location**:
+
+```text
+backend/
+  app/
+    serializers/
+      car_serializer.rb
+      expense_serializer.rb
+      car_model_serializer.rb
+```
+
+**Pattern for Calculated Fields**:
+
+```ruby
+# Keep calculations in model
+class Car < ApplicationRecord
+  def total_cost
+    purchase_price.to_f + clearance_cost.to_f + towing_cost.to_f + expenses.sum(:amount).to_f
+  end
+
+  def total_expenses
+    expenses.sum(:amount).to_f
+  end
+end
+
+# Reference them in serializer
+class CarSerializer
+  def as_json
+    {
+      id: @car.id,
+      total_cost: @car.total_cost,      # Call model method
+      total_expenses: @car.total_expenses # Call model method
+    }
+  end
+end
+```
+
+This ensures:
+
+- Business logic stays in model (single source of truth)
+- Serializer just formats and presents the data
+- Easy to test calculations independently
+- Consistent values across different serializers

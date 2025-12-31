@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { carsAPI, expensesAPI, carModelsAPI } from '../services/api';
+import { carsAPI, expensesAPI, paymentsAPI, carModelsAPI } from '../services/api';
 import { useDialog } from '../context/DialogContext';
 import PhotoGallery from '../components/PhotoGallery';
 import InvoiceManager from '../components/InvoiceManager';
 import ExpenseManager from '../components/ExpenseManager';
+import PaymentManager from '../components/PaymentManager';
 
 export default function CarDetail() {
   const { id } = useParams();
@@ -13,9 +14,15 @@ export default function CarDetail() {
 
   const [car, setCar] = useState(null);
   const [expenses, setExpenses] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [carModels, setCarModels] = useState([]);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showSellForm, setShowSellForm] = useState(false);
+  const [saleFormData, setSaleFormData] = useState({
+    sale_price: '',
+    sale_date: new Date().toISOString().split('T')[0]
+  });
   const [formData, setFormData] = useState({
     vin: '',
     car_model_id: '',
@@ -45,6 +52,9 @@ export default function CarDetail() {
 
       setCar(carResponse.data);
       setExpenses(expensesResponse.data);
+
+      // Payments are already included in the car data from the serializer
+      setPayments(carResponse.data.payments || []);
     } catch (error) {
       await showAlert('Erreur lors du chargement des détails', 'error');
       navigate('/cars');
@@ -125,6 +135,63 @@ export default function CarDetail() {
       await expensesAPI.update(expenseId, expenseData);
     } else if (action === 'delete') {
       await expensesAPI.delete(expenseId);
+    }
+    await fetchCarDetails();
+  };
+
+  // Sale handlers
+  const handleSellCar = () => {
+    setSaleFormData({
+      sale_price: car.total_cost.toString(),
+      sale_date: new Date().toISOString().split('T')[0]
+    });
+    setShowSellForm(true);
+  };
+
+  const handleSellSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      await carsAPI.sell(id, saleFormData.sale_price, saleFormData.sale_date);
+      await showAlert('Véhicule marqué comme vendu', 'success');
+      setShowSellForm(false);
+      await fetchCarDetails();
+    } catch (error) {
+      await showAlert(
+        error.response?.data?.error || 'Erreur lors de l\'enregistrement',
+        'error'
+      );
+    }
+  };
+
+  const handleUnsellCar = async () => {
+    const confirmed = await showConfirm(
+      'Êtes-vous sûr de vouloir annuler la vente de ce véhicule ?',
+      'Annuler la vente'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await carsAPI.unsell(id);
+      await showAlert('Vente annulée avec succès', 'success');
+      await fetchCarDetails();
+    } catch (error) {
+      await showAlert(
+        error.response?.data?.error || 'Erreur lors de l\'annulation',
+        'error'
+      );
+    }
+  };
+
+  // Payment handlers
+  const handlePaymentChange = async (action, paymentId, paymentData) => {
+    if (action === 'create') {
+      await paymentsAPI.create(paymentData);
+    } else if (action === 'update') {
+      await paymentsAPI.update(paymentId, paymentData);
+    } else if (action === 'delete') {
+      await paymentsAPI.delete(paymentId);
     }
     await fetchCarDetails();
   };
@@ -256,6 +323,29 @@ export default function CarDetail() {
           </div>
 
           <div className="flex gap-3">
+            {car.status === 'active' ? (
+              <button
+                onClick={handleSellCar}
+                className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
+                style={{ backgroundColor: '#10b981' }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+              >
+                💰 Marquer comme Vendu
+              </button>
+            ) : (
+              <button
+                onClick={handleUnsellCar}
+                className="px-4 py-2 rounded-lg font-medium transition-colors"
+                style={{ backgroundColor: '#fafbfc', border: '1px solid #e2e8f0', color: '#475569' }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#f1f5f9'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#fafbfc'}
+                disabled={payments.length > 0}
+                title={payments.length > 0 ? 'Impossible: des paiements ont été enregistrés' : ''}
+              >
+                ↶ Annuler la Vente
+              </button>
+            )}
             <button
               onClick={handleEdit}
               className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
@@ -412,6 +502,15 @@ export default function CarDetail() {
           carId={id}
           onExpenseChange={handleExpenseChange}
         />
+
+        {/* Payment Tracking Section - Only shown for sold cars */}
+        {car.status === 'sold' && (
+          <PaymentManager
+            car={car}
+            payments={payments}
+            onPaymentChange={handlePaymentChange}
+          />
+        )}
       </div>
 
       {/* Edit Form Modal */}
@@ -693,6 +792,140 @@ export default function CarDetail() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Sell Form Modal */}
+      {showSellForm && (
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        >
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div
+              className="bg-white rounded-lg shadow-xl w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex justify-between items-center p-6 border-b">
+                <div>
+                  <h3 className="text-xl font-bold" style={{ color: '#1e293b' }}>
+                    Marquer comme Vendu
+                  </h3>
+                  <p className="text-sm mt-1" style={{ color: '#64748b' }}>
+                    Définissez le prix de vente du véhicule
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowSellForm(false)}
+                  className="rounded transition-colors p-1"
+                  style={{ color: '#64748b' }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f1f5f9'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <form onSubmit={handleSellSubmit} className="p-6 space-y-4">
+                {/* Cost Summary */}
+                <div className="rounded-lg p-4 mb-4" style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}>
+                  <p className="text-sm mb-2" style={{ color: '#64748b' }}>Coût total du véhicule</p>
+                  <p className="text-2xl font-bold" style={{ color: '#167bff' }}>
+                    {formatCurrency(car.total_cost)} MRU
+                  </p>
+                  <p className="text-xs mt-2" style={{ color: '#64748b' }}>
+                    Prix d'achat + Dédouanement + Remorquage + Dépenses
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: '#1e293b' }}>
+                    Prix de vente <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={saleFormData.sale_price}
+                    onChange={(e) => setSaleFormData({ ...saleFormData, sale_price: e.target.value })}
+                    required
+                    className="w-full px-4 py-3 rounded-lg transition-colors text-lg font-medium"
+                    style={{ border: '1px solid #e2e8f0', color: '#1e293b' }}
+                    onFocus={(e) => e.target.style.borderColor = '#167bff'}
+                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                    placeholder="0.00"
+                  />
+                  {saleFormData.sale_price && (
+                    <div className="mt-2">
+                      {parseFloat(saleFormData.sale_price) > car.total_cost ? (
+                        <p className="text-sm" style={{ color: '#10b981' }}>
+                          ✓ Bénéfice: +{formatCurrency(parseFloat(saleFormData.sale_price) - car.total_cost)} MRU
+                        </p>
+                      ) : parseFloat(saleFormData.sale_price) < car.total_cost ? (
+                        <p className="text-sm" style={{ color: '#ef4444' }}>
+                          ⚠ Perte: {formatCurrency(parseFloat(saleFormData.sale_price) - car.total_cost)} MRU
+                        </p>
+                      ) : (
+                        <p className="text-sm" style={{ color: '#64748b' }}>
+                          = Prix au coût (pas de bénéfice ni perte)
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: '#1e293b' }}>
+                    Date de vente <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={saleFormData.sale_date}
+                    onChange={(e) => setSaleFormData({ ...saleFormData, sale_date: e.target.value })}
+                    required
+                    className="w-full px-4 py-3 rounded-lg transition-colors"
+                    style={{ border: '1px solid #e2e8f0', color: '#1e293b' }}
+                    onFocus={(e) => e.target.style.borderColor = '#167bff'}
+                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                  />
+                </div>
+
+                {/* Info Box */}
+                <div className="rounded-lg p-4" style={{ backgroundColor: '#eff6ff', border: '1px solid #167bff' }}>
+                  <p className="text-sm" style={{ color: '#1e40af' }}>
+                    💡 Après avoir marqué le véhicule comme vendu, vous pourrez enregistrer les paiements reçus jusqu'au paiement complet.
+                  </p>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowSellForm(false)}
+                    className="flex-1 px-6 py-3 rounded-lg font-medium transition-colors"
+                    style={{ backgroundColor: '#fafbfc', border: '1px solid #e2e8f0', color: '#475569' }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f1f5f9'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#fafbfc'}
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-6 py-3 rounded-lg font-medium transition-colors text-white"
+                    style={{ backgroundColor: '#10b981' }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+                  >
+                    Marquer comme Vendu
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

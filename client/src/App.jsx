@@ -11,6 +11,7 @@ import Settings from './pages/Settings';
 import CarModels from './pages/CarModels';
 import ExpenseCategories from './pages/ExpenseCategories';
 import Sellers from './pages/Sellers';
+import PaymentMethods from './pages/PaymentMethods';
 
 function PrivateRoute({ children, requireAdmin = false }) {
   const { user, loading } = useAuth();
@@ -87,6 +88,7 @@ function AppRoutes() {
         <Route path="car-models" element={<CarModels />} />
         <Route path="expense-categories" element={<ExpenseCategories />} />
         <Route path="sellers" element={<Sellers />} />
+        <Route path="payment-methods" element={<PaymentMethods />} />
       </Route>
     </Routes>
   );

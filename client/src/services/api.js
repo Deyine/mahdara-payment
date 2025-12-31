@@ -98,6 +98,16 @@ export const carsAPI = {
   },
   deleteInvoice: (carId, invoiceId) => api.delete(`/cars/${carId}/invoices/${invoiceId}`),
 
+  // Sale management
+  sell: (carId, salePrice, saleDate = null) => {
+    const data = { sale_price: salePrice };
+    if (saleDate) {
+      data.sale_date = saleDate;
+    }
+    return api.post(`/cars/${carId}/sell`, data);
+  },
+  unsell: (carId) => api.post(`/cars/${carId}/unsell`),
+
   // Expense creation (convenience method)
   createExpense: (data) => api.post('/expenses', { expense: data }),
 };
@@ -132,6 +142,16 @@ export const sellersAPI = {
   delete: (id) => api.delete(`/sellers/${id}`),
 };
 
+// Payment Methods
+export const paymentMethodsAPI = {
+  getAll: () => api.get('/payment_methods'),
+  getActive: () => api.get('/payment_methods/active'),
+  getOne: (id) => api.get(`/payment_methods/${id}`),
+  create: (data) => api.post('/payment_methods', { payment_method: data }),
+  update: (id, data) => api.put(`/payment_methods/${id}`, { payment_method: data }),
+  delete: (id) => api.delete(`/payment_methods/${id}`),
+};
+
 // Expenses
 export const expensesAPI = {
   getAll: (carId = null) => {
@@ -142,6 +162,18 @@ export const expensesAPI = {
   create: (data) => api.post('/expenses', { expense: data }),
   update: (id, data) => api.put(`/expenses/${id}`, { expense: data }),
   delete: (id) => api.delete(`/expenses/${id}`),
+};
+
+// Payments
+export const paymentsAPI = {
+  getAll: (carId = null) => {
+    const params = carId ? `?car_id=${carId}` : '';
+    return api.get(`/payments${params}`);
+  },
+  getOne: (id) => api.get(`/payments/${id}`),
+  create: (data) => api.post('/payments', { payment: data }),
+  update: (id, data) => api.put(`/payments/${id}`, { payment: data }),
+  delete: (id) => api.delete(`/payments/${id}`),
 };
 
 export default api;

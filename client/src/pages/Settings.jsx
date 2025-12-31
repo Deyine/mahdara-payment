@@ -11,6 +11,7 @@ export default function Settings() {
     { path: '/settings/car-models', label: 'Modèles de Véhicules', icon: '🚗' },
     { path: '/settings/expense-categories', label: 'Catégories de Dépenses', icon: '💰' },
     { path: '/settings/sellers', label: 'Vendeurs', icon: '🏢' },
+    { path: '/settings/payment-methods', label: 'Modes de Paiement', icon: '💳' },
   ];
 
   return (

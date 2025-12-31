@@ -63,6 +63,7 @@ When the user asks you to update context documentation:
 - Business rules and validation logic
 - UI patterns and component structures
 - Data flow and integration patterns
+- if the session implies that some stuff are not relevent anymore, remove them from the context
 
 **DON'T document**:
 
@@ -80,4 +81,4 @@ When the user asks you to update context documentation:
 - Architecture changes → `01-architecture.md`
 - Integration patterns → `04-boundaries.md`
 
-Keep documentation concise and focused on what you'll need to understand the feature in future sessions. You are not forced to add anything if you think nothing new
+Keep documentation concise and focused on what you'll need to understand the feature in future sessions. If I ask you to complete context and there is nothing new, so just don't do it.

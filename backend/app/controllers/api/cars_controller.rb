@@ -3,7 +3,7 @@ class Api::CarsController < ApplicationController
 
   before_action :authenticate_user!
   before_action :require_admin, except: [:index, :show, :add_salvage_photos, :delete_salvage_photo, :add_after_repair_photos, :delete_after_repair_photo, :add_invoices, :delete_invoice]
-  before_action :set_car, only: [:show, :update, :destroy, :add_salvage_photos, :delete_salvage_photo, :add_after_repair_photos, :delete_after_repair_photo, :add_invoices, :delete_invoice]
+  before_action :set_car, only: [:show, :update, :destroy, :sell, :unsell, :add_salvage_photos, :delete_salvage_photo, :add_after_repair_photos, :delete_after_repair_photo, :add_invoices, :delete_invoice]
   before_action :set_car_with_deleted, only: [:restore]
 
   def index
@@ -136,6 +136,38 @@ class Api::CarsController < ApplicationController
     render json: { message: 'Invoice deleted successfully' }
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Invoice not found' }, status: :not_found
+  end
+
+  # Mark car as sold (admin only)
+  def sell
+    sale_price = params[:sale_price]
+    sale_date = params[:sale_date] || Date.current
+
+    if sale_price.blank? || sale_price.to_f <= 0
+      render json: { error: 'Sale price must be greater than 0' }, status: :unprocessable_entity
+      return
+    end
+
+    if @car.mark_as_sold!(sale_price, sale_date)
+      render json: {
+        message: 'Car marked as sold successfully',
+        car: CarSerializer.new(@car.reload).as_json
+      }
+    else
+      render json: { errors: @car.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  # Revert car to active status (admin only)
+  def unsell
+    if @car.mark_as_available!
+      render json: {
+        message: 'Car marked as available successfully',
+        car: CarSerializer.new(@car.reload).as_json
+      }
+    else
+      render json: { error: 'Cannot mark as available: car has payments recorded' }, status: :unprocessable_entity
+    end
   end
 
   private

@@ -391,6 +391,237 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ---
 
+## Payment Methods
+
+### List All Payment Methods
+**Endpoint**: `GET /api/payment_methods`
+**Access**: Authenticated (admin, super_admin)
+**Description**: Returns all payment methods for the current tenant
+
+**Response**:
+```json
+[
+  {
+    "id": 1,
+    "name": "Espèces",
+    "active": true,
+    "tenant_id": "uuid",
+    "created_at": "2025-12-31T12:00:00.000Z",
+    "updated_at": "2025-12-31T12:00:00.000Z"
+  }
+]
+```
+
+**Notes**:
+- Payment methods are ordered by name alphabetically
+- Scoped to current user's tenant
+
+### List Active Payment Methods
+**Endpoint**: `GET /api/payment_methods/active`
+**Access**: Authenticated (admin, super_admin)
+**Description**: Returns only active payment methods (for dropdowns)
+
+**Response**: Same format, filtered by `active: true`
+
+### Create Payment Method
+**Endpoint**: `POST /api/payment_methods`
+**Access**: Admin only
+
+**Request**:
+```json
+{
+  "payment_method": {
+    "name": "Carte Bancaire",
+    "active": true
+  }
+}
+```
+
+**Response**: Created payment method object (status 201)
+
+**Response** (Error - validation failure):
+```json
+{
+  "errors": [
+    "Name has already been taken for this tenant"
+  ]
+}
+```
+
+**Validation Rules**:
+- `name`: required, unique per tenant
+- `active`: defaults to true
+- tenant_id automatically set from current_user
+
+### Update Payment Method
+**Endpoint**: `PUT /api/payment_methods/:id`
+**Access**: Admin only
+
+**Request**: Same structure as Create
+
+**Response**: Updated payment method object
+
+### Delete Payment Method
+**Endpoint**: `DELETE /api/payment_methods/:id`
+**Access**: Admin only
+
+**Response** (Success):
+```json
+{
+  "message": "Payment method deleted successfully"
+}
+```
+
+**Response** (Error - has payments):
+```json
+{
+  "error": "Cannot delete payment method with associated payments"
+}
+```
+
+**Status Codes**:
+- `200 OK` - Success
+- `422 Unprocessable Entity` - Payment method has associated payments
+
+**Notes**:
+- Payment methods cannot be deleted if they have payments referencing them
+- Consider marking as inactive instead of deleting
+
+---
+
+## Payments
+
+### List Payments
+**Endpoint**: `GET /api/payments`
+**Access**: Authenticated (admin, super_admin)
+**Description**: Returns all payments with car and payment method info, ordered by payment_date desc
+
+**Query Parameters**:
+- `car_id=uuid` - Filter payments for a specific car
+
+**Response**:
+```json
+[
+  {
+    "id": "uuid",
+    "car_id": "uuid",
+    "amount": 5000.00,
+    "payment_date": "2025-12-20",
+    "payment_method_id": 1,
+    "payment_method": {
+      "id": 1,
+      "name": "Espèces"
+    },
+    "notes": "First installment",
+    "created_at": "2025-12-20T12:00:00.000Z",
+    "updated_at": "2025-12-20T12:00:00.000Z"
+  }
+]
+```
+
+**Notes**:
+- Scoped to current user's tenant
+- Ordered by payment_date DESC (most recent first)
+- `payment_method` object is null if payment_method_id is not set
+
+### Get Single Payment
+**Endpoint**: `GET /api/payments/:id`
+**Access**: Authenticated (admin, super_admin)
+
+**Response**: Same as single payment object above
+
+### Create Payment
+**Endpoint**: `POST /api/payments`
+**Access**: Admin only
+**Description**: Record a payment for a sold car
+
+**Request**:
+```json
+{
+  "payment": {
+    "car_id": "uuid",
+    "amount": 5000.00,
+    "payment_date": "2025-12-20",
+    "payment_method_id": 1,
+    "notes": "First installment"
+  }
+}
+```
+
+**Response** (Success):
+```json
+{
+  "id": "uuid",
+  "car_id": "uuid",
+  "amount": 5000.00,
+  "payment_date": "2025-12-20",
+  "payment_method_id": 1,
+  "payment_method": {
+    "id": 1,
+    "name": "Espèces"
+  },
+  "notes": "First installment",
+  "created_at": "2025-12-20T12:00:00.000Z",
+  "updated_at": "2025-12-20T12:00:00.000Z"
+}
+```
+
+**Response** (Error - car not sold):
+```json
+{
+  "errors": ["Payments can only be added to sold cars"]
+}
+```
+
+**Response** (Error - exceeds sale price):
+```json
+{
+  "errors": ["Amount would exceed sale price by 1000.00 MRU"]
+}
+```
+
+**Validation Rules**:
+- car_id: required, must be a sold car (status='sold')
+- amount: required, must be > 0
+- payment_date: required
+- payment_method_id: optional, must reference an existing payment method
+- notes: optional
+- Total payments (including this one) cannot exceed car's sale_price
+- tenant_id automatically set from current_user
+
+**Status Codes**:
+- `201 Created` - Success
+- `422 Unprocessable Entity` - Validation error
+
+### Update Payment
+**Endpoint**: `PUT /api/payments/:id`
+**Access**: Admin only
+
+**Request**: Same structure as Create
+
+**Response**: Updated payment object
+
+**Notes**:
+- Same validation rules as Create apply
+- Total payments validation includes updated amount
+
+### Delete Payment
+**Endpoint**: `DELETE /api/payments/:id`
+**Access**: Admin only
+
+**Response**:
+```json
+{
+  "message": "Payment deleted successfully"
+}
+```
+
+**Status Codes**:
+- `200 OK` - Success
+- `404 Not Found` - Payment not found
+
+---
+
 ## Cars
 
 ### List Cars
@@ -419,13 +650,38 @@ All endpoints are namespaced under `/api` and return JSON responses.
     "clearance_cost": "450.00",
     "towing_cost": "200.00",
     "deleted_at": null,
+    "deleted": false,
     "tenant_id": "uuid",
+    "status": "sold",
+    "sale_price": 12000.00,
+    "sale_date": "2025-12-20",
     "total_cost": 10200.00,
     "total_expenses": 1050.00,
+    "total_paid": 5000.00,
+    "remaining_balance": 7000.00,
+    "fully_paid": false,
+    "payment_percentage": 41.67,
+    "profit": 1800.00,
     "car_model": {
       "id": "uuid",
       "name": "Honda Accord"
     },
+    "payments": [
+      {
+        "id": "uuid",
+        "car_id": "uuid",
+        "amount": 5000.00,
+        "payment_date": "2025-12-20",
+        "payment_method_id": 1,
+        "payment_method": {
+          "id": 1,
+          "name": "Espèces"
+        },
+        "notes": "First installment",
+        "created_at": "2025-12-20T12:00:00.000Z",
+        "updated_at": "2025-12-20T12:00:00.000Z"
+      }
+    ],
     "salvage_photos": [
       {
         "id": "photo_uuid",
@@ -461,6 +717,14 @@ All endpoints are namespaced under `/api` and return JSON responses.
 - Cars ordered by purchase_date DESC (most recent first)
 - `total_cost` includes purchase_price + clearance_cost + towing_cost + all expenses
 - `total_expenses` is the sum of all expense amounts for this car
+- `status` can be 'active' (available) or 'sold'
+- Sale fields (`sale_price`, `sale_date`, `total_paid`, `remaining_balance`, `payment_percentage`, `profit`) are only populated when status='sold'
+- `profit` = sale_price - total_cost (null if not sold)
+- `total_paid` = sum of all payment amounts
+- `remaining_balance` = sale_price - total_paid
+- `payment_percentage` = (total_paid / sale_price) * 100
+- `fully_paid` = true when total_paid >= sale_price
+- `payments` array contains all payment records for the car
 - Photo arrays and invoices array are empty if nothing has been uploaded
 - Scoped to current user's tenant
 
@@ -561,6 +825,93 @@ All endpoints are namespaced under `/api` and return JSON responses.
 **Status Codes**:
 - `200 OK` - Success
 - `404 Not Found` - Car not found (or not deleted)
+
+### Mark Car as Sold
+**Endpoint**: `POST /api/cars/:id/sell`
+**Access**: Admin only
+**Description**: Mark a car as sold and set the sale price
+
+**Request**:
+```json
+{
+  "sale_price": 12000.00,
+  "sale_date": "2025-12-20"
+}
+```
+
+**Response** (Success):
+```json
+{
+  "message": "Car marked as sold successfully",
+  "car": {
+    "id": "uuid",
+    "status": "sold",
+    "sale_price": 12000.00,
+    "sale_date": "2025-12-20",
+    "total_cost": 10200.00,
+    "profit": 1800.00,
+    "total_paid": 0.00,
+    "remaining_balance": 12000.00,
+    "payment_percentage": 0.0,
+    "fully_paid": false
+  }
+}
+```
+
+**Response** (Error):
+```json
+{
+  "error": "Sale price must be greater than 0"
+}
+```
+
+**Validation Rules**:
+- sale_price: required, must be > 0
+- sale_date: optional, defaults to current date if not provided
+- Car must have status='active'
+
+**Status Codes**:
+- `200 OK` - Success
+- `422 Unprocessable Entity` - Validation error
+
+**Notes**:
+- Changes car status from 'active' to 'sold'
+- Enables payment tracking for the car
+- Profit is automatically calculated as: sale_price - total_cost
+
+### Revert Car to Active (Unsell)
+**Endpoint**: `POST /api/cars/:id/unsell`
+**Access**: Admin only
+**Description**: Revert a sold car back to active status
+
+**Response** (Success):
+```json
+{
+  "message": "Car marked as available successfully",
+  "car": {
+    "id": "uuid",
+    "status": "active",
+    "sale_price": null,
+    "sale_date": null
+  }
+}
+```
+
+**Response** (Error - has payments):
+```json
+{
+  "error": "Cannot mark as available: car has payments recorded"
+}
+```
+
+**Validation Rules**:
+- Car must have status='sold'
+- Car must have NO payments recorded
+- Once payments exist, car cannot be reverted to active
+
+**Status Codes**:
+- `200 OK` - Success
+- `422 Unprocessable Entity` - Has payments or validation error
 
 ### Add Salvage Photos
 **Endpoint**: `POST /api/cars/:id/salvage_photos`
@@ -931,6 +1282,10 @@ All errors return JSON with `error` key:
 | GET | `/api/sellers` | Auth | All sellers |
 | GET | `/api/sellers/active` | Auth | Active sellers only |
 | POST/PUT/DELETE | `/api/sellers` | Admin | Seller CUD |
+| GET | `/api/payment_methods` | Auth | All payment methods |
+| GET | `/api/payment_methods/active` | Auth | Active payment methods only |
+| POST/PUT/DELETE | `/api/payment_methods` | Admin | Payment method CUD |
+| GET/POST/PUT/DELETE | `/api/payments` | Auth/Admin | Payment CRUD |
 
 **Legend**:
 - **Public**: No authentication required

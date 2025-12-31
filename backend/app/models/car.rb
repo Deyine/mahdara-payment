@@ -3,6 +3,7 @@ class Car < ApplicationRecord
   belongs_to :car_model
   belongs_to :seller, optional: true
   has_many :expenses, dependent: :restrict_with_error
+  has_many :payments, dependent: :restrict_with_error
 
   # Active Storage attachments for two photo groups
   has_many_attached :salvage_photos      # Photos from auction/initial state
@@ -16,6 +17,11 @@ class Car < ApplicationRecord
   validates :clearance_cost, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :towing_cost, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :mileage, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
+
+  # Sale validations
+  validates :status, presence: true, inclusion: { in: %w[active sold] }
+  validates :sale_price, numericality: { greater_than: 0 }, if: -> { status == 'sold' }
+  validates :sale_date, presence: true, if: -> { status == 'sold' }
 
   # Photo validations (max 5MB per photo)
   validate :salvage_photos_size_validation
@@ -31,6 +37,11 @@ class Car < ApplicationRecord
   scope :active, -> { where(deleted_at: nil) }
   scope :deleted, -> { where.not(deleted_at: nil) }
 
+  # Sale status scopes
+  scope :available, -> { where(status: 'active') }
+  scope :sold, -> { where(status: 'sold') }
+  scope :fully_paid, -> { sold.select { |car| car.fully_paid? } }
+
   def total_cost
     base = purchase_price.to_f
     base += clearance_cost.to_f if clearance_cost
@@ -41,6 +52,62 @@ class Car < ApplicationRecord
 
   def total_expenses
     expenses.sum(:amount).to_f
+  end
+
+  # Sale-related calculations
+  def total_paid
+    payments.sum(:amount).to_f
+  end
+
+  def remaining_balance
+    return 0 unless sold?
+    (sale_price.to_f - total_paid).round(2)
+  end
+
+  def fully_paid?
+    return false unless sold?
+    total_paid >= sale_price.to_f
+  end
+
+  def payment_percentage
+    return 0 unless sold? && sale_price.to_f > 0
+    ((total_paid / sale_price.to_f) * 100).round(2)
+  end
+
+  def profit
+    return nil unless sold?
+    sale_price.to_f - total_cost
+  end
+
+  # Sale status methods
+  def sold?
+    status == 'sold'
+  end
+
+  def available?
+    status == 'active'
+  end
+
+  def mark_as_sold!(sale_price, sale_date = Date.current)
+    update!(
+      status: 'sold',
+      sale_price: sale_price,
+      sale_date: sale_date
+    )
+  end
+
+  def mark_as_available!
+    # Can only revert to active if no payments have been made
+    if payments.any?
+      errors.add(:base, 'Cannot mark as available: car has payments recorded')
+      return false
+    end
+
+    update!(
+      status: 'active',
+      sale_price: nil,
+      sale_date: nil
+    )
   end
 
   # Soft deletion methods
