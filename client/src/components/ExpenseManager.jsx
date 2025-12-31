@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { expenseCategoriesAPI } from '../services/api';
 import { useDialog } from '../context/DialogContext';
+import { formatCurrency } from '../utils/formatters';
 
 export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
   const { showAlert, showConfirm } = useDialog();
@@ -107,13 +108,6 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'decimal',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
-  };
 
   const getExpenseTypeBadge = (expenseType) => {
     if (expenseType === 'reparation') {
@@ -203,7 +197,7 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
                   <div className="text-right">
                     <p className="text-sm" style={{ color: '#64748b' }}>Montant</p>
                     <p className="text-xl font-bold" style={{ color: '#167bff' }}>
-                      {formatCurrency(expense.amount)} MRU
+                      {formatCurrency(expense.amount)}
                     </p>
                   </div>
                 </div>

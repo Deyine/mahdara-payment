@@ -6,6 +6,7 @@ import PhotoGallery from '../components/PhotoGallery';
 import InvoiceManager from '../components/InvoiceManager';
 import ExpenseManager from '../components/ExpenseManager';
 import PaymentManager from '../components/PaymentManager';
+import { formatCurrency, formatNumber } from '../utils/formatters';
 
 export default function CarDetail() {
   const { id } = useParams();
@@ -268,13 +269,6 @@ export default function CarDetail() {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'decimal',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
-  };
 
   if (loading) {
     return (
@@ -394,7 +388,7 @@ export default function CarDetail() {
               <div>
                 <p className="text-sm mb-1" style={{ color: '#64748b' }}>Kilométrage</p>
                 <p className="font-semibold" style={{ color: '#1e293b' }}>
-                  {formatCurrency(car.mileage)} km
+                  {formatNumber(car.mileage, 0)} km
                 </p>
               </div>
             )}
@@ -429,7 +423,7 @@ export default function CarDetail() {
             <div className="flex justify-between items-center pb-3" style={{ borderBottom: '1px solid #e2e8f0' }}>
               <span style={{ color: '#475569' }}>Prix d'achat</span>
               <span className="font-semibold" style={{ color: '#1e293b' }}>
-                {formatCurrency(car.purchase_price)} MRU
+                {formatCurrency(car.purchase_price)}
               </span>
             </div>
 
@@ -437,7 +431,7 @@ export default function CarDetail() {
               <div className="flex justify-between items-center pb-3" style={{ borderBottom: '1px solid #e2e8f0' }}>
                 <span style={{ color: '#475569' }}>Dédouanement</span>
                 <span className="font-semibold" style={{ color: '#1e293b' }}>
-                  {formatCurrency(car.clearance_cost)} MRU
+                  {formatCurrency(car.clearance_cost)}
                 </span>
               </div>
             )}
@@ -446,7 +440,7 @@ export default function CarDetail() {
               <div className="flex justify-between items-center pb-3" style={{ borderBottom: '1px solid #e2e8f0' }}>
                 <span style={{ color: '#475569' }}>Remorquage</span>
                 <span className="font-semibold" style={{ color: '#1e293b' }}>
-                  {formatCurrency(car.towing_cost)} MRU
+                  {formatCurrency(car.towing_cost)}
                 </span>
               </div>
             )}
@@ -454,14 +448,14 @@ export default function CarDetail() {
             <div className="flex justify-between items-center pb-3" style={{ borderBottom: '1px solid #e2e8f0' }}>
               <span style={{ color: '#475569' }}>Dépenses totales ({expenses.length})</span>
               <span className="font-semibold" style={{ color: '#1e293b' }}>
-                {formatCurrency(car.total_expenses || 0)} MRU
+                {formatCurrency(car.total_expenses || 0)}
               </span>
             </div>
 
             <div className="flex justify-between items-center pt-2">
               <span className="text-lg font-bold" style={{ color: '#1e293b' }}>Coût Total</span>
               <span className="text-2xl font-bold" style={{ color: '#167bff' }}>
-                {formatCurrency(car.total_cost || 0)} MRU
+                {formatCurrency(car.total_cost || 0)}
               </span>
             </div>
           </div>
@@ -836,7 +830,7 @@ export default function CarDetail() {
                 <div className="rounded-lg p-4 mb-4" style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}>
                   <p className="text-sm mb-2" style={{ color: '#64748b' }}>Coût total du véhicule</p>
                   <p className="text-2xl font-bold" style={{ color: '#167bff' }}>
-                    {formatCurrency(car.total_cost)} MRU
+                    {formatCurrency(car.total_cost)}
                   </p>
                   <p className="text-xs mt-2" style={{ color: '#64748b' }}>
                     Prix d'achat + Dédouanement + Remorquage + Dépenses
@@ -864,11 +858,11 @@ export default function CarDetail() {
                     <div className="mt-2">
                       {parseFloat(saleFormData.sale_price) > car.total_cost ? (
                         <p className="text-sm" style={{ color: '#10b981' }}>
-                          ✓ Bénéfice: +{formatCurrency(parseFloat(saleFormData.sale_price) - car.total_cost)} MRU
+                          ✓ Bénéfice: +{formatCurrency(parseFloat(saleFormData.sale_price) - car.total_cost)}
                         </p>
                       ) : parseFloat(saleFormData.sale_price) < car.total_cost ? (
                         <p className="text-sm" style={{ color: '#ef4444' }}>
-                          ⚠ Perte: {formatCurrency(parseFloat(saleFormData.sale_price) - car.total_cost)} MRU
+                          ⚠ Perte: {formatCurrency(parseFloat(saleFormData.sale_price) - car.total_cost)}
                         </p>
                       ) : (
                         <p className="text-sm" style={{ color: '#64748b' }}>

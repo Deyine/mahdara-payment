@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDialog } from '../context/DialogContext';
 import { paymentMethodsAPI } from '../services/api';
+import { formatCurrency } from '../utils/formatters';
 
 export default function PaymentManager({ car, payments, onPaymentChange }) {
   const { showAlert, showConfirm } = useDialog();
@@ -110,13 +111,6 @@ export default function PaymentManager({ car, payments, onPaymentChange }) {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'decimal',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
-  };
 
   const getProgressColor = () => {
     const percentage = car.payment_percentage;
@@ -139,19 +133,19 @@ export default function PaymentManager({ car, payments, onPaymentChange }) {
               <div>
                 <p className="text-sm mb-1" style={{ color: '#64748b' }}>Prix de vente</p>
                 <p className="text-lg font-bold" style={{ color: '#167bff' }}>
-                  {formatCurrency(car.sale_price)} MRU
+                  {formatCurrency(car.sale_price)}
                 </p>
               </div>
               <div>
                 <p className="text-sm mb-1" style={{ color: '#64748b' }}>Total payé</p>
                 <p className="text-lg font-bold" style={{ color: '#10b981' }}>
-                  {formatCurrency(car.total_paid)} MRU
+                  {formatCurrency(car.total_paid)}
                 </p>
               </div>
               <div>
                 <p className="text-sm mb-1" style={{ color: '#64748b' }}>Reste à payer</p>
                 <p className="text-lg font-bold" style={{ color: car.remaining_balance > 0 ? '#ef4444' : '#10b981' }}>
-                  {formatCurrency(car.remaining_balance)} MRU
+                  {formatCurrency(car.remaining_balance)}
                 </p>
               </div>
             </div>
@@ -215,7 +209,7 @@ export default function PaymentManager({ car, payments, onPaymentChange }) {
                 className="text-lg font-bold"
                 style={{ color: car.profit >= 0 ? '#10b981' : '#ef4444' }}
               >
-                {car.profit >= 0 ? '+' : ''}{formatCurrency(car.profit)} MRU
+                {car.profit >= 0 ? '+' : ''}{formatCurrency(car.profit)}
               </span>
             </div>
             <p className="text-xs mt-1" style={{ color: '#64748b' }}>
@@ -250,7 +244,7 @@ export default function PaymentManager({ car, payments, onPaymentChange }) {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-xl font-bold" style={{ color: '#10b981' }}>
-                        {formatCurrency(payment.amount)} MRU
+                        {formatCurrency(payment.amount)}
                       </span>
                       <span
                         className="px-2 py-1 rounded text-xs font-medium"
@@ -359,7 +353,7 @@ export default function PaymentManager({ car, payments, onPaymentChange }) {
                   />
                   {!editingPayment && (
                     <p className="text-xs mt-1" style={{ color: '#64748b' }}>
-                      Maximum: {formatCurrency(car.remaining_balance)} MRU
+                      Maximum: {formatCurrency(car.remaining_balance)}
                     </p>
                   )}
                 </div>

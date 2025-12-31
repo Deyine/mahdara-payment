@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDialog } from '../context/DialogContext';
 import { carsAPI, carModelsAPI, sellersAPI } from '../services/api';
+import { formatCurrency } from '../utils/formatters';
 
 export default function Cars() {
   const navigate = useNavigate();
@@ -193,12 +194,6 @@ export default function Cars() {
     car.seller?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'MRU'
-    }).format(amount);
-  };
 
   return (
     <div className="page-container" style={{ padding: '20px' }}>

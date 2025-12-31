@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { dashboardAPI } from '../services/api';
 import { Link } from 'react-router-dom';
-import { formatNumber } from '../utils/formatters';
+import { formatNumber, formatCurrency } from '../utils/formatters';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -22,12 +22,6 @@ export default function Dashboard() {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'MRU'
-    }).format(amount);
-  };
 
   if (loading) {
     return (
