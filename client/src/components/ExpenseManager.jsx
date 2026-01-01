@@ -14,6 +14,8 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
     description: '',
     expense_date: new Date().toISOString().split('T')[0]
   });
+  const [categorySearch, setCategorySearch] = useState('');
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   useEffect(() => {
     fetchExpenseCategories();
@@ -37,6 +39,8 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
       description: '',
       expense_date: new Date().toISOString().split('T')[0]
     });
+    setCategorySearch('');
+    setShowCategoryDropdown(false);
   };
 
   const handleAddExpense = () => {
@@ -47,6 +51,7 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
       description: '',
       expense_date: new Date().toISOString().split('T')[0]
     });
+    setCategorySearch('');
     setShowForm(true);
   };
 
@@ -58,7 +63,38 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
       description: expense.description || '',
       expense_date: expense.expense_date
     });
+    setCategorySearch(expense.expense_category?.name || '');
     setShowForm(true);
+  };
+
+  const getSelectedCategory = () => {
+    return expenseCategories.find(cat => cat.id === formData.expense_category_id);
+  };
+
+  const getFilteredCategories = () => {
+    if (!categorySearch) return expenseCategories;
+    const searchLower = categorySearch.toLowerCase();
+    return expenseCategories.filter(category =>
+      category.name.toLowerCase().includes(searchLower)
+    );
+  };
+
+  const handleCategorySelect = (category) => {
+    setFormData({ ...formData, expense_category_id: category.id });
+    setCategorySearch(category.name);
+    setShowCategoryDropdown(false);
+  };
+
+  const handleCategorySearchChange = (e) => {
+    setCategorySearch(e.target.value);
+    setShowCategoryDropdown(true);
+    // Clear selection if user modifies search
+    if (formData.expense_category_id) {
+      const selectedCat = getSelectedCategory();
+      if (selectedCat && e.target.value !== selectedCat.name) {
+        setFormData({ ...formData, expense_category_id: '' });
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -271,27 +307,87 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
 
               {/* Modal body */}
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div>
+                <div className="relative">
                   <label className="block text-sm font-medium mb-2" style={{ color: '#475569' }}>
                     Catégorie de Dépense *
                   </label>
-                  <select
-                    value={formData.expense_category_id}
-                    onChange={(e) => setFormData({ ...formData, expense_category_id: e.target.value })}
+                  <input
+                    type="text"
+                    value={categorySearch}
+                    onChange={handleCategorySearchChange}
+                    onFocus={() => setShowCategoryDropdown(true)}
+                    onBlur={() => {
+                      // Delay to allow click on dropdown item
+                      setTimeout(() => setShowCategoryDropdown(false), 200);
+                    }}
                     required
                     className="w-full px-4 py-3 rounded-lg transition-colors"
                     style={{ border: '1px solid #e2e8f0', color: '#1e293b' }}
-                  >
-                    <option value="">Sélectionner une catégorie</option>
-                    {expenseCategories.map((category) => {
-                      const badge = getExpenseTypeBadge(category.expense_type);
-                      return (
-                        <option key={category.id} value={category.id}>
-                          [{badge.label}] {category.name}
-                        </option>
-                      );
-                    })}
-                  </select>
+                    placeholder="Rechercher une catégorie..."
+                    autoComplete="off"
+                  />
+
+                  {/* Dropdown list */}
+                  {showCategoryDropdown && getFilteredCategories().length > 0 && (
+                    <div
+                      className="absolute z-10 w-full mt-1 rounded-lg shadow-lg overflow-hidden"
+                      style={{
+                        backgroundColor: 'white',
+                        border: '1px solid #e2e8f0',
+                        maxHeight: '240px',
+                        overflowY: 'auto'
+                      }}
+                    >
+                      {getFilteredCategories().map((category) => {
+                        const badge = getExpenseTypeBadge(category.expense_type);
+                        const isSelected = category.id === formData.expense_category_id;
+                        return (
+                          <div
+                            key={category.id}
+                            onClick={() => handleCategorySelect(category)}
+                            className="px-4 py-3 cursor-pointer transition-colors"
+                            style={{
+                              backgroundColor: isSelected ? '#eff6ff' : 'white',
+                              borderBottom: '1px solid #f1f5f9'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isSelected) e.target.style.backgroundColor = '#f8fafc';
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isSelected) e.target.style.backgroundColor = 'white';
+                            }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="px-2 py-1 rounded text-xs font-medium"
+                                style={{
+                                  backgroundColor: badge.backgroundColor,
+                                  color: badge.color
+                                }}
+                              >
+                                {badge.label}
+                              </span>
+                              <span style={{ color: '#1e293b' }}>{category.name}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* No results message */}
+                  {showCategoryDropdown && categorySearch && getFilteredCategories().length === 0 && (
+                    <div
+                      className="absolute z-10 w-full mt-1 rounded-lg shadow-lg p-4 text-center"
+                      style={{
+                        backgroundColor: 'white',
+                        border: '1px solid #e2e8f0',
+                        color: '#64748b'
+                      }}
+                    >
+                      Aucune catégorie trouvée
+                    </div>
+                  )}
                 </div>
 
                 <div>
