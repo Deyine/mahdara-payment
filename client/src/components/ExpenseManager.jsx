@@ -97,13 +97,42 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
     }
   };
 
+  const parseAmount = (amountStr) => {
+    if (!amountStr) return 0;
+
+    // Convert to string and trim
+    let cleaned = String(amountStr).trim();
+
+    // Remove all spaces
+    cleaned = cleaned.replace(/\s/g, '');
+
+    // Determine decimal separator: the last comma or period is the decimal separator
+    const lastComma = cleaned.lastIndexOf(',');
+    const lastPeriod = cleaned.lastIndexOf('.');
+
+    if (lastComma > lastPeriod) {
+      // Comma is decimal separator (European format: 15.000,50)
+      cleaned = cleaned.replace(/\./g, ''); // Remove thousand separators (periods)
+      cleaned = cleaned.replace(',', '.'); // Replace decimal comma with period
+    } else if (lastPeriod > lastComma) {
+      // Period is decimal separator (US format: 15,000.50)
+      cleaned = cleaned.replace(/,/g, ''); // Remove thousand separators (commas)
+    } else if (lastComma !== -1) {
+      // Only comma exists, treat as decimal
+      cleaned = cleaned.replace(',', '.');
+    }
+    // If only period exists, it's already in the correct format
+
+    return parseFloat(cleaned) || 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const expenseData = {
       ...formData,
       car_id: carId,
-      amount: parseFloat(formData.amount)
+      amount: parseAmount(formData.amount)
     };
 
     try {
@@ -395,15 +424,13 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
                     Montant (MRU) *
                   </label>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
+                    type="text"
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                     required
                     className="w-full px-4 py-3 rounded-lg transition-colors"
                     style={{ border: '1px solid #e2e8f0', color: '#1e293b' }}
-                    placeholder="0.00"
+                    placeholder="15000 ou 15.000 ou 15,000 ou 15 000"
                   />
                 </div>
 
