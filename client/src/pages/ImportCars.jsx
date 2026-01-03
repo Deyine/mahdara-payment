@@ -114,6 +114,48 @@ export default function ImportCars() {
     }
   };
 
+  // Helper function to parse amounts with flexible formatting
+  const parseAmount = (amountStr) => {
+    if (!amountStr) return 0;
+
+    // Convert to string and trim
+    let cleaned = String(amountStr).trim();
+
+    // Remove all spaces
+    cleaned = cleaned.replace(/\s/g, '');
+
+    // Determine decimal separator: the last comma or period is the decimal separator
+    const lastComma = cleaned.lastIndexOf(',');
+    const lastPeriod = cleaned.lastIndexOf('.');
+
+    // Special case: if there's only one separator followed by exactly 3 digits, it's a thousand separator
+    // Examples: 15.000 or 15,000 should be 15000, not 15.0
+    const afterLastSeparator = Math.max(lastComma, lastPeriod);
+    if (afterLastSeparator !== -1) {
+      const digitsAfter = cleaned.length - afterLastSeparator - 1;
+      if (digitsAfter === 3 && (cleaned.match(/[.,]/g) || []).length === 1) {
+        // Single separator with exactly 3 digits after = thousand separator
+        cleaned = cleaned.replace(/[.,]/g, '');
+        return parseFloat(cleaned) || 0;
+      }
+    }
+
+    if (lastComma > lastPeriod) {
+      // Comma is decimal separator (European format: 15.000,50)
+      cleaned = cleaned.replace(/\./g, ''); // Remove thousand separators (periods)
+      cleaned = cleaned.replace(',', '.'); // Replace decimal comma with period
+    } else if (lastPeriod > lastComma) {
+      // Period is decimal separator (US format: 15,000.50)
+      cleaned = cleaned.replace(/,/g, ''); // Remove thousand separators (commas)
+    } else if (lastComma !== -1) {
+      // Only comma exists, treat as decimal
+      cleaned = cleaned.replace(',', '.');
+    }
+    // If only period exists, it's already in the correct format
+
+    return parseFloat(cleaned) || 0;
+  };
+
   // Helper function to parse and convert mileage
   const parseMileage = (mileageStr) => {
     if (!mileageStr) return null;
@@ -247,10 +289,10 @@ export default function ImportCars() {
       // Look for numbers in the line (with spaces, commas, or periods)
       const amountMatch = cleanLine.match(/[\d\s,\.]+(?:\s*(?:MRO|MRU))?$/i);
       if (amountMatch) {
-        const amountStr = amountMatch[0].replace(/MRO|MRU/gi, '').replace(/\s+/g, '').trim();
-        const parsedAmount = parseFloat(amountStr.replace(/,/g, ''));
+        const amountStr = amountMatch[0].replace(/MRO|MRU/gi, '').trim();
+        const parsedAmount = parseAmount(amountStr);
 
-        if (!isNaN(parsedAmount)) {
+        if (!isNaN(parsedAmount) && parsedAmount > 0) {
           amount = parsedAmount;
           // Category is everything before the amount
           category = cleanLine.substring(0, amountMatch.index).trim();
@@ -261,20 +303,21 @@ export default function ImportCars() {
     } else {
       // We have parts from separator
       // Check if first part is the amount or category
-      const firstPartNum = parseFloat(parts[0].replace(/[^\d\.]/g, ''));
-      const lastPartNum = parseFloat(parts[parts.length - 1].replace(/[^\d\.]/g, ''));
+      const firstPartCleaned = parts[0].replace(/MRO|MRU/gi, '').trim();
+      const lastPartCleaned = parts[parts.length - 1].replace(/MRO|MRU/gi, '').trim();
+
+      const firstPartNum = parseAmount(firstPartCleaned);
+      const lastPartNum = parseAmount(lastPartCleaned);
 
       if (!isNaN(lastPartNum) && lastPartNum > 0) {
         // Amount is last part
-        const amountStr = parts[parts.length - 1].replace(/MRO|MRU/gi, '').replace(/\s+/g, '').replace(/,/g, '');
-        amount = parseFloat(amountStr);
+        amount = lastPartNum;
         category = parts.slice(0, -1).join(' ').trim();
         // Remove leading numbers from category
         category = category.replace(/^\d+\s*/, '').trim();
       } else if (!isNaN(firstPartNum) && firstPartNum > 0) {
         // Amount might be first part
-        const amountStr = parts[0].replace(/MRO|MRU/gi, '').replace(/\s+/g, '').replace(/,/g, '');
-        amount = parseFloat(amountStr);
+        amount = firstPartNum;
         category = parts.slice(1).join(' ').trim();
       }
     }
