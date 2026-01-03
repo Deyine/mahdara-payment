@@ -110,6 +110,18 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
     const lastComma = cleaned.lastIndexOf(',');
     const lastPeriod = cleaned.lastIndexOf('.');
 
+    // Special case: if there's only one separator followed by exactly 3 digits, it's a thousand separator
+    // Examples: 15.000 or 15,000 should be 15000, not 15.0
+    const afterLastSeparator = Math.max(lastComma, lastPeriod);
+    if (afterLastSeparator !== -1) {
+      const digitsAfter = cleaned.length - afterLastSeparator - 1;
+      if (digitsAfter === 3 && (cleaned.match(/[.,]/g) || []).length === 1) {
+        // Single separator with exactly 3 digits after = thousand separator
+        cleaned = cleaned.replace(/[.,]/g, '');
+        return parseFloat(cleaned) || 0;
+      }
+    }
+
     if (lastComma > lastPeriod) {
       // Comma is decimal separator (European format: 15.000,50)
       cleaned = cleaned.replace(/\./g, ''); // Remove thousand separators (periods)
