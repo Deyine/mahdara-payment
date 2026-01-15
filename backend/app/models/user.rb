@@ -3,7 +3,7 @@ class User < ApplicationRecord
 
   has_secure_password
 
-  ROLES = %w[admin super_admin].freeze
+  ROLES = %w[admin super_admin manager].freeze
 
   validates :name, presence: true
   validates :username, presence: true, uniqueness: true
@@ -19,5 +19,17 @@ class User < ApplicationRecord
 
   def admin?
     role == 'admin'
+  end
+
+  def manager?
+    role == 'manager'
+  end
+
+  def can_write?
+    admin? || super_admin?
+  end
+
+  def can_read?
+    admin? || super_admin? || manager?
   end
 end

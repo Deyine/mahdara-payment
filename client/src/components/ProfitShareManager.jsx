@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useDialog } from '../context/DialogContext';
+import { useAuth } from '../context/AuthContext';
 import { usersAPI, carsAPI } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
 
 export default function ProfitShareManager({ car, onCarUpdate }) {
+  const { canWrite } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -115,7 +117,7 @@ export default function ProfitShareManager({ car, onCarUpdate }) {
           </p>
         </div>
 
-        {!showForm && (
+        {!showForm && canWrite && (
           <button
             onClick={() => setShowForm(true)}
             className="px-4 py-2 rounded-lg font-medium transition-colors"

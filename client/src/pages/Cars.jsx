@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
 import { carsAPI, carModelsAPI, sellersAPI, tagsAPI } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
@@ -7,6 +8,7 @@ import BulkPaymentImport from '../components/BulkPaymentImport';
 
 export default function Cars() {
   const navigate = useNavigate();
+  const { canWrite } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [cars, setCars] = useState([]);
   const [carModels, setCarModels] = useState([]);
@@ -267,31 +269,35 @@ export default function Cars() {
           >
             {showDeleted ? '🗑️ Supprimés' : '📋 Actifs'}
           </button>
-          <button
-            onClick={() => navigate('/cars/import')}
-            className="px-4 py-2 rounded-lg font-bold transition-colors text-sm sm:text-base flex-1 sm:flex-none"
-            style={{
-              backgroundColor: '#10b981',
-              color: 'white',
-              border: 'none'
-            }}
-          >
-            <span className="hidden sm:inline">📋 Importer Excel</span>
-            <span className="sm:hidden">📋 Import</span>
-          </button>
-          <BulkPaymentImport onImportComplete={fetchCars} />
-          <button
-            onClick={handleCreate}
-            className="px-4 py-2 rounded-lg font-bold transition-colors text-sm sm:text-base flex-1 sm:flex-none"
-            style={{
-              backgroundColor: '#167bff',
-              color: 'white',
-              border: 'none'
-            }}
-          >
-            <span className="hidden sm:inline">+ Nouveau Véhicule</span>
-            <span className="sm:hidden">+ Nouveau</span>
-          </button>
+          {canWrite && (
+            <button
+              onClick={() => navigate('/cars/import')}
+              className="px-4 py-2 rounded-lg font-bold transition-colors text-sm sm:text-base flex-1 sm:flex-none"
+              style={{
+                backgroundColor: '#10b981',
+                color: 'white',
+                border: 'none'
+              }}
+            >
+              <span className="hidden sm:inline">📋 Importer Excel</span>
+              <span className="sm:hidden">📋 Import</span>
+            </button>
+          )}
+          {canWrite && <BulkPaymentImport onImportComplete={fetchCars} />}
+          {canWrite && (
+            <button
+              onClick={handleCreate}
+              className="px-4 py-2 rounded-lg font-bold transition-colors text-sm sm:text-base flex-1 sm:flex-none"
+              style={{
+                backgroundColor: '#167bff',
+                color: 'white',
+                border: 'none'
+              }}
+            >
+              <span className="hidden sm:inline">+ Nouveau Véhicule</span>
+              <span className="sm:hidden">+ Nouveau</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -707,37 +713,39 @@ export default function Cars() {
                 >
                   Voir Détails
                 </button>
-                {car.deleted ? (
-                  <button
-                    onClick={() => handleRestore(car.id)}
-                    style={{
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid #10b981',
-                      backgroundColor: 'white',
-                      color: '#10b981',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    ↶ Restaurer
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleDelete(car.id)}
-                    style={{
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: '1px solid #dc2626',
-                      backgroundColor: 'white',
-                      color: '#dc2626',
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
-                  >
-                    🗑️
-                  </button>
+                {canWrite && (
+                  car.deleted ? (
+                    <button
+                      onClick={() => handleRestore(car.id)}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid #10b981',
+                        backgroundColor: 'white',
+                        color: '#10b981',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      ↶ Restaurer
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleDelete(car.id)}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid #dc2626',
+                        backgroundColor: 'white',
+                        color: '#dc2626',
+                        cursor: 'pointer',
+                        fontSize: '14px'
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  )
                 )}
               </div>
             </div>

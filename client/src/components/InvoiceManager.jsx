@@ -1,6 +1,8 @@
 import { useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 export default function InvoiceManager({ invoices, onUpload, onDelete }) {
+  const { canWrite } = useAuth();
   const fileInputRef = useRef(null);
 
   const handleFileSelect = (e) => {
@@ -34,23 +36,27 @@ export default function InvoiceManager({ invoices, onUpload, onDelete }) {
         <h2 className="text-xl font-bold" style={{ color: '#1e293b' }}>
           Factures d'Achat ({invoices.length})
         </h2>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
-          style={{ backgroundColor: '#8b5cf6' }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#7c3aed'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#8b5cf6'}
-        >
-          📤 Ajouter des Factures
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
-          multiple
-          onChange={handleFileSelect}
-          style={{ display: 'none' }}
-        />
+        {canWrite && (
+          <>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
+              style={{ backgroundColor: '#8b5cf6' }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#7c3aed'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#8b5cf6'}
+            >
+              📤 Ajouter des Factures
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              multiple
+              onChange={handleFileSelect}
+              style={{ display: 'none' }}
+            />
+          </>
+        )}
       </div>
 
       {invoices.length === 0 ? (
@@ -106,26 +112,28 @@ export default function InvoiceManager({ invoices, onUpload, onDelete }) {
                 >
                   📥 Télécharger
                 </a>
-                <button
-                  onClick={() => onDelete(invoice.id)}
-                  className="px-3 py-2 rounded-lg transition-colors"
-                  style={{
-                    backgroundColor: 'white',
-                    border: '1px solid #ef4444',
-                    color: '#ef4444',
-                    fontSize: '14px'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = '#ef4444';
-                    e.target.style.color = 'white';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = 'white';
-                    e.target.style.color = '#ef4444';
-                  }}
-                >
-                  🗑️ Supprimer
-                </button>
+                {canWrite && (
+                  <button
+                    onClick={() => onDelete(invoice.id)}
+                    className="px-3 py-2 rounded-lg transition-colors"
+                    style={{
+                      backgroundColor: 'white',
+                      border: '1px solid #ef4444',
+                      color: '#ef4444',
+                      fontSize: '14px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = '#ef4444';
+                      e.target.style.color = 'white';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'white';
+                      e.target.style.color = '#ef4444';
+                    }}
+                  >
+                    🗑️ Supprimer
+                  </button>
+                )}
               </div>
             </div>
           ))}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDialog } from '../context/DialogContext';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * PhotoGallery Component
@@ -19,6 +20,7 @@ export default function PhotoGallery({
   title = "Photos",
   emptyMessage = "Aucune photo"
 }) {
+  const { canWrite } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -229,15 +231,16 @@ export default function PhotoGallery({
       </h3>
 
       {/* Upload Section */}
-      <div className="mb-6">
-        <input
-          type="file"
-          accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-          multiple
-          onChange={handleFileSelect}
-          className="mb-3"
-          style={{ display: 'block' }}
-        />
+      {canWrite && (
+        <div className="mb-6">
+          <input
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+            multiple
+            onChange={handleFileSelect}
+            className="mb-3"
+            style={{ display: 'block' }}
+          />
 
         {/* Preview Selected Files */}
         {previews.length > 0 && (
@@ -297,7 +300,8 @@ export default function PhotoGallery({
             </div>
           </div>
         )}
-      </div>
+        </div>
+      )}
 
       {/* Photo Swiper with Navigation */}
       {photos.length === 0 ? (
@@ -422,19 +426,21 @@ export default function PhotoGallery({
                 />
 
                 {/* Delete Button (shows on hover) */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(photo);
-                  }}
-                  className="absolute top-2 right-2 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ backgroundColor: 'rgba(239, 68, 68, 0.9)', color: 'white' }}
-                  title="Supprimer"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                {canWrite && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(photo);
+                    }}
+                    className="absolute top-2 right-2 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ backgroundColor: 'rgba(239, 68, 68, 0.9)', color: 'white' }}
+                    title="Supprimer"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                )}
 
                 {/* Photo Info */}
                 <div className="p-2" style={{ backgroundColor: '#fafbfc' }}>

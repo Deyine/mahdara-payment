@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { carsAPI, expensesAPI, paymentsAPI, carModelsAPI, rentalTransactionsAPI, tagsAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
 import PhotoGallery from '../components/PhotoGallery';
 import InvoiceManager from '../components/InvoiceManager';
@@ -13,6 +14,7 @@ import { formatCurrency, formatNumber } from '../utils/formatters';
 export default function CarDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { canWrite } = useAuth();
   const { showAlert, showConfirm } = useDialog();
 
   const [car, setCar] = useState(null);
@@ -410,7 +412,7 @@ export default function CarDetail() {
           </div>
 
           <div className="flex gap-3">
-            {car.status === 'active' && (
+            {canWrite && car.status === 'active' && (
               <>
                 <button
                   onClick={handleMarkAsRental}
@@ -433,7 +435,7 @@ export default function CarDetail() {
               </>
             )}
 
-            {car.status === 'rental' && (
+            {canWrite && car.status === 'rental' && (
               <button
                 onClick={handleReturnFromRental}
                 className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
@@ -445,7 +447,7 @@ export default function CarDetail() {
               </button>
             )}
 
-            {car.status === 'sold' && (
+            {canWrite && car.status === 'sold' && (
               <button
                 onClick={handleUnsellCar}
                 className="px-4 py-2 rounded-lg font-medium transition-colors"
@@ -458,16 +460,18 @@ export default function CarDetail() {
                 ↶ Annuler la Vente
               </button>
             )}
-            <button
-              onClick={handleEdit}
-              className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
-              style={{ backgroundColor: '#167bff' }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#0d5dd6'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#167bff'}
-            >
-              ✏️ Modifier
-            </button>
-            {expenses.length === 0 && payments.length === 0 && (
+            {canWrite && (
+              <button
+                onClick={handleEdit}
+                className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
+                style={{ backgroundColor: '#167bff' }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#0d5dd6'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#167bff'}
+              >
+                ✏️ Modifier
+              </button>
+            )}
+            {canWrite && expenses.length === 0 && payments.length === 0 && (
               <button
                 onClick={handleDeleteCar}
                 className="px-4 py-2 rounded-lg font-medium transition-colors text-white"

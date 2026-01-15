@@ -61,8 +61,12 @@ export function AuthProvider({ children }) {
     login,
     logout,
     loading,
-    isAdmin: user?.role === 'admin',
+    isAdmin: user?.role === 'admin' || user?.role === 'super_admin',
+    isSuperAdmin: user?.role === 'super_admin',
+    isManager: user?.role === 'manager',
     isOperator: user?.role === 'operator',
+    canWrite: user?.role === 'admin' || user?.role === 'super_admin',
+    canRead: user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'manager',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

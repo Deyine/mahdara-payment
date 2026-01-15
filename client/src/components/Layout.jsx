@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Layout({ children }) {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -69,7 +69,7 @@ export default function Layout({ children }) {
               <div className="text-right">
                 <p className="font-medium text-sm" style={{ color: '#1e293b' }}>{user?.name}</p>
                 <p className="text-xs" style={{ color: '#64748b' }}>
-                  {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Administrateur' : 'Opérateur'}
+                  {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Administrateur' : user?.role === 'manager' ? 'Manager' : 'Opérateur'}
                 </p>
               </div>
               <button
@@ -101,7 +101,7 @@ export default function Layout({ children }) {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-1">
             {navItems.map((item) => {
-              if (item.adminOnly && user?.role !== 'admin') return null;
+              if (item.adminOnly && !isAdmin) return null;
 
               return (
                 <Link
@@ -182,7 +182,7 @@ export default function Layout({ children }) {
                 <div className="flex-1">
                   <p className="font-medium text-sm" style={{ color: '#1e293b' }}>{user?.name}</p>
                   <p className="text-xs" style={{ color: '#64748b' }}>
-                    {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Administrateur' : 'Opérateur'}
+                    {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Administrateur' : user?.role === 'manager' ? 'Manager' : 'Opérateur'}
                   </p>
                 </div>
               </div>
@@ -191,7 +191,7 @@ export default function Layout({ children }) {
             {/* Navigation Items */}
             <nav className="p-4">
               {navItems.map((item) => {
-                if (item.adminOnly && user?.role !== 'admin') return null;
+                if (item.adminOnly && !isAdmin) return null;
 
                 return (
                   <Link

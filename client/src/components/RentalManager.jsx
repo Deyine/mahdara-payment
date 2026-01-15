@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useDialog } from '../context/DialogContext';
+import { useAuth } from '../context/AuthContext';
 import { formatCurrency } from '../utils/formatters';
 
 export default function RentalManager({ car, rentalTransactions, onRentalTransactionChange }) {
+  const { canWrite } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [showForm, setShowForm] = useState(false);
   const [editingRental, setEditingRental] = useState(null);
@@ -169,7 +171,7 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
         <h2 className="text-2xl font-bold" style={{ color: '#1e293b' }}>
           Gestion des Locations
         </h2>
-        {car.status === 'rental' && (
+        {car.status === 'rental' && canWrite && (
           <button
             onClick={handleAddRental}
             className="px-4 py-2 rounded font-medium"
@@ -217,13 +219,15 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
         <div className="rounded-lg p-4 mb-6" style={{ backgroundColor: '#fef3c7', border: '1px solid #fbbf24' }}>
           <div className="flex justify-between items-start mb-3">
             <h3 className="font-bold" style={{ color: '#92400e' }}>📍 Location en cours</h3>
-            <button
-              onClick={() => handleCompleteRental(car.active_rental.id)}
-              className="px-3 py-1 rounded text-sm font-medium"
-              style={{ backgroundColor: '#10b981', color: 'white' }}
-            >
-              Terminer
-            </button>
+            {canWrite && (
+              <button
+                onClick={() => handleCompleteRental(car.active_rental.id)}
+                className="px-3 py-1 rounded text-sm font-medium"
+                style={{ backgroundColor: '#10b981', color: 'white' }}
+              >
+                Terminer
+              </button>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
@@ -274,31 +278,33 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
                     </span>
                     {getStatusBadge(rental.status)}
                   </div>
-                  <div className="flex gap-2">
-                    {rental.status === 'active' && (
+                  {canWrite && (
+                    <div className="flex gap-2">
+                      {rental.status === 'active' && (
+                        <button
+                          onClick={() => handleCompleteRental(rental.id)}
+                          className="px-2 py-1 rounded text-xs"
+                          style={{ backgroundColor: '#10b981', color: 'white' }}
+                        >
+                          ✓ Terminer
+                        </button>
+                      )}
                       <button
-                        onClick={() => handleCompleteRental(rental.id)}
+                        onClick={() => handleEditRental(rental)}
                         className="px-2 py-1 rounded text-xs"
-                        style={{ backgroundColor: '#10b981', color: 'white' }}
+                        style={{ backgroundColor: '#167bff', color: 'white' }}
                       >
-                        ✓ Terminer
+                        ✏️ Modifier
                       </button>
-                    )}
-                    <button
-                      onClick={() => handleEditRental(rental)}
-                      className="px-2 py-1 rounded text-xs"
-                      style={{ backgroundColor: '#167bff', color: 'white' }}
-                    >
-                      ✏️ Modifier
-                    </button>
-                    <button
-                      onClick={() => handleDeleteRental(rental.id)}
-                      className="px-2 py-1 rounded text-xs"
-                      style={{ backgroundColor: '#ef4444', color: 'white' }}
-                    >
-                      🗑️
-                    </button>
-                  </div>
+                      <button
+                        onClick={() => handleDeleteRental(rental.id)}
+                        className="px-2 py-1 rounded text-xs"
+                        style={{ backgroundColor: '#ef4444', color: 'white' }}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { expenseCategoriesAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
 import { formatCurrency } from '../utils/formatters';
 
 export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
+  const { canWrite } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [expenseCategories, setExpenseCategories] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -208,15 +210,17 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
         <h2 className="text-xl font-bold" style={{ color: '#1e293b' }}>
           Dépenses ({expenses.length})
         </h2>
-        <button
-          onClick={handleAddExpense}
-          className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
-          style={{ backgroundColor: '#10b981' }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
-        >
-          + Ajouter une Dépense
-        </button>
+        {canWrite && (
+          <button
+            onClick={handleAddExpense}
+            className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
+            style={{ backgroundColor: '#10b981' }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+          >
+            + Ajouter une Dépense
+          </button>
+        )}
       </div>
 
       {expenses.length === 0 ? (
@@ -279,44 +283,46 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
                   </div>
                 </div>
 
-                <div className="flex gap-2 ml-4">
-                  <button
-                    onClick={() => handleEditExpense(expense)}
-                    className="p-2 rounded-lg transition-colors"
-                    style={{ backgroundColor: 'white', border: '1px solid #167bff', color: '#167bff' }}
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = '#167bff';
-                      e.target.style.color = 'white';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = 'white';
-                      e.target.style.color = '#167bff';
-                    }}
-                    title="Modifier"
-                  >
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => handleDeleteExpense(expense.id)}
-                    className="p-2 rounded-lg transition-colors"
-                    style={{ backgroundColor: 'white', border: '1px solid #ef4444', color: '#ef4444' }}
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = '#ef4444';
-                      e.target.style.color = 'white';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = 'white';
-                      e.target.style.color = '#ef4444';
-                    }}
-                    title="Supprimer"
-                  >
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
+                {canWrite && (
+                  <div className="flex gap-2 ml-4">
+                    <button
+                      onClick={() => handleEditExpense(expense)}
+                      className="p-2 rounded-lg transition-colors"
+                      style={{ backgroundColor: 'white', border: '1px solid #167bff', color: '#167bff' }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = '#167bff';
+                        e.target.style.color = 'white';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = 'white';
+                        e.target.style.color = '#167bff';
+                      }}
+                      title="Modifier"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteExpense(expense.id)}
+                      className="p-2 rounded-lg transition-colors"
+                      style={{ backgroundColor: 'white', border: '1px solid #ef4444', color: '#ef4444' }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = '#ef4444';
+                        e.target.style.color = 'white';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = 'white';
+                        e.target.style.color = '#ef4444';
+                      }}
+                      title="Supprimer"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}
