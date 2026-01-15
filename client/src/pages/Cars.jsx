@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDialog } from '../context/DialogContext';
 import { carsAPI, carModelsAPI, sellersAPI } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
+import BulkPaymentImport from '../components/BulkPaymentImport';
 
 export default function Cars() {
   const navigate = useNavigate();
@@ -243,6 +244,7 @@ export default function Cars() {
             <span className="hidden sm:inline">📋 Importer Excel</span>
             <span className="sm:hidden">📋 Import</span>
           </button>
+          <BulkPaymentImport onImportComplete={fetchCars} />
           <button
             onClick={handleCreate}
             className="px-4 py-2 rounded-lg font-bold transition-colors text-sm sm:text-base flex-1 sm:flex-none"
@@ -315,6 +317,19 @@ export default function Cars() {
                     🗑️ SUPPRIMÉ
                   </div>
                 )}
+                {car.status === 'rental' && !car.deleted && (
+                  <div style={{
+                    backgroundColor: '#f59e0b',
+                    color: 'white',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    display: 'inline-block'
+                  }}>
+                    🚗 EN LOCATION
+                  </div>
+                )}
                 {car.status === 'sold' && !car.deleted && (
                   <div style={{
                     backgroundColor: car.fully_paid ? '#10b981' : '#167bff',
@@ -345,6 +360,11 @@ export default function Cars() {
                         ({car.payment_percentage}% payé)
                       </span>
                     )}
+                  </p>
+                )}
+                {car.has_rental_history && car.total_rental_income > 0 && (
+                  <p style={{ margin: '5px 0 0 0', color: '#10b981', fontSize: '14px', fontWeight: '600' }}>
+                    Revenus location: {formatCurrency(car.total_rental_income)} MRU
                   </p>
                 )}
               </div>
