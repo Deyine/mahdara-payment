@@ -139,9 +139,12 @@ t.string :location
 t.decimal :clearance_cost, precision: 10, scale: 2
 t.decimal :towing_cost, precision: 10, scale: 2
 t.datetime :deleted_at
-t.string :status, default: 'active', null: false  # 'active' or 'sold'
+t.string :status, default: 'active', null: false  # 'active', 'sold', or 'rental'
 t.decimal :sale_price, precision: 10, scale: 2
 t.date :sale_date
+t.references :profit_share_user, foreign_key: { to_table: :users }, type: :bigint
+t.decimal :profit_share_percentage, precision: 5, scale: 2, default: 0
+t.decimal :daily_rental_rate, precision: 10, scale: 2
 t.timestamps
 
 # Indexes
@@ -208,6 +211,25 @@ add_index :payments, :payment_date
 add_index :payments, [:car_id, :payment_date]
 ```
 
+### rental_transactions
+```ruby
+t.integer :id, primary_key: true
+t.references :tenant, null: false, foreign_key: true, type: :uuid
+t.references :car, null: false, foreign_key: true, type: :uuid
+t.date :start_date, null: false
+t.date :end_date
+t.integer :days
+t.decimal :daily_rate, precision: 10, scale: 2, null: false
+t.decimal :amount, precision: 10, scale: 2
+t.string :status, default: 'in_progress', null: false  # 'in_progress' or 'completed'
+t.text :notes
+t.timestamps
+
+# Indexes
+add_index :rental_transactions, :status
+add_index :rental_transactions, [:car_id, :start_date]
+```
+
 
 ## Entity Relationships
 
@@ -220,6 +242,7 @@ Tenant
   has_many :expenses
   has_many :payment_methods
   has_many :payments
+  has_many :rental_transactions
 
 User
   belongs_to :tenant
@@ -231,8 +254,10 @@ CarModel
 Car
   belongs_to :tenant
   belongs_to :car_model
+  belongs_to :profit_share_user, class_name: 'User', optional: true
   has_many :expenses
   has_many :payments (dependent: :restrict_with_error)
+  has_many :rental_transactions (dependent: :restrict_with_error)
   has_many_attached :salvage_photos
   has_many_attached :after_repair_photos
   has_many_attached :invoices
@@ -254,6 +279,10 @@ Payment
   belongs_to :tenant
   belongs_to :car
   belongs_to :payment_method, optional: true
+
+RentalTransaction
+  belongs_to :tenant
+  belongs_to :car
 ```
 
 ## Data Flow Architecture
@@ -293,6 +322,28 @@ Payment
    - payment_percentage updated
    - fully_paid flag set when complete
 4. Cannot revert to active once payments recorded
+5. Optional profit sharing configuration
+   - Assign percentage-based profit share to user
+   - Calculates user_profit_amount and company_net_profit
+   - Only applicable when car is sold and has profit
+
+### Rental Workflow
+1. Admin marks car as rental (POST /api/cars/:id/rent)
+   - Sets status='rental', daily_rental_rate
+   - Calculates rental_break_even (total_cost / daily_rate)
+2. Admin creates rental transactions (POST /api/rental_transactions)
+   - Track rental start_date, daily_rate
+   - Status='in_progress'
+   - Only one active rental per car
+3. Complete rental transaction (POST /api/rental_transactions/:id/complete)
+   - Sets end_date (defaults to current date)
+   - Calculates days and amount
+   - Updates car's total_rental_income
+   - Status changed to 'completed'
+4. Return car to active (POST /api/cars/:id/return_rental)
+   - Cannot have active rental transactions
+   - Preserves rental history
+   - Optionally clears daily_rental_rate
 
 ## Deployment Architecture
 

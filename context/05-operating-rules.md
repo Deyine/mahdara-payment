@@ -270,33 +270,49 @@ const [showDeleted, setShowDeleted] = useState(false);
 
 ---
 
-### Rule 6: Car Sale Status
+### Rule 6: Car Status Management
 
-**CRITICAL**: Cars can be marked as sold to track sales and payments.
+**CRITICAL**: Cars can have three statuses: active, sold, or rental.
 
 **Car Status Values**:
-- `active` - Default status, available for sale (default)
+- `active` - Default status, available for sale or rental (default)
 - `sold` - Car has been sold, payment tracking enabled
+- `rental` - Car is available for rent, rental transaction tracking enabled
 
-**Sale Fields**:
+**Sale Fields** (when status='sold'):
 - `status` - Sale status (string, required, default: 'active')
 - `sale_price` - Sale price when sold (decimal > 0, required when sold)
 - `sale_date` - Date the car was sold (date, required when sold)
 
+**Rental Fields** (when status='rental'):
+- `status` - Rental status (string, required, default: 'active')
+- `daily_rental_rate` - Daily rental rate (decimal > 0, required when rental)
+
 **Backend Validation** (`app/models/car.rb`):
 ```ruby
-validates :status, presence: true, inclusion: { in: %w[active sold] }
+validates :status, presence: true, inclusion: { in: %w[active sold rental] }
 validates :sale_price, numericality: { greater_than: 0 }, if: -> { status == 'sold' }
 validates :sale_date, presence: true, if: -> { status == 'sold' }
+validates :daily_rental_rate, numericality: { greater_than: 0 }, if: -> { status == 'rental' }
 ```
 
-**Workflow**:
+**Sale Workflow**:
 ```
 1. Car created with status='active'
 2. Admin marks car as sold (POST /api/cars/:id/sell)
    - Sets status='sold', sale_price, sale_date
 3. Admin can record payments until fully paid
-4. Admin can revert to active only if no payments exist (POST /api/cars/:id/unsell)
+4. Admin can configure profit share (optional)
+5. Admin can revert to active only if no payments exist (POST /api/cars/:id/unsell)
+```
+
+**Rental Workflow**:
+```
+1. Car created with status='active'
+2. Admin marks car as rental (POST /api/cars/:id/rent)
+   - Sets status='rental', daily_rental_rate
+3. Admin creates rental transactions as needed
+4. Admin can return car to active only if no active rentals (POST /api/cars/:id/return_rental)
 ```
 
 **Sale Calculations**:
@@ -325,6 +341,111 @@ def profit
   return nil unless sold?
   sale_price.to_f - total_cost
 end
+```
+
+**Rental Calculations**:
+```ruby
+# In Car model
+def rental_break_even
+  return nil unless rental? && daily_rental_rate.to_f > 0
+  (total_cost / daily_rental_rate.to_f).ceil
+end
+
+def total_rental_income
+  rental_transactions.completed.sum(:amount).to_f
+end
+```
+
+---
+
+### Rule 6a: Profit Share Configuration
+
+**CRITICAL**: For sold cars with profit, admin can configure percentage-based profit sharing with a user.
+
+**Profit Share Fields**:
+- `profit_share_user_id` - User receiving profit share (bigint, optional, must belong to tenant)
+- `profit_share_percentage` - Percentage of profit (decimal 0-100, default: 0)
+
+**Backend Validation** (`app/models/car.rb`):
+```ruby
+validates :profit_share_percentage, numericality: {
+  greater_than_or_equal_to: 0,
+  less_than_or_equal_to: 100
+}
+validate :profit_share_user_belongs_to_tenant
+
+def profit_share_user_belongs_to_tenant
+  if profit_share_user_id.present?
+    user = User.find_by(id: profit_share_user_id)
+    unless user && user.tenant_id == tenant_id
+      errors.add(:profit_share_user_id, 'must belong to the same tenant')
+    end
+  end
+end
+```
+
+**Profit Share Calculations**:
+```ruby
+# In Car model
+def has_profit_share?
+  profit_share_user_id.present? && profit_share_percentage.to_f > 0
+end
+
+def user_profit_amount
+  return 0 unless has_profit_share? && profit
+  (profit * profit_share_percentage.to_f / 100).round(2)
+end
+
+def company_net_profit
+  return profit unless has_profit_share?
+  return nil unless profit
+  (profit - user_profit_amount).round(2)
+end
+```
+
+**Workflow**:
+```
+1. Car must be sold and have profit calculated
+2. Admin configures profit share (PUT /api/cars/:id)
+   - Selects user from tenant
+   - Sets percentage (0-100)
+3. System calculates:
+   - user_profit_amount = profit × percentage / 100
+   - company_net_profit = profit - user_profit_amount
+4. Can be updated or removed at any time
+5. Setting user_id to null removes profit share
+```
+
+**Example**:
+```
+Car sold for 12,000 MRU
+Total cost: 10,200 MRU
+Profit: 1,800 MRU
+
+Profit share configuration:
+- User: Jane Smith
+- Percentage: 30%
+
+Calculations:
+- user_profit_amount: 540 MRU (1,800 × 30%)
+- company_net_profit: 1,260 MRU (1,800 - 540)
+```
+
+**API Response**:
+```json
+{
+  "profit": 1800.00,
+  "profit_share_user_id": 2,
+  "profit_share_percentage": 30.0,
+  "has_profit_share": true,
+  "user_profit_amount": 540.00,
+  "company_net_profit": 1260.00,
+  "profit_share_user": {
+    "id": 2,
+    "name": "Jane Smith",
+    "username": "jane"
+  }
+}
 ```
 
 ---
@@ -396,14 +517,31 @@ validates :clearance_cost, :towing_cost,
 - `payment_date` - Date of payment (date)
 
 **Optional Fields**:
-- `payment_method` - Payment method ('cash', 'bank_transfer', 'check', 'other')
+- `payment_method_id` - Payment method reference (integer, optional)
 - `notes` - Additional notes (text)
 
 **Backend Validation**:
 ```ruby
 validates :amount, presence: true, numericality: { greater_than: 0 }
 validates :payment_date, presence: true
-validates :payment_method, inclusion: { in: PAYMENT_METHODS }, allow_nil: true
+validate :car_must_be_sold
+validate :total_payments_cannot_exceed_sale_price
+
+def car_must_be_sold
+  unless car&.status == 'sold'
+    errors.add(:base, 'Payments can only be added to sold cars')
+  end
+end
+
+def total_payments_cannot_exceed_sale_price
+  return unless car&.status == 'sold'
+
+  total = car.payments.where.not(id: id).sum(:amount).to_f + amount.to_f
+  if total > car.sale_price.to_f
+    overpayment = total - car.sale_price.to_f
+    errors.add(:amount, "would exceed sale price by #{overpayment} MRU")
+  end
+end
 ```
 
 **API Endpoints**:
@@ -419,6 +557,133 @@ validates :payment_method, inclusion: { in: PAYMENT_METHODS }, allow_nil: true
 - Shows profit/loss
 - Lists payment history
 - Allows recording new payments
+- Supports bulk import from Excel (MRO to MRU conversion)
+
+---
+
+## Rental Management
+
+### Rule 7a: Rental Transaction Tracking
+
+**CRITICAL**: Rental transactions track rental periods for cars with rental status.
+
+**Rental Transaction Model**:
+- Belongs to car and tenant
+- Can only be created for rental cars (status='rental')
+- Only one active (in_progress) rental per car at a time
+
+**Required Fields**:
+- `car_id` - Associated rental car (UUID)
+- `start_date` - Rental start date (date)
+- `daily_rate` - Daily rental rate (decimal > 0)
+
+**Optional Fields**:
+- `end_date` - Rental end date (date, null for in_progress)
+- `notes` - Additional notes (text)
+
+**Calculated Fields** (when completed):
+- `days` - Number of rental days (end_date - start_date + 1)
+- `amount` - Total rental amount (days × daily_rate)
+
+**Status Values**:
+- `in_progress` - Rental is ongoing (default)
+- `completed` - Rental has ended
+
+**Backend Validation**:
+```ruby
+validates :start_date, presence: true
+validates :daily_rate, presence: true, numericality: { greater_than: 0 }
+validates :status, presence: true, inclusion: { in: %w[in_progress completed] }
+validate :car_must_be_rental
+validate :only_one_active_rental_per_car
+validate :end_date_after_start_date
+
+def car_must_be_rental
+  unless car&.status == 'rental'
+    errors.add(:base, 'Car must be in rental status')
+  end
+end
+
+def only_one_active_rental_per_car
+  return if status == 'completed'
+  return unless car
+
+  existing = car.rental_transactions.where(status: 'in_progress').where.not(id: id)
+  if existing.exists?
+    errors.add(:base, 'Car already has an active rental transaction')
+  end
+end
+
+def end_date_after_start_date
+  return unless end_date && start_date
+
+  if end_date < start_date
+    errors.add(:end_date, 'must be after or equal to start date')
+  end
+end
+```
+
+**Complete Rental Calculations**:
+```ruby
+# In RentalTransaction model
+def complete!(end_date = nil)
+  self.end_date = end_date || Date.current
+  self.days = (self.end_date - start_date).to_i + 1
+  self.amount = days * daily_rate.to_f
+  self.status = 'completed'
+  save!
+
+  # Update car's total rental income
+  car.update_rental_income!
+end
+```
+
+**API Endpoints**:
+- `GET /api/rental_transactions?car_id=:id` - List rentals for a car
+- `GET /api/rental_transactions?status=in_progress` - List active rentals
+- `POST /api/rental_transactions` - Create rental
+- `PUT /api/rental_transactions/:id` - Update rental (in_progress only)
+- `POST /api/rental_transactions/:id/complete` - Complete rental
+- `DELETE /api/rental_transactions/:id` - Delete rental
+
+**Workflow**:
+
+1. Car must have status='rental'
+2. Create rental transaction with start_date and daily_rate
+3. Status defaults to 'in_progress'
+4. When rental ends, complete the transaction:
+   - Sets end_date (defaults to current date)
+   - Calculates days and amount
+   - Changes status to 'completed'
+   - Updates car's total_rental_income
+5. Can only update in_progress rentals
+6. Cannot complete already completed rentals
+
+**Example**:
+
+```text
+Rental created:
+- start_date: 2026-01-01
+- daily_rate: 150.00 MRU
+- status: in_progress
+- end_date: null
+- days: null
+- amount: null
+
+Rental completed (2026-01-15):
+- end_date: 2026-01-15
+- days: 15 (2026-01-15 - 2026-01-01 + 1)
+- amount: 2,250.00 MRU (15 × 150.00)
+- status: completed
+```
+
+**Frontend RentalManager Component**:
+- Shows active rental with days elapsed
+- Shows rental history with amounts
+- Displays total rental income
+- Shows break-even point (total_cost / daily_rate)
+- Allows creating new rentals
+- Allows completing active rentals
 
 ---
 

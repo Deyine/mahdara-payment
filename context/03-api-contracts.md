@@ -622,6 +622,38 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ---
 
+## Users
+
+### List Users
+**Endpoint**: `GET /api/users`
+**Access**: Authenticated (admin, super_admin)
+**Description**: Returns all users in the current tenant (for profit share assignment)
+
+**Response**:
+```json
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "username": "john",
+    "role": "admin"
+  },
+  {
+    "id": 2,
+    "name": "Jane Smith",
+    "username": "jane",
+    "role": "user"
+  }
+]
+```
+
+**Notes**:
+- Users ordered by name alphabetically
+- Scoped to current user's tenant
+- Used for profit share user dropdown
+
+---
+
 ## Cars
 
 ### List Cars
@@ -662,6 +694,20 @@ All endpoints are namespaced under `/api` and return JSON responses.
     "fully_paid": false,
     "payment_percentage": 41.67,
     "profit": 1800.00,
+    "profit_share_user_id": 2,
+    "profit_share_percentage": 30.0,
+    "profit_share_user": {
+      "id": 2,
+      "name": "Jane Smith",
+      "username": "jane"
+    },
+    "has_profit_share": true,
+    "user_profit_amount": 540.00,
+    "company_net_profit": 1260.00,
+    "daily_rental_rate": null,
+    "rental_break_even": null,
+    "total_rental_income": 0.00,
+    "rental_transactions": [],
     "car_model": {
       "id": "uuid",
       "name": "Honda Accord"
@@ -717,13 +763,25 @@ All endpoints are namespaced under `/api` and return JSON responses.
 - Cars ordered by purchase_date DESC (most recent first)
 - `total_cost` includes purchase_price + clearance_cost + towing_cost + all expenses
 - `total_expenses` is the sum of all expense amounts for this car
-- `status` can be 'active' (available) or 'sold'
+- `status` can be 'active' (available), 'sold', or 'rental'
 - Sale fields (`sale_price`, `sale_date`, `total_paid`, `remaining_balance`, `payment_percentage`, `profit`) are only populated when status='sold'
 - `profit` = sale_price - total_cost (null if not sold)
 - `total_paid` = sum of all payment amounts
 - `remaining_balance` = sale_price - total_paid
 - `payment_percentage` = (total_paid / sale_price) * 100
 - `fully_paid` = true when total_paid >= sale_price
+- Profit share fields (only relevant when status='sold' and profit exists):
+  - `profit_share_user_id` - ID of user receiving profit share (null if none)
+  - `profit_share_percentage` - Percentage of profit allocated to user (0-100)
+  - `profit_share_user` - User object with id, name, username (null if none)
+  - `has_profit_share` - Boolean indicating if profit share is configured
+  - `user_profit_amount` - Calculated amount: profit × percentage / 100
+  - `company_net_profit` - Calculated amount: profit - user_profit_amount
+- Rental fields (only relevant when status='rental'):
+  - `daily_rental_rate` - Daily rental rate in MRU
+  - `rental_break_even` - Number of days to break even: total_cost / daily_rental_rate
+  - `total_rental_income` - Sum of all rental transaction amounts
+  - `rental_transactions` - Array of rental transaction objects
 - `payments` array contains all payment records for the car
 - Photo arrays and invoices array are empty if nothing has been uploaded
 - Scoped to current user's tenant
@@ -784,9 +842,25 @@ All endpoints are namespaced under `/api` and return JSON responses.
 **Endpoint**: `PUT /api/cars/:id`
 **Access**: Admin only
 
-**Request**: Same structure as Create
+**Request**: Same structure as Create, plus optional profit share fields
+
+**Request** (with profit share):
+```json
+{
+  "car": {
+    "vin": "1HGCM82633A123456",
+    "profit_share_user_id": 2,
+    "profit_share_percentage": 30.0
+  }
+}
+```
 
 **Response**: Updated car object
+
+**Validation Rules** (for profit share):
+- `profit_share_user_id`: optional, must be a user in the same tenant (or null to remove)
+- `profit_share_percentage`: optional, must be 0-100
+- If `profit_share_user_id` is null, `profit_share_percentage` is set to 0
 
 ### Delete Car (Soft Delete)
 **Endpoint**: `DELETE /api/cars/:id`
@@ -1058,6 +1132,290 @@ invoices[]: File (PDF, JPG, or PNG file)
 }
 ```
 
+### Mark Car as Rental
+**Endpoint**: `POST /api/cars/:id/rent`
+**Access**: Admin only
+**Description**: Mark a car as available for rental with daily rate
+
+**Request**:
+```json
+{
+  "daily_rental_rate": 150.00
+}
+```
+
+**Response** (Success):
+```json
+{
+  "message": "Car marked as rental successfully",
+  "car": {
+    "id": "uuid",
+    "status": "rental",
+    "daily_rental_rate": 150.00,
+    "rental_break_even": 68.0,
+    "total_rental_income": 0.00
+  }
+}
+```
+
+**Response** (Error):
+```json
+{
+  "error": "Daily rental rate must be greater than 0"
+}
+```
+
+**Validation Rules**:
+- daily_rental_rate: required, must be > 0
+- Car must have status='active'
+- Calculates rental_break_even as: total_cost / daily_rental_rate
+
+**Status Codes**:
+- `200 OK` - Success
+- `422 Unprocessable Entity` - Validation error
+
+**Notes**:
+- Changes car status from 'active' to 'rental'
+- Enables rental transaction tracking for the car
+
+### Return Rental Car to Active
+**Endpoint**: `POST /api/cars/:id/return_rental`
+**Access**: Admin only
+**Description**: Return a rental car back to active status
+
+**Request** (optional):
+```json
+{
+  "keep_rental_info": true
+}
+```
+
+**Response** (Success):
+```json
+{
+  "message": "Car returned to active status successfully",
+  "car": {
+    "id": "uuid",
+    "status": "active",
+    "daily_rental_rate": 150.00,
+    "total_rental_income": 4500.00
+  }
+}
+```
+
+**Response** (Error - has active rentals):
+```json
+{
+  "error": "Cannot return car to active: car has active rental transactions"
+}
+```
+
+**Validation Rules**:
+- Car must have status='rental'
+- Car must have NO active (in_progress) rental transactions
+- If `keep_rental_info` is false (default), clears daily_rental_rate
+
+**Status Codes**:
+- `200 OK` - Success
+- `422 Unprocessable Entity` - Has active rentals or validation error
+
+**Notes**:
+- Preserves rental transaction history and total_rental_income
+- By default clears daily_rental_rate unless keep_rental_info=true
+
+---
+
+## Rental Transactions
+
+### List Rental Transactions
+**Endpoint**: `GET /api/rental_transactions`
+**Access**: Authenticated (admin, super_admin)
+**Description**: Returns all rental transactions with car info, ordered by start_date desc
+
+**Query Parameters**:
+- `car_id=uuid` - Filter rental transactions for a specific car
+- `status=in_progress` - Filter by status ('in_progress' or 'completed')
+
+**Response**:
+```json
+[
+  {
+    "id": 1,
+    "car_id": "uuid",
+    "start_date": "2026-01-01",
+    "end_date": "2026-01-15",
+    "days": 14,
+    "daily_rate": 150.00,
+    "amount": 2100.00,
+    "status": "completed",
+    "notes": "Rented to ABC Company",
+    "created_at": "2026-01-01T12:00:00.000Z",
+    "updated_at": "2026-01-15T12:00:00.000Z",
+    "car": {
+      "id": "uuid",
+      "vin": "1HGCM82633A123456",
+      "car_model": {
+        "name": "Honda Accord"
+      }
+    }
+  }
+]
+```
+
+**Notes**:
+- Scoped to current user's tenant
+- Ordered by start_date DESC (most recent first)
+- `status` is either 'in_progress' or 'completed'
+- `days` and `amount` are null for in_progress rentals
+- `end_date` is null for in_progress rentals
+
+### Get Single Rental Transaction
+**Endpoint**: `GET /api/rental_transactions/:id`
+**Access**: Authenticated (admin, super_admin)
+
+**Response**: Same as single rental transaction object above
+
+### Create Rental Transaction
+**Endpoint**: `POST /api/rental_transactions`
+**Access**: Admin only
+**Description**: Create a new rental transaction for a rental car
+
+**Request**:
+```json
+{
+  "rental_transaction": {
+    "car_id": "uuid",
+    "start_date": "2026-01-01",
+    "daily_rate": 150.00,
+    "notes": "Rented to ABC Company"
+  }
+}
+```
+
+**Response** (Success):
+```json
+{
+  "id": 1,
+  "car_id": "uuid",
+  "start_date": "2026-01-01",
+  "end_date": null,
+  "days": null,
+  "daily_rate": 150.00,
+  "amount": null,
+  "status": "in_progress",
+  "notes": "Rented to ABC Company",
+  "created_at": "2026-01-01T12:00:00.000Z",
+  "updated_at": "2026-01-01T12:00:00.000Z"
+}
+```
+
+**Response** (Error - car not rental):
+```json
+{
+  "errors": ["Car must be in rental status"]
+}
+```
+
+**Response** (Error - active rental exists):
+```json
+{
+  "errors": ["Car already has an active rental transaction"]
+}
+```
+
+**Validation Rules**:
+- car_id: required, must be a rental car (status='rental')
+- start_date: required
+- daily_rate: required, must be > 0
+- notes: optional
+- Car cannot have another in_progress rental transaction
+- tenant_id automatically set from current_user
+
+**Status Codes**:
+- `201 Created` - Success
+- `422 Unprocessable Entity` - Validation error
+
+### Update Rental Transaction
+**Endpoint**: `PUT /api/rental_transactions/:id`
+**Access**: Admin only
+
+**Request**: Same structure as Create
+
+**Response**: Updated rental transaction object
+
+**Notes**:
+- Can only update in_progress rentals
+- Cannot modify completed rentals
+
+### Complete Rental Transaction
+**Endpoint**: `POST /api/rental_transactions/:id/complete`
+**Access**: Admin only
+**Description**: Complete an in-progress rental transaction
+
+**Request** (optional):
+```json
+{
+  "end_date": "2026-01-15"
+}
+```
+
+**Response** (Success):
+```json
+{
+  "id": 1,
+  "car_id": "uuid",
+  "start_date": "2026-01-01",
+  "end_date": "2026-01-15",
+  "days": 14,
+  "daily_rate": 150.00,
+  "amount": 2100.00,
+  "status": "completed",
+  "notes": "Rented to ABC Company",
+  "created_at": "2026-01-01T12:00:00.000Z",
+  "updated_at": "2026-01-15T12:00:00.000Z"
+}
+```
+
+**Response** (Error):
+```json
+{
+  "errors": ["Rental transaction is already completed"]
+}
+```
+
+**Validation Rules**:
+- end_date: optional, defaults to current date if not provided
+- end_date must be >= start_date
+- Rental must have status='in_progress'
+- Calculates: days = end_date - start_date + 1
+- Calculates: amount = days * daily_rate
+
+**Status Codes**:
+- `200 OK` - Success
+- `422 Unprocessable Entity` - Validation error
+
+**Notes**:
+- Sets status to 'completed'
+- Updates car's total_rental_income
+
+### Delete Rental Transaction
+**Endpoint**: `DELETE /api/rental_transactions/:id`
+**Access**: Admin only
+
+**Response**:
+```json
+{
+  "message": "Rental transaction deleted successfully"
+}
+```
+
+**Status Codes**:
+- `200 OK` - Success
+- `404 Not Found` - Rental transaction not found
+
+**Notes**:
+- Updates car's total_rental_income after deletion
+
 ---
 
 ## Sellers
@@ -1264,8 +1622,13 @@ All errors return JSON with `error` key:
 |--------|----------|--------|-------------|
 | POST | `/api/auth/login` | Public | Login |
 | GET | `/api/dashboard/statistics` | Auth | Dashboard stats |
+| GET | `/api/users` | Auth | List tenant users |
 | GET/POST/PUT/DELETE | `/api/cars` | Auth/Admin | Car CRUD |
 | POST | `/api/cars/:id/restore` | Admin | Restore soft-deleted car |
+| POST | `/api/cars/:id/sell` | Admin | Mark car as sold |
+| POST | `/api/cars/:id/unsell` | Admin | Revert sold car to active |
+| POST | `/api/cars/:id/rent` | Admin | Mark car as rental |
+| POST | `/api/cars/:id/return_rental` | Admin | Return rental car to active |
 | POST | `/api/cars/:id/salvage_photos` | Auth | Add salvage photos |
 | DELETE | `/api/cars/:id/salvage_photos/:photo_id` | Auth | Delete salvage photo |
 | POST | `/api/cars/:id/after_repair_photos` | Auth | Add after-repair photos |
@@ -1286,8 +1649,11 @@ All errors return JSON with `error` key:
 | GET | `/api/payment_methods/active` | Auth | Active payment methods only |
 | POST/PUT/DELETE | `/api/payment_methods` | Admin | Payment method CUD |
 | GET/POST/PUT/DELETE | `/api/payments` | Auth/Admin | Payment CRUD |
+| GET/POST/PUT/DELETE | `/api/rental_transactions` | Auth/Admin | Rental transaction CRUD |
+| POST | `/api/rental_transactions/:id/complete` | Admin | Complete rental transaction |
 
 **Legend**:
+
 - **Public**: No authentication required
 - **Auth**: Requires JWT token (admin or super_admin)
 - **Admin**: Requires JWT token with admin or super_admin role
