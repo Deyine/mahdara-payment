@@ -467,7 +467,7 @@ export default function CarDetail() {
             >
               ✏️ Modifier
             </button>
-            {expenses.length === 0 && (
+            {expenses.length === 0 && payments.length === 0 && (
               <button
                 onClick={handleDeleteCar}
                 className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
