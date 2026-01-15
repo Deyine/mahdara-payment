@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { carsAPI, expensesAPI, paymentsAPI, carModelsAPI } from '../services/api';
+import { carsAPI, expensesAPI, paymentsAPI, carModelsAPI, rentalTransactionsAPI } from '../services/api';
 import { useDialog } from '../context/DialogContext';
 import PhotoGallery from '../components/PhotoGallery';
 import InvoiceManager from '../components/InvoiceManager';
 import ExpenseManager from '../components/ExpenseManager';
 import PaymentManager from '../components/PaymentManager';
+import RentalManager from '../components/RentalManager';
+import ProfitShareManager from '../components/ProfitShareManager';
 import { formatCurrency, formatNumber } from '../utils/formatters';
 
 export default function CarDetail() {
@@ -197,6 +199,52 @@ export default function CarDetail() {
     await fetchCarDetails();
   };
 
+  // Rental handlers
+  const handleMarkAsRental = async () => {
+    const confirmed = await showConfirm(
+      'Marquer ce véhicule comme loué ?',
+      'Marquer comme Loué'
+    );
+    if (!confirmed) return;
+
+    try {
+      await carsAPI.rent(id);
+      await showAlert('Véhicule marqué comme loué', 'success');
+      await fetchCarDetails();
+    } catch (error) {
+      await showAlert(error.response?.data?.error || 'Erreur', 'error');
+    }
+  };
+
+  const handleReturnFromRental = async () => {
+    const confirmed = await showConfirm(
+      'Retourner ce véhicule de la location ?',
+      'Retour de Location'
+    );
+    if (!confirmed) return;
+
+    try {
+      await carsAPI.returnRental(id, { complete_rental: true });
+      await showAlert('Véhicule retourné avec succès', 'success');
+      await fetchCarDetails();
+    } catch (error) {
+      await showAlert(error.response?.data?.error || 'Erreur', 'error');
+    }
+  };
+
+  const handleRentalTransactionChange = async (action, rentalId, rentalData) => {
+    if (action === 'create') {
+      await rentalTransactionsAPI.create(rentalData);
+    } else if (action === 'update') {
+      await rentalTransactionsAPI.update(rentalId, rentalData);
+    } else if (action === 'delete') {
+      await rentalTransactionsAPI.delete(rentalId);
+    } else if (action === 'complete') {
+      await rentalTransactionsAPI.complete(rentalId);
+    }
+    await fetchCarDetails();
+  };
+
   // Edit car
   const handleEdit = () => {
     setFormData({
@@ -319,17 +367,42 @@ export default function CarDetail() {
           </div>
 
           <div className="flex gap-3">
-            {car.status === 'active' ? (
+            {car.status === 'active' && (
+              <>
+                <button
+                  onClick={handleMarkAsRental}
+                  className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
+                  style={{ backgroundColor: '#f59e0b' }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#d97706'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#f59e0b'}
+                >
+                  🚗 Marquer comme Loué
+                </button>
+                <button
+                  onClick={handleSellCar}
+                  className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
+                  style={{ backgroundColor: '#10b981' }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+                >
+                  💰 Marquer comme Vendu
+                </button>
+              </>
+            )}
+
+            {car.status === 'rental' && (
               <button
-                onClick={handleSellCar}
+                onClick={handleReturnFromRental}
                 className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
-                style={{ backgroundColor: '#10b981' }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+                style={{ backgroundColor: '#f59e0b' }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#d97706'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#f59e0b'}
               >
-                💰 Marquer comme Vendu
+                ↶ Retour de Location
               </button>
-            ) : (
+            )}
+
+            {car.status === 'sold' && (
               <button
                 onClick={handleUnsellCar}
                 className="px-4 py-2 rounded-lg font-medium transition-colors"
@@ -460,8 +533,47 @@ export default function CarDetail() {
                 {formatCurrency(car.total_cost || 0)}
               </span>
             </div>
+
+            {/* Rental Income */}
+            {car.has_rental_history && (
+              <div className="flex justify-between items-center pt-3" style={{ borderTop: '1px solid #e2e8f0' }}>
+                <span style={{ color: '#475569' }}>Revenus de location</span>
+                <span className="font-semibold" style={{ color: '#10b981' }}>
+                  +{formatCurrency(car.total_rental_income || 0)}
+                </span>
+              </div>
+            )}
+
+            {/* Profit/Loss */}
+            {car.profit !== null && car.profit !== undefined && (
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-lg font-bold" style={{ color: '#1e293b' }}>
+                  {car.status === 'sold' ? 'Bénéfice Total' : 'Bénéfice Actuel'}
+                </span>
+                <span className="text-2xl font-bold" style={{ color: car.profit >= 0 ? '#10b981' : '#ef4444' }}>
+                  {car.profit >= 0 ? '+' : ''}{formatCurrency(car.profit)}
+                </span>
+              </div>
+            )}
+
+            {/* Break-even Badge */}
+            {car.rental_break_even && car.status !== 'sold' && (
+              <div className="rounded-lg p-3 mt-3" style={{ backgroundColor: '#f0fdf4', border: '1px solid #86efac' }}>
+                <p className="text-sm font-medium" style={{ color: '#166534' }}>
+                  ✓ Location rentable (revenus ≥ coûts totaux)
+                </p>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Profit Share Section - Only shown for sold cars with profit */}
+        {car.status === 'sold' && car.profit !== null && (
+          <ProfitShareManager
+            car={car}
+            onCarUpdate={fetchCarDetails}
+          />
+        )}
 
         {/* Salvage Photos Section */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6" style={{ border: '1px solid #e2e8f0' }}>
@@ -498,6 +610,15 @@ export default function CarDetail() {
           carId={id}
           onExpenseChange={handleExpenseChange}
         />
+
+        {/* Rental Section - Show for rental cars OR cars with rental history */}
+        {(car.status === 'rental' || car.has_rental_history) && (
+          <RentalManager
+            car={car}
+            rentalTransactions={car.rental_transactions || []}
+            onRentalTransactionChange={handleRentalTransactionChange}
+          />
+        )}
 
         {/* Payment Tracking Section - Only shown for sold cars */}
         {car.status === 'sold' && (

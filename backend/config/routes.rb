@@ -19,6 +19,8 @@ Rails.application.routes.draw do
         post 'restore', to: 'cars#restore'
         post 'sell', to: 'cars#sell'
         post 'unsell', to: 'cars#unsell'
+        post 'rent', to: 'cars#rent'
+        post 'return_rental', to: 'cars#return_rental'
         post 'salvage_photos', to: 'cars#add_salvage_photos'
         delete 'salvage_photos/:photo_id', to: 'cars#delete_salvage_photo'
         post 'after_repair_photos', to: 'cars#add_after_repair_photos'
@@ -56,10 +58,20 @@ Rails.application.routes.draw do
       end
     end
 
+    # Users (tenant members)
+    resources :users, only: [:index]
+
     # Expenses
     resources :expenses
 
     # Payments
     resources :payments
+
+    # Rental Transactions
+    resources :rental_transactions do
+      member do
+        post 'complete'
+      end
+    end
   end
 end

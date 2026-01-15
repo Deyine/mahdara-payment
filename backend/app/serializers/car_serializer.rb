@@ -40,6 +40,21 @@ class CarSerializer
       payment_percentage: @car.payment_percentage,
       profit: @car.profit,
 
+      # Profit share
+      profit_share_user_id: @car.profit_share_user_id,
+      profit_share_percentage: @car.profit_share_percentage&.to_f,
+      profit_share_user: profit_share_user_data,
+      has_profit_share: @car.has_profit_share?,
+      user_profit_amount: @car.user_profit_amount,
+      company_net_profit: @car.company_net_profit,
+
+      # Rental calculations
+      rental_transactions: rental_transactions_data,
+      total_rental_income: @car.total_rental_income,
+      rental_break_even: @car.rental_break_even?,
+      active_rental: active_rental_data,
+      has_rental_history: @car.has_rental_history?,
+
       # Associations
       car_model: @car.car_model,
       seller: @car.seller,
@@ -100,5 +115,25 @@ class CarSerializer
     @car.payments.map do |payment|
       PaymentSerializer.new(payment).as_json
     end
+  end
+
+  def rental_transactions_data
+    @car.rental_transactions.map do |rental|
+      RentalTransactionSerializer.new(rental).as_json
+    end
+  end
+
+  def active_rental_data
+    return nil unless @car.active_rental
+    RentalTransactionSerializer.new(@car.active_rental).as_json
+  end
+
+  def profit_share_user_data
+    return nil unless @car.profit_share_user
+    {
+      id: @car.profit_share_user.id,
+      name: @car.profit_share_user.name,
+      username: @car.profit_share_user.username
+    }
   end
 end

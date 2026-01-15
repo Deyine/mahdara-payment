@@ -108,6 +108,10 @@ export const carsAPI = {
   },
   unsell: (carId) => api.post(`/cars/${carId}/unsell`),
 
+  // Rental management
+  rent: (id) => api.post(`/cars/${id}/rent`),
+  returnRental: (id, data = {}) => api.post(`/cars/${id}/return_rental`, data),
+
   // Expense creation (convenience method)
   createExpense: (data) => api.post('/expenses', { expense: data }),
 };
@@ -152,6 +156,11 @@ export const paymentMethodsAPI = {
   delete: (id) => api.delete(`/payment_methods/${id}`),
 };
 
+// Users (tenant members)
+export const usersAPI = {
+  getAll: () => api.get('/users'),
+};
+
 // Expenses
 export const expensesAPI = {
   getAll: (carId = null) => {
@@ -174,6 +183,26 @@ export const paymentsAPI = {
   create: (data) => api.post('/payments', { payment: data }),
   update: (id, data) => api.put(`/payments/${id}`, { payment: data }),
   delete: (id) => api.delete(`/payments/${id}`),
+};
+
+// Rental Transactions
+export const rentalTransactionsAPI = {
+  getAll: (carId = null, status = null) => {
+    let url = '/rental_transactions';
+    const params = new URLSearchParams();
+    if (carId) params.append('car_id', carId);
+    if (status) params.append('status', status);
+    if (params.toString()) url += `?${params.toString()}`;
+    return api.get(url);
+  },
+  getOne: (id) => api.get(`/rental_transactions/${id}`),
+  create: (data) => api.post('/rental_transactions', { rental_transaction: data }),
+  update: (id, data) => api.put(`/rental_transactions/${id}`, { rental_transaction: data }),
+  delete: (id) => api.delete(`/rental_transactions/${id}`),
+  complete: (id, endDate = null) => {
+    const data = endDate ? { end_date: endDate } : {};
+    return api.post(`/rental_transactions/${id}/complete`, data);
+  },
 };
 
 export default api;

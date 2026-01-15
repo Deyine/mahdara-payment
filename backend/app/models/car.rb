@@ -2,8 +2,10 @@ class Car < ApplicationRecord
   belongs_to :tenant
   belongs_to :car_model
   belongs_to :seller, optional: true
+  belongs_to :profit_share_user, class_name: 'User', optional: true
   has_many :expenses, dependent: :restrict_with_error
   has_many :payments, dependent: :restrict_with_error
+  has_many :rental_transactions, dependent: :restrict_with_error
 
   # Active Storage attachments for two photo groups
   has_many_attached :salvage_photos      # Photos from auction/initial state
@@ -19,10 +21,18 @@ class Car < ApplicationRecord
   validates :towing_cost, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :mileage, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
 
-  # Sale validations
-  validates :status, presence: true, inclusion: { in: %w[active sold] }
+  # Sale and rental validations
+  validates :status, presence: true, inclusion: { in: %w[active sold rental] }
   validates :sale_price, numericality: { greater_than: 0 }, if: -> { status == 'sold' }
   validates :sale_date, presence: true, if: -> { status == 'sold' }
+
+  # Rental validations: Cannot have sale_price/sale_date when in rental
+  validates :sale_price, absence: true, if: -> { status == 'rental' }
+  validates :sale_date, absence: true, if: -> { status == 'rental' }
+
+  # Profit share validations
+  validates :profit_share_percentage, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
+  validate :profit_share_user_belongs_to_tenant
 
   # Photo validations (max 5MB per photo)
   validate :salvage_photos_size_validation
@@ -42,6 +52,10 @@ class Car < ApplicationRecord
   scope :available, -> { where(status: 'active') }
   scope :sold, -> { where(status: 'sold') }
   scope :fully_paid, -> { sold.select { |car| car.fully_paid? } }
+
+  # Rental scopes
+  scope :rented, -> { where(status: 'rental') }
+  scope :available_for_rental, -> { where(status: 'active') }
 
   def total_cost
     base = purchase_price.to_f
@@ -76,8 +90,17 @@ class Car < ApplicationRecord
   end
 
   def profit
-    return nil unless sold?
-    sale_price.to_f - total_cost
+    case status
+    when 'sold'
+      # Sold after rental: sale_price - cost + rental_income
+      sale_price.to_f - total_cost + total_rental_income
+    when 'rental', 'active'
+      # In rental or returned from rental: rental_income - cost
+      return nil unless has_rental_history?
+      total_rental_income - total_cost
+    else
+      nil
+    end
   end
 
   # Sale status methods
@@ -104,11 +127,76 @@ class Car < ApplicationRecord
       return false
     end
 
+    # Close any active rentals before reverting to active
+    if active_rental
+      errors.add(:base, 'Cannot mark as available: car has an active rental')
+      return false
+    end
+
     update!(
       status: 'active',
       sale_price: nil,
       sale_date: nil
     )
+  end
+
+  # Rental status methods
+  def rented?
+    status == 'rental'
+  end
+
+  def mark_as_rental!
+    # Can only mark as rental if currently active
+    unless available?
+      errors.add(:base, 'Can only rent available cars')
+      return false
+    end
+
+    update!(status: 'rental')
+  end
+
+  def return_from_rental!
+    # Can only return if currently rented
+    unless rented?
+      errors.add(:base, 'Car is not currently rented')
+      return false
+    end
+
+    update!(status: 'active')
+  end
+
+  # Rental calculations
+  def total_rental_income
+    rental_transactions.where(status: ['active', 'completed']).sum(:amount).to_f
+  end
+
+  def active_rental
+    rental_transactions.find_by(status: 'active', end_date: nil)
+  end
+
+  def has_rental_history?
+    rental_transactions.any?
+  end
+
+  def rental_break_even?
+    return false unless has_rental_history?
+    total_rental_income >= total_cost
+  end
+
+  # Profit share calculations
+  def has_profit_share?
+    profit_share_user_id.present? && profit_share_percentage.to_f > 0
+  end
+
+  def user_profit_amount
+    return 0 unless has_profit_share? && profit
+    (profit * profit_share_percentage.to_f / 100).round(2)
+  end
+
+  def company_net_profit
+    return profit unless has_profit_share?
+    return nil unless profit
+    (profit - user_profit_amount).round(2)
   end
 
   # Soft deletion methods
@@ -155,5 +243,11 @@ class Car < ApplicationRecord
         errors.add(:base, "Invoice #{invoice.filename} must be PDF, JPG, or PNG format")
       end
     end
+  end
+
+  def profit_share_user_belongs_to_tenant
+    return unless profit_share_user_id.present?
+    return if profit_share_user&.tenant_id == tenant_id
+    errors.add(:profit_share_user, 'must belong to the same tenant')
   end
 end

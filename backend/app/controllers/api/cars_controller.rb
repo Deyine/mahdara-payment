@@ -3,7 +3,7 @@ class Api::CarsController < ApplicationController
 
   before_action :authenticate_user!
   before_action :require_admin, except: [:index, :show, :add_salvage_photos, :delete_salvage_photo, :add_after_repair_photos, :delete_after_repair_photo, :add_invoices, :delete_invoice]
-  before_action :set_car, only: [:show, :update, :destroy, :sell, :unsell, :add_salvage_photos, :delete_salvage_photo, :add_after_repair_photos, :delete_after_repair_photo, :add_invoices, :delete_invoice]
+  before_action :set_car, only: [:show, :update, :destroy, :sell, :unsell, :rent, :return_rental, :add_salvage_photos, :delete_salvage_photo, :add_after_repair_photos, :delete_after_repair_photo, :add_invoices, :delete_invoice]
   before_action :set_car_with_deleted, only: [:restore]
 
   def index
@@ -170,6 +170,35 @@ class Api::CarsController < ApplicationController
     end
   end
 
+  # Mark car as rented (admin only)
+  def rent
+    if @car.mark_as_rental!
+      render json: {
+        message: 'Car marked as rented successfully',
+        car: CarSerializer.new(@car.reload).as_json
+      }
+    else
+      render json: { errors: @car.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  # Return car from rental (admin only)
+  def return_rental
+    # Optionally complete active rental transaction
+    if params[:complete_rental] == 'true' && @car.active_rental
+      @car.active_rental.complete!(params[:end_date] || Date.current)
+    end
+
+    if @car.return_from_rental!
+      render json: {
+        message: 'Car returned from rental successfully',
+        car: CarSerializer.new(@car.reload).as_json
+      }
+    else
+      render json: { errors: @car.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def set_car
@@ -185,6 +214,7 @@ class Api::CarsController < ApplicationController
       :vin, :ref, :car_model_id, :year, :color, :mileage,
       :purchase_date, :purchase_price, :seller_id,
       :clearance_cost, :towing_cost,
+      :profit_share_user_id, :profit_share_percentage,
       salvage_photos: [],
       after_repair_photos: [],
       invoices: []
