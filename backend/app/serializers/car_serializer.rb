@@ -60,6 +60,7 @@ class CarSerializer
       seller: @car.seller,
       expenses: @car.expenses,
       payments: payments_data,
+      tags: @car.tags,
 
       # Photos and invoices
       salvage_photos: salvage_photos_data,

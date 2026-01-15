@@ -4,6 +4,7 @@ class Tenant < ApplicationRecord
   has_many :cars, dependent: :restrict_with_error
   has_many :expense_categories, dependent: :restrict_with_error
   has_many :expenses, dependent: :restrict_with_error
+  has_many :tags, dependent: :restrict_with_error
 
   validates :name, presence: true
   validates :subdomain, uniqueness: true, allow_nil: true

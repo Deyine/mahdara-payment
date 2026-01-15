@@ -6,6 +6,8 @@ class Car < ApplicationRecord
   has_many :expenses, dependent: :restrict_with_error
   has_many :payments, dependent: :restrict_with_error
   has_many :rental_transactions, dependent: :restrict_with_error
+  has_many :car_tags, dependent: :destroy
+  has_many :tags, through: :car_tags
 
   # Active Storage attachments for two photo groups
   has_many_attached :salvage_photos      # Photos from auction/initial state

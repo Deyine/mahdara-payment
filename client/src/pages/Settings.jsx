@@ -12,6 +12,7 @@ export default function Settings() {
     { path: '/settings/expense-categories', label: 'Catégories de Dépenses', icon: '💰' },
     { path: '/settings/sellers', label: 'Vendeurs', icon: '🏢' },
     { path: '/settings/payment-methods', label: 'Modes de Paiement', icon: '💳' },
+    { path: '/settings/tags', label: 'Tags', icon: '🏷️' },
   ];
 
   return (

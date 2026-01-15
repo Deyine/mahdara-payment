@@ -205,4 +205,13 @@ export const rentalTransactionsAPI = {
   },
 };
 
+// Tags
+export const tagsAPI = {
+  getAll: () => api.get('/tags'),
+  getOne: (id) => api.get(`/tags/${id}`),
+  create: (data) => api.post('/tags', { tag: data }),
+  update: (id, data) => api.put(`/tags/${id}`, { tag: data }),
+  delete: (id) => api.delete(`/tags/${id}`),
+};
+
 export default api;

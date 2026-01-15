@@ -51,6 +51,9 @@ Rails.application.routes.draw do
       end
     end
 
+    # Tags
+    resources :tags
+
     # Payment Methods
     resources :payment_methods do
       collection do

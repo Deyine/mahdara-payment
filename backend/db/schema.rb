@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_15_011805) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_15_131157) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -52,6 +52,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_011805) do
     t.index ["active"], name: "index_car_models_on_active"
     t.index ["tenant_id", "name"], name: "index_car_models_on_tenant_id_and_name", unique: true
     t.index ["tenant_id"], name: "index_car_models_on_tenant_id"
+  end
+
+  create_table "car_tags", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "car_id", null: false
+    t.uuid "tag_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["car_id", "tag_id"], name: "index_car_tags_on_car_id_and_tag_id", unique: true
+    t.index ["car_id"], name: "index_car_tags_on_car_id"
+    t.index ["tag_id"], name: "index_car_tags_on_tag_id"
   end
 
   create_table "cars", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -178,6 +188,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_011805) do
     t.index ["tenant_id"], name: "index_sellers_on_tenant_id"
   end
 
+  create_table "tags", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.string "color", default: "#167bff"
+    t.uuid "tenant_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "name"], name: "index_tags_on_tenant_id_and_name", unique: true
+    t.index ["tenant_id"], name: "index_tags_on_tenant_id"
+  end
+
   create_table "tenants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name", null: false
     t.string "subdomain"
@@ -204,6 +224,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_011805) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "car_models", "tenants"
+  add_foreign_key "car_tags", "cars"
+  add_foreign_key "car_tags", "tags"
   add_foreign_key "cars", "car_models"
   add_foreign_key "cars", "sellers"
   add_foreign_key "cars", "tenants"
@@ -219,5 +241,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_011805) do
   add_foreign_key "rental_transactions", "cars"
   add_foreign_key "rental_transactions", "tenants"
   add_foreign_key "sellers", "tenants"
+  add_foreign_key "tags", "tenants"
   add_foreign_key "users", "tenants"
 end

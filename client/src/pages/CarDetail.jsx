@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { carsAPI, expensesAPI, paymentsAPI, carModelsAPI, rentalTransactionsAPI } from '../services/api';
+import { carsAPI, expensesAPI, paymentsAPI, carModelsAPI, rentalTransactionsAPI, tagsAPI } from '../services/api';
 import { useDialog } from '../context/DialogContext';
 import PhotoGallery from '../components/PhotoGallery';
 import InvoiceManager from '../components/InvoiceManager';
@@ -20,6 +20,7 @@ export default function CarDetail() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [carModels, setCarModels] = useState([]);
+  const [tags, setTags] = useState([]);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showSellForm, setShowSellForm] = useState(false);
   const [saleFormData, setSaleFormData] = useState({
@@ -37,12 +38,14 @@ export default function CarDetail() {
     seller: '',
     location: '',
     clearance_cost: '',
-    towing_cost: ''
+    towing_cost: '',
+    tag_ids: []
   });
 
   useEffect(() => {
     fetchCarDetails();
     fetchCarModels();
+    fetchTags();
   }, [id]);
 
   const fetchCarDetails = async () => {
@@ -72,6 +75,15 @@ export default function CarDetail() {
       setCarModels(response.data);
     } catch (error) {
       console.error('Error fetching car models:', error);
+    }
+  };
+
+  const fetchTags = async () => {
+    try {
+      const response = await tagsAPI.getAll();
+      setTags(response.data);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
     }
   };
 
@@ -259,7 +271,8 @@ export default function CarDetail() {
       seller: car.seller?.name || '',
       location: car.location || '',
       clearance_cost: car.clearance_cost || '',
-      towing_cost: car.towing_cost || ''
+      towing_cost: car.towing_cost || '',
+      tag_ids: car.tags ? car.tags.map(tag => tag.id) : []
     });
     setShowEditForm(true);
   };
@@ -294,7 +307,8 @@ export default function CarDetail() {
       seller: '',
       location: '',
       clearance_cost: '',
-      towing_cost: ''
+      towing_cost: '',
+      tag_ids: []
     });
   };
 
@@ -363,6 +377,35 @@ export default function CarDetail() {
               <p className="text-lg" style={{ color: '#64748b' }}>
                 VIN: {car.vin}
               </p>
+              {car.tags && car.tags.length > 0 && (
+                <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {car.tags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 12px',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        backgroundColor: `${tag.color}20`,
+                        color: tag.color,
+                        border: `1px solid ${tag.color}40`
+                      }}
+                    >
+                      <div style={{
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '50%',
+                        backgroundColor: tag.color
+                      }} />
+                      {tag.name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -894,6 +937,73 @@ export default function CarDetail() {
                       fontSize: '14px'
                     }}
                   />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>
+                    Tags
+                  </label>
+                  <div style={{
+                    border: '1px solid #ddd',
+                    borderRadius: '6px',
+                    padding: '8px',
+                    minHeight: '40px',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '6px'
+                  }}>
+                    {tags.map((tag) => {
+                      const isSelected = formData.tag_ids.includes(tag.id);
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setFormData({
+                                ...formData,
+                                tag_ids: formData.tag_ids.filter(id => id !== tag.id)
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                tag_ids: [...formData.tag_ids, tag.id]
+                              });
+                            }
+                          }}
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            border: isSelected ? `2px solid ${tag.color}` : '1px solid #e2e8f0',
+                            backgroundColor: isSelected ? `${tag.color}20` : 'white',
+                            color: isSelected ? tag.color : '#64748b',
+                            fontSize: '13px',
+                            fontWeight: isSelected ? '600' : '400',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          {isSelected && (
+                            <div style={{
+                              width: '12px',
+                              height: '12px',
+                              borderRadius: '50%',
+                              backgroundColor: tag.color
+                            }} />
+                          )}
+                          {tag.name}
+                        </button>
+                      );
+                    })}
+                    {tags.length === 0 && (
+                      <span style={{ fontSize: '13px', color: '#94a3b8', padding: '4px' }}>
+                        Aucun tag disponible. Créez-en dans Paramètres.
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 

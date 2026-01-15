@@ -217,7 +217,8 @@ class Api::CarsController < ApplicationController
       :profit_share_user_id, :profit_share_percentage,
       salvage_photos: [],
       after_repair_photos: [],
-      invoices: []
+      invoices: [],
+      tag_ids: []
     )
   end
 

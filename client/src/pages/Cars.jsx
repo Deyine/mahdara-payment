@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDialog } from '../context/DialogContext';
-import { carsAPI, carModelsAPI, sellersAPI } from '../services/api';
+import { carsAPI, carModelsAPI, sellersAPI, tagsAPI } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
 import BulkPaymentImport from '../components/BulkPaymentImport';
 
@@ -11,12 +11,14 @@ export default function Cars() {
   const [cars, setCars] = useState([]);
   const [carModels, setCarModels] = useState([]);
   const [sellers, setSellers] = useState([]);
+  const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingCar, setEditingCar] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeleted, setShowDeleted] = useState(false);
   const [paymentFilter, setPaymentFilter] = useState('all'); // 'all', 'fully_paid', 'in_progress', 'not_sold'
+  const [selectedTagFilter, setSelectedTagFilter] = useState(null); // null means no tag filter
   const [formData, setFormData] = useState({
     vin: '',
     car_model_id: '',
@@ -27,13 +29,15 @@ export default function Cars() {
     purchase_price: '',
     seller_id: '',
     clearance_cost: '',
-    towing_cost: ''
+    towing_cost: '',
+    tag_ids: []
   });
 
   useEffect(() => {
     fetchCars();
     fetchCarModels();
     fetchSellers();
+    fetchTags();
   }, []);
 
   useEffect(() => {
@@ -70,6 +74,15 @@ export default function Cars() {
     }
   };
 
+  const fetchTags = async () => {
+    try {
+      const response = await tagsAPI.getAll();
+      setTags(response.data);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+    }
+  };
+
   const handleCreate = () => {
     setEditingCar(null);
     setFormData({
@@ -83,7 +96,8 @@ export default function Cars() {
       purchase_price: '',
       seller_id: '',
       clearance_cost: '',
-      towing_cost: ''
+      towing_cost: '',
+      tag_ids: []
     });
     setShowForm(true);
   };
@@ -101,7 +115,8 @@ export default function Cars() {
       purchase_price: car.purchase_price,
       seller_id: car.seller_id || '',
       clearance_cost: car.clearance_cost || '',
-      towing_cost: car.towing_cost || ''
+      towing_cost: car.towing_cost || '',
+      tag_ids: car.tags ? car.tags.map(tag => tag.id) : []
     });
     setShowForm(true);
   };
@@ -188,7 +203,8 @@ export default function Cars() {
       purchase_price: '',
       seller_id: '',
       clearance_cost: '',
-      towing_cost: ''
+      towing_cost: '',
+      tag_ids: []
     });
   };
 
@@ -202,10 +218,17 @@ export default function Cars() {
     if (!matchesSearch) return false;
 
     // Payment status filter
-    if (paymentFilter === 'all') return true;
-    if (paymentFilter === 'not_sold') return car.status !== 'sold';
-    if (paymentFilter === 'fully_paid') return car.status === 'sold' && car.fully_paid;
-    if (paymentFilter === 'in_progress') return car.status === 'sold' && !car.fully_paid;
+    if (paymentFilter !== 'all') {
+      if (paymentFilter === 'not_sold' && car.status === 'sold') return false;
+      if (paymentFilter === 'fully_paid' && !(car.status === 'sold' && car.fully_paid)) return false;
+      if (paymentFilter === 'in_progress' && !(car.status === 'sold' && !car.fully_paid)) return false;
+    }
+
+    // Tag filter
+    if (selectedTagFilter) {
+      const hasTag = car.tags && car.tags.some(tag => tag.id === selectedTagFilter);
+      if (!hasTag) return false;
+    }
 
     return true;
   });
@@ -357,6 +380,64 @@ export default function Cars() {
         </button>
       </div>
 
+      {/* Tag Filter */}
+      {tags.length > 0 && (
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#475569' }}>
+            Filtrer par tag
+          </label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            <button
+              onClick={() => setSelectedTagFilter(null)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '6px',
+                border: selectedTagFilter === null ? 'none' : '1px solid #e5e7eb',
+                backgroundColor: selectedTagFilter === null ? '#167bff' : 'white',
+                color: selectedTagFilter === null ? 'white' : '#475569',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: '500',
+                transition: 'all 0.2s'
+              }}
+            >
+              Tous les tags
+            </button>
+            {tags.map((tag) => {
+              const isSelected = selectedTagFilter === tag.id;
+              return (
+                <button
+                  key={tag.id}
+                  onClick={() => setSelectedTagFilter(isSelected ? null : tag.id)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    border: isSelected ? `2px solid ${tag.color}` : '1px solid #e5e7eb',
+                    backgroundColor: isSelected ? `${tag.color}20` : 'white',
+                    color: isSelected ? tag.color : '#475569',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: isSelected ? '600' : '500',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <div style={{
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    backgroundColor: tag.color
+                  }} />
+                  {tag.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px' }}>
           <div
@@ -459,6 +540,35 @@ export default function Cars() {
                   <p style={{ margin: '5px 0 0 0', color: '#10b981', fontSize: '14px', fontWeight: '600' }}>
                     Revenus location: {formatCurrency(car.total_rental_income)} MRU
                   </p>
+                )}
+                {car.tags && car.tags.length > 0 && (
+                  <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                    {car.tags.map((tag) => (
+                      <span
+                        key={tag.id}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: '500',
+                          backgroundColor: `${tag.color}20`,
+                          color: tag.color,
+                          border: `1px solid ${tag.color}40`
+                        }}
+                      >
+                        <div style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          backgroundColor: tag.color
+                        }} />
+                        {tag.name}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
 
@@ -906,6 +1016,73 @@ export default function Cars() {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>
+                    Tags
+                  </label>
+                  <div style={{
+                    border: '1px solid #ddd',
+                    borderRadius: '6px',
+                    padding: '8px',
+                    minHeight: '40px',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '6px'
+                  }}>
+                    {tags.map((tag) => {
+                      const isSelected = formData.tag_ids.includes(tag.id);
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setFormData({
+                                ...formData,
+                                tag_ids: formData.tag_ids.filter(id => id !== tag.id)
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                tag_ids: [...formData.tag_ids, tag.id]
+                              });
+                            }
+                          }}
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            border: isSelected ? `2px solid ${tag.color}` : '1px solid #e2e8f0',
+                            backgroundColor: isSelected ? `${tag.color}20` : 'white',
+                            color: isSelected ? tag.color : '#64748b',
+                            fontSize: '13px',
+                            fontWeight: isSelected ? '600' : '400',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          {isSelected && (
+                            <div style={{
+                              width: '12px',
+                              height: '12px',
+                              borderRadius: '50%',
+                              backgroundColor: tag.color
+                            }} />
+                          )}
+                          {tag.name}
+                        </button>
+                      );
+                    })}
+                    {tags.length === 0 && (
+                      <span style={{ fontSize: '13px', color: '#94a3b8', padding: '4px' }}>
+                        Aucun tag disponible. Créez-en dans Paramètres.
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
