@@ -67,6 +67,7 @@ export default function BulkPaymentImport({ onImportComplete }) {
 
     let currentCarRef = null;
     let currentCar = null;
+    let currentSalePrice = null;
 
     lines.forEach((line, index) => {
       const trimmedLine = line.trim();
@@ -74,17 +75,28 @@ export default function BulkPaymentImport({ onImportComplete }) {
       // Skip empty lines
       if (!trimmedLine) return;
 
-      // Check if this is a "Versement #X" line
-      const versementMatch = trimmedLine.match(/^Versement\s+#(\d+)/i);
+      // Check if this is a "Versement #X SALE_PRICE" line
+      const versementMatch = trimmedLine.match(/^Versement\s+#(\d+)(?:\s+([\d\s]+))?/i);
       if (versementMatch) {
         currentCarRef = versementMatch[1];
+        const salePriceStr = versementMatch[2];
+
+        // Parse sale price if provided (in MRO)
+        currentSalePrice = null;
+        if (salePriceStr) {
+          const salePriceMRU = parseAmountMRO(salePriceStr);
+          if (salePriceMRU && salePriceMRU > 0) {
+            currentSalePrice = salePriceMRU;
+          } else {
+            errors.push(`Ligne ${index + 1}: Prix de vente invalide "${salePriceStr}"`);
+          }
+        }
+
         // Find the car by ref
         currentCar = cars.find(car => car.ref && car.ref.toString() === currentCarRef);
 
         if (!currentCar) {
           errors.push(`Ligne ${index + 1}: Voiture #${currentCarRef} non trouvée`);
-        } else if (currentCar.status !== 'sold') {
-          errors.push(`Ligne ${index + 1}: Voiture #${currentCarRef} n'est pas vendue`);
           currentCar = null;
         }
         return;
@@ -126,6 +138,8 @@ export default function BulkPaymentImport({ onImportComplete }) {
           carRef: currentCarRef,
           carId: currentCar.id,
           carName: currentCar.display_name,
+          carStatus: currentCar.status,
+          salePrice: currentSalePrice,
           payments: []
         };
         parsed.push(carEntry);
@@ -136,6 +150,11 @@ export default function BulkPaymentImport({ onImportComplete }) {
         amount_mro: parseFloat(amountStr.replace(/\s/g, '').replace(/,/g, '.')),
         amount_mru: parsedAmount
       });
+
+      // Set sale date to the first payment date if we have a sale price
+      if (currentSalePrice && !carEntry.saleDate) {
+        carEntry.saleDate = parsedDate;
+      }
     });
 
     if (errors.length > 0) {
@@ -196,8 +215,21 @@ export default function BulkPaymentImport({ onImportComplete }) {
     try {
       const defaultPaymentMethodId = paymentMethods.length > 0 ? paymentMethods[0].id : null;
       let successCount = 0;
+      let soldCount = 0;
 
       for (const carEntry of parsedData) {
+        // Sell the car first if it's not sold and we have a sale price
+        if (carEntry.carStatus !== 'sold' && carEntry.salePrice && carEntry.saleDate) {
+          try {
+            await carsAPI.sell(carEntry.carId, carEntry.salePrice, carEntry.saleDate);
+            soldCount++;
+          } catch (error) {
+            console.error(`Error selling car #${carEntry.carRef}:`, error);
+            // Continue with payments even if selling fails
+          }
+        }
+
+        // Import payments
         for (const payment of carEntry.payments) {
           const paymentData = {
             car_id: carEntry.carId,
@@ -212,10 +244,12 @@ export default function BulkPaymentImport({ onImportComplete }) {
         }
       }
 
-      await showAlert(
-        `${successCount} paiement${successCount > 1 ? 's' : ''} importé${successCount > 1 ? 's' : ''} avec succès`,
-        'success'
-      );
+      let message = `${successCount} paiement${successCount > 1 ? 's' : ''} importé${successCount > 1 ? 's' : ''} avec succès`;
+      if (soldCount > 0) {
+        message += `\n${soldCount} voiture${soldCount > 1 ? 's' : ''} marquée${soldCount > 1 ? 's' : ''} comme vendue${soldCount > 1 ? 's' : ''}`;
+      }
+
+      await showAlert(message, 'success');
       handleCloseModal();
       if (onImportComplete) onImportComplete();
     } catch (error) {
@@ -288,18 +322,24 @@ export default function BulkPaymentImport({ onImportComplete }) {
                     📋 Format attendu:
                   </p>
                   <pre className="text-xs font-mono" style={{ color: '#64748b' }}>
-{`Versement #17
+{`Versement #17  3 800 000
 
 20/05/2024	1 700 000
 20/05/2024	3 650 000
 
-Versement #19
+Versement #19  4 600 000
 
 13/08/2024	3 000 000
 21/04/2025	1 600 000`}
                   </pre>
                   <p className="text-xs mt-2" style={{ color: '#64748b' }}>
-                    Les montants en MRO seront automatiquement convertis en MRU (÷10)
+                    • Le montant après "Versement #X" est le prix de vente en MRO (optionnel)
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: '#64748b' }}>
+                    • Si fourni, la voiture sera marquée comme vendue à la date du premier paiement
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: '#64748b' }}>
+                    • Les montants en MRO seront automatiquement convertis en MRU (÷10)
                   </p>
                 </div>
 
@@ -348,7 +388,7 @@ Versement #19
                         >
                           {/* Car Header */}
                           <div className="px-4 py-3" style={{ backgroundColor: '#f8fafc' }}>
-                            <div className="flex justify-between items-center">
+                            <div className="flex justify-between items-center mb-2">
                               <span className="font-bold" style={{ color: '#1e293b' }}>
                                 #{carEntry.carRef} - {carEntry.carName}
                               </span>
@@ -356,6 +396,23 @@ Versement #19
                                 {carEntry.payments.length} paiement{carEntry.payments.length > 1 ? 's' : ''}
                               </span>
                             </div>
+                            {carEntry.salePrice && (
+                              <div className="flex items-center gap-2 text-sm">
+                                {carEntry.carStatus !== 'sold' && (
+                                  <span className="px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: '#dcfce7', color: '#166534' }}>
+                                    ✓ Sera marqué comme vendu
+                                  </span>
+                                )}
+                                <span style={{ color: '#64748b' }}>
+                                  Prix de vente: <strong style={{ color: '#10b981' }}>{formatCurrency(carEntry.salePrice)}</strong>
+                                </span>
+                                {carEntry.saleDate && (
+                                  <span style={{ color: '#64748b' }}>
+                                    • {new Date(carEntry.saleDate).toLocaleDateString('fr-FR')}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
 
                           {/* Payments Table */}
