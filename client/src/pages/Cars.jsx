@@ -16,6 +16,7 @@ export default function Cars() {
   const [editingCar, setEditingCar] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeleted, setShowDeleted] = useState(false);
+  const [paymentFilter, setPaymentFilter] = useState('all'); // 'all', 'fully_paid', 'in_progress', 'not_sold'
   const [formData, setFormData] = useState({
     vin: '',
     car_model_id: '',
@@ -191,12 +192,23 @@ export default function Cars() {
     });
   };
 
-  const filteredCars = cars.filter((car) =>
-    car.vin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    car.car_model?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    car.color?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    car.seller?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCars = cars.filter((car) => {
+    // Text search filter
+    const matchesSearch = car.vin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      car.car_model?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      car.color?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      car.seller?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    // Payment status filter
+    if (paymentFilter === 'all') return true;
+    if (paymentFilter === 'not_sold') return car.status !== 'sold';
+    if (paymentFilter === 'fully_paid') return car.status === 'sold' && car.fully_paid;
+    if (paymentFilter === 'in_progress') return car.status === 'sold' && !car.fully_paid;
+
+    return true;
+  });
 
 
   return (
@@ -277,6 +289,74 @@ export default function Cars() {
         />
       </div>
 
+      {/* Payment Status Filters */}
+      <div style={{ marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+        <button
+          onClick={() => setPaymentFilter('all')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: paymentFilter === 'all' ? 'none' : '1px solid #e5e7eb',
+            backgroundColor: paymentFilter === 'all' ? '#167bff' : 'white',
+            color: paymentFilter === 'all' ? 'white' : '#475569',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500',
+            transition: 'all 0.2s'
+          }}
+        >
+          Tous
+        </button>
+        <button
+          onClick={() => setPaymentFilter('not_sold')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: paymentFilter === 'not_sold' ? 'none' : '1px solid #e5e7eb',
+            backgroundColor: paymentFilter === 'not_sold' ? '#167bff' : 'white',
+            color: paymentFilter === 'not_sold' ? 'white' : '#475569',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500',
+            transition: 'all 0.2s'
+          }}
+        >
+          Non Vendus
+        </button>
+        <button
+          onClick={() => setPaymentFilter('in_progress')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: paymentFilter === 'in_progress' ? 'none' : '1px solid #e5e7eb',
+            backgroundColor: paymentFilter === 'in_progress' ? '#167bff' : 'white',
+            color: paymentFilter === 'in_progress' ? 'white' : '#475569',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500',
+            transition: 'all 0.2s'
+          }}
+        >
+          En Cours de Paiement
+        </button>
+        <button
+          onClick={() => setPaymentFilter('fully_paid')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: paymentFilter === 'fully_paid' ? 'none' : '1px solid #e5e7eb',
+            backgroundColor: paymentFilter === 'fully_paid' ? '#167bff' : 'white',
+            color: paymentFilter === 'fully_paid' ? 'white' : '#475569',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500',
+            transition: 'all 0.2s'
+          }}
+        >
+          Payés Intégralement
+        </button>
+      </div>
+
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px' }}>
           <div
@@ -332,7 +412,7 @@ export default function Cars() {
                 )}
                 {car.status === 'sold' && !car.deleted && (
                   <div style={{
-                    backgroundColor: car.fully_paid ? '#10b981' : '#167bff',
+                    backgroundColor: car.fully_paid ? '#10b981' : '#f59e0b',
                     color: 'white',
                     padding: '4px 8px',
                     borderRadius: '4px',
@@ -340,7 +420,20 @@ export default function Cars() {
                     fontWeight: 'bold',
                     display: 'inline-block'
                   }}>
-                    {car.fully_paid ? '✓ PAYÉ INTÉGRALEMENT' : '💰 VENDU'}
+                    {car.fully_paid ? '✓ PAYÉ INTÉGRALEMENT' : '⏳ EN COURS DE PAIEMENT'}
+                  </div>
+                )}
+                {car.status === 'sold' && !car.deleted && car.total_payments > car.sale_price && (
+                  <div style={{
+                    backgroundColor: '#dc2626',
+                    color: 'white',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    display: 'inline-block'
+                  }}>
+                    ⚠️ TROP-PERÇU
                   </div>
                 )}
               </div>

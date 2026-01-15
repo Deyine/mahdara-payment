@@ -567,6 +567,15 @@ export default function CarDetail() {
           </div>
         </div>
 
+        {/* Payment Tracking Section - Only shown for sold cars */}
+        {car.status === 'sold' && (
+          <PaymentManager
+            car={car}
+            payments={payments}
+            onPaymentChange={handlePaymentChange}
+          />
+        )}
+
         {/* Profit Share Section - Only shown for sold cars with profit */}
         {car.status === 'sold' && car.profit !== null && (
           <ProfitShareManager
@@ -617,15 +626,6 @@ export default function CarDetail() {
             car={car}
             rentalTransactions={car.rental_transactions || []}
             onRentalTransactionChange={handleRentalTransactionChange}
-          />
-        )}
-
-        {/* Payment Tracking Section - Only shown for sold cars */}
-        {car.status === 'sold' && (
-          <PaymentManager
-            car={car}
-            payments={payments}
-            onPaymentChange={handlePaymentChange}
           />
         )}
       </div>
