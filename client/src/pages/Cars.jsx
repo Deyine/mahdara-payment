@@ -701,6 +701,20 @@ export default function Cars() {
                     </div>
                   )}
 
+                  {/* Reste à payer (only for sold cars not fully paid) */}
+                  {car.status === 'sold' && !car.fully_paid && car.remaining_balance > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#64748b', fontSize: '13px' }}>Reste à payer</span>
+                      <span style={{
+                        fontWeight: '700',
+                        color: '#dc2626',
+                        fontSize: '15px'
+                      }}>
+                        {formatCurrency(car.remaining_balance)}
+                      </span>
+                    </div>
+                  )}
+
                   {/* Profit (only for sold cars) */}
                   {car.status === 'sold' && car.profit !== null && car.profit !== undefined && (
                     <div style={{
