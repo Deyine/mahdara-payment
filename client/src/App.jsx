@@ -13,6 +13,7 @@ import ExpenseCategories from './pages/ExpenseCategories';
 import Sellers from './pages/Sellers';
 import PaymentMethods from './pages/PaymentMethods';
 import Tags from './pages/Tags';
+import Users from './pages/Users';
 
 function PrivateRoute({ children, requireAdmin = false }) {
   const { user, loading } = useAuth();
@@ -91,6 +92,7 @@ function AppRoutes() {
         <Route path="sellers" element={<Sellers />} />
         <Route path="payment-methods" element={<PaymentMethods />} />
         <Route path="tags" element={<Tags />} />
+        <Route path="users" element={<Users />} />
       </Route>
     </Routes>
   );

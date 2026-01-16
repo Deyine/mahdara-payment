@@ -13,6 +13,7 @@ export default function Settings() {
     { path: '/settings/sellers', label: 'Vendeurs', icon: '🏢' },
     { path: '/settings/payment-methods', label: 'Modes de Paiement', icon: '💳' },
     { path: '/settings/tags', label: 'Tags', icon: '🏷️' },
+    { path: '/settings/users', label: 'Utilisateurs', icon: '👤' },
   ];
 
   return (

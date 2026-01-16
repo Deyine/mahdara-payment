@@ -160,6 +160,10 @@ export const paymentMethodsAPI = {
 export const usersAPI = {
   getAll: () => api.get('/users'),
   getManagers: () => api.get('/users/managers'),
+  getOne: (id) => api.get(`/users/${id}`),
+  create: (data) => api.post('/users', { user: data }),
+  update: (id, data) => api.put(`/users/${id}`, { user: data }),
+  delete: (id) => api.delete(`/users/${id}`),
 };
 
 // Expenses
