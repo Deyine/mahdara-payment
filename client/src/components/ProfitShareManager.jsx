@@ -30,10 +30,10 @@ export default function ProfitShareManager({ car, onCarUpdate }) {
 
   const fetchUsers = async () => {
     try {
-      const response = await usersAPI.getAll();
+      const response = await usersAPI.getManagers();
       setUsers(response.data);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error fetching managers:', error);
     }
   };
 
@@ -113,7 +113,7 @@ export default function ProfitShareManager({ car, onCarUpdate }) {
             Partage de Bénéfice
           </h2>
           <p className="text-sm mt-1" style={{ color: '#64748b' }}>
-            Définir le pourcentage de bénéfice attribué à un utilisateur
+            Définir le pourcentage de bénéfice attribué à un manager
           </p>
         </div>
 
@@ -196,7 +196,7 @@ export default function ProfitShareManager({ car, onCarUpdate }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: '#1e293b' }}>
-              Utilisateur bénéficiaire
+              Manager bénéficiaire
             </label>
             <select
               value={formData.profit_share_user_id}
@@ -246,7 +246,7 @@ export default function ProfitShareManager({ car, onCarUpdate }) {
                   </p>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs" style={{ color: '#94a3b8' }}>Part utilisateur</p>
+                      <p className="text-xs" style={{ color: '#94a3b8' }}>Part manager</p>
                       <p className="text-lg font-bold" style={{ color: '#d97706' }}>
                         {formatCurrency((car.profit * parseFloat(formData.profit_share_percentage) / 100))}
                       </p>

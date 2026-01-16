@@ -62,7 +62,11 @@ Rails.application.routes.draw do
     end
 
     # Users (tenant members)
-    resources :users, only: [:index]
+    resources :users, only: [:index] do
+      collection do
+        get 'managers'
+      end
+    end
 
     # Expenses
     resources :expenses

@@ -159,6 +159,7 @@ export const paymentMethodsAPI = {
 // Users (tenant members)
 export const usersAPI = {
   getAll: () => api.get('/users'),
+  getManagers: () => api.get('/users/managers'),
 };
 
 // Expenses

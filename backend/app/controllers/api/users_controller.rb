@@ -15,4 +15,17 @@ class Api::UsersController < ApplicationController
       }
     }
   end
+
+  # GET /api/users/managers - List only managers in the current tenant
+  def managers
+    @managers = tenant_scope(User).managers.order(:name)
+    render json: @managers.map { |user|
+      {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        role: user.role
+      }
+    }
+  end
 end

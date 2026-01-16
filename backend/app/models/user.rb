@@ -12,6 +12,7 @@ class User < ApplicationRecord
   scope :for_tenant, ->(tenant_id) { where(tenant_id: tenant_id) }
   scope :admins, -> { where(role: 'admin') }
   scope :super_admins, -> { where(role: 'super_admin') }
+  scope :managers, -> { where(role: 'manager') }
 
   def super_admin?
     role == 'super_admin'

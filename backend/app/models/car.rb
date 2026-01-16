@@ -249,7 +249,14 @@ class Car < ApplicationRecord
 
   def profit_share_user_belongs_to_tenant
     return unless profit_share_user_id.present?
-    return if profit_share_user&.tenant_id == tenant_id
-    errors.add(:profit_share_user, 'must belong to the same tenant')
+
+    unless profit_share_user&.tenant_id == tenant_id
+      errors.add(:profit_share_user, 'must belong to the same tenant')
+      return
+    end
+
+    unless profit_share_user&.manager?
+      errors.add(:profit_share_user, 'must be a manager')
+    end
   end
 end
