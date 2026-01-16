@@ -511,7 +511,7 @@ export default function Cars() {
                     {car.fully_paid ? '✓ PAYÉ INTÉGRALEMENT' : '⏳ EN COURS DE PAIEMENT'}
                   </div>
                 )}
-                {car.status === 'sold' && !car.deleted && car.total_payments > car.sale_price && (
+                {car.status === 'sold' && !car.deleted && car.total_paid > car.sale_price && (
                   <div style={{
                     backgroundColor: '#dc2626',
                     color: 'white',
@@ -691,7 +691,7 @@ export default function Cars() {
                         color: car.fully_paid ? '#10b981' : '#f59e0b',
                         fontSize: '15px'
                       }}>
-                        {formatCurrency(car.total_payments || 0)}
+                        {formatCurrency(car.total_paid || 0)}
                         {!car.fully_paid && car.sale_price && (
                           <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '4px' }}>
                             ({car.payment_percentage || 0}%)
