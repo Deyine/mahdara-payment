@@ -5,6 +5,7 @@ import { useDialog } from '../context/DialogContext';
 import { carsAPI, carModelsAPI, sellersAPI, tagsAPI } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
 import BulkPaymentImport from '../components/BulkPaymentImport';
+import InfoTooltip from '../components/InfoTooltip';
 
 export default function Cars() {
   const navigate = useNavigate();
@@ -532,21 +533,6 @@ export default function Cars() {
                 <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>
                   VIN: {car.vin}
                 </p>
-                {car.status === 'sold' && car.sale_price && (
-                  <p style={{ margin: '5px 0 0 0', color: '#10b981', fontSize: '14px', fontWeight: '600' }}>
-                    Prix de vente: {formatCurrency(car.sale_price)} MRU
-                    {car.payment_percentage > 0 && (
-                      <span style={{ marginLeft: '8px', fontSize: '12px', color: '#64748b' }}>
-                        ({car.payment_percentage}% payé)
-                      </span>
-                    )}
-                  </p>
-                )}
-                {car.has_rental_history && car.total_rental_income > 0 && (
-                  <p style={{ margin: '5px 0 0 0', color: '#10b981', fontSize: '14px', fontWeight: '600' }}>
-                    Revenus location: {formatCurrency(car.total_rental_income)} MRU
-                  </p>
-                )}
                 {car.tags && car.tags.length > 0 && (
                   <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                     {car.tags.map((tag) => (
@@ -636,64 +622,127 @@ export default function Cars() {
                 </div>
               )}
 
+              {/* Compact Financial Summary */}
               <div style={{ marginBottom: '15px', fontSize: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span style={{ color: '#6b7280' }}>Année:</span>
-                  <span style={{ fontWeight: '500' }}>{car.year}</span>
+                {/* Basic info row */}
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '10px', fontSize: '13px', color: '#64748b' }}>
+                  <span>{car.year}</span>
+                  {car.color && <span>• {car.color}</span>}
+                  {car.mileage && <span>• {car.mileage.toLocaleString()} km</span>}
                 </div>
-                {car.color && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                    <span style={{ color: '#6b7280' }}>Couleur:</span>
-                    <span style={{ fontWeight: '500' }}>{car.color}</span>
-                  </div>
-                )}
-                {car.mileage && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                    <span style={{ color: '#6b7280' }}>Kilométrage:</span>
-                    <span style={{ fontWeight: '500' }}>{car.mileage.toLocaleString()} km</span>
-                  </div>
-                )}
+
+                {/* Financial summary with tooltips */}
                 <div style={{
-                  borderTop: '1px solid #e5e7eb',
-                  paddingTop: '8px',
-                  marginTop: '8px',
-                  marginBottom: '8px'
-                }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span style={{ color: '#6b7280' }}>Prix d'achat:</span>
-                  <span style={{ fontWeight: '500' }}>
-                    {formatCurrency(car.purchase_price || 0)}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span style={{ color: '#6b7280' }}>Dédouanement:</span>
-                  <span style={{ fontWeight: '500' }}>
-                    {formatCurrency(car.clearance_cost || 0)}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span style={{ color: '#6b7280' }}>Remorquage:</span>
-                  <span style={{ fontWeight: '500' }}>
-                    {formatCurrency(car.towing_cost || 0)}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span style={{ color: '#6b7280' }}>Total dépenses:</span>
-                  <span style={{ fontWeight: '500', color: '#f59e0b' }}>
-                    {formatCurrency(car.total_expenses || 0)}
-                  </span>
-                </div>
-                <div style={{
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '8px',
+                  padding: '12px',
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  marginTop: '8px',
-                  paddingTop: '8px',
-                  borderTop: '1px solid #e5e7eb'
+                  flexDirection: 'column',
+                  gap: '8px'
                 }}>
-                  <span style={{ color: '#1e293b', fontWeight: 'bold' }}>Coût total:</span>
-                  <span style={{ fontWeight: 'bold', color: '#dc2626', fontSize: '16px' }}>
-                    {formatCurrency(car.total_cost || 0)}
-                  </span>
+                  {/* Prix de revient with tooltip */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ color: '#64748b', fontSize: '13px' }}>Prix de revient</span>
+                      <InfoTooltip
+                        title="Détail des coûts"
+                        items={[
+                          { label: "Prix d'achat", value: formatCurrency(car.purchase_price || 0) },
+                          { label: 'Dédouanement', value: formatCurrency(car.clearance_cost || 0) },
+                          { label: 'Remorquage', value: formatCurrency(car.towing_cost || 0) },
+                          { label: 'Dépenses', value: formatCurrency(car.total_expenses || 0), color: '#f59e0b' }
+                        ]}
+                      />
+                    </div>
+                    <span style={{ fontWeight: '700', color: '#dc2626', fontSize: '15px' }}>
+                      {formatCurrency(car.total_cost || 0)}
+                    </span>
+                  </div>
+
+                  {/* Prix de vente (only for sold cars) */}
+                  {car.status === 'sold' && car.sale_price && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#64748b', fontSize: '13px' }}>Prix de vente</span>
+                      <span style={{ fontWeight: '700', color: '#10b981', fontSize: '15px' }}>
+                        {formatCurrency(car.sale_price)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Total versé (only for sold cars) */}
+                  {car.status === 'sold' && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ color: '#64748b', fontSize: '13px' }}>Total versé</span>
+                        {car.payments && car.payments.length > 0 && (
+                          <InfoTooltip
+                            title={`${car.payments.length} paiement${car.payments.length > 1 ? 's' : ''}`}
+                            items={car.payments.slice(0, 5).map(p => ({
+                              label: new Date(p.payment_date).toLocaleDateString('fr-FR'),
+                              value: formatCurrency(p.amount)
+                            })).concat(
+                              car.payments.length > 5 ? [{ label: '...et plus', value: '' }] : []
+                            )}
+                          />
+                        )}
+                      </div>
+                      <span style={{
+                        fontWeight: '700',
+                        color: car.fully_paid ? '#10b981' : '#f59e0b',
+                        fontSize: '15px'
+                      }}>
+                        {formatCurrency(car.total_payments || 0)}
+                        {!car.fully_paid && car.sale_price && (
+                          <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '4px' }}>
+                            ({car.payment_percentage || 0}%)
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Profit (only for sold cars) */}
+                  {car.status === 'sold' && car.profit !== null && car.profit !== undefined && (
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingTop: '8px',
+                      marginTop: '4px',
+                      borderTop: '1px dashed #e2e8f0'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ color: '#1e293b', fontSize: '13px', fontWeight: '600' }}>Profit</span>
+                        {car.has_profit_share && (
+                          <InfoTooltip
+                            title="Répartition du profit"
+                            items={[
+                              { label: 'Profit total', value: formatCurrency(car.profit), color: car.profit >= 0 ? '#10b981' : '#dc2626' },
+                              { label: `Part ${car.profit_share_user?.name || 'associé'} (${car.profit_share_percentage}%)`, value: formatCurrency(car.user_profit_amount || 0), color: '#167bff' },
+                              { label: 'Part entreprise', value: formatCurrency(car.company_net_profit || 0), color: '#10b981' }
+                            ]}
+                          />
+                        )}
+                      </div>
+                      <span style={{
+                        fontWeight: '700',
+                        fontSize: '15px',
+                        color: parseFloat(car.profit) >= 0 ? '#10b981' : '#dc2626'
+                      }}>
+                        {parseFloat(car.profit) >= 0 ? '+' : ''}{formatCurrency(car.profit)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Rental income (for cars with rental history) */}
+                  {car.has_rental_history && car.total_rental_income > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#64748b', fontSize: '13px' }}>Revenus location</span>
+                      <span style={{ fontWeight: '700', color: '#8b5cf6', fontSize: '15px' }}>
+                        {formatCurrency(car.total_rental_income)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
