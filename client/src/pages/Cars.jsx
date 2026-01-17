@@ -239,7 +239,7 @@ export default function Cars() {
 
 
   return (
-    <div className="page-container" style={{ padding: '20px' }}>
+    <div className="page-container" style={{ padding: '20px', overflowX: 'hidden' }}>
       <style>{`
         .car-photos-swiper::-webkit-scrollbar {
           display: none;
@@ -251,6 +251,9 @@ export default function Cars() {
         @media (max-width: 768px) {
           .cars-grid {
             grid-template-columns: 1fr !important;
+          }
+          .page-container {
+            padding: 12px !important;
           }
         }
       `}</style>
@@ -679,25 +682,20 @@ export default function Cars() {
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '9px', color: '#64748b', textTransform: 'uppercase', marginBottom: '2px' }}>Reste</div>
                       <div style={{ fontWeight: '600', fontSize: '13px', color: car.remaining_balance > 0 ? '#dc2626' : '#10b981' }}>
-                        {car.status === 'sold' ? (car.fully_paid ? '0' : formatCurrency(car.remaining_balance)) : '-'}
+                        {car.status === 'sold' ? (
+                          <span>
+                            {car.fully_paid ? '0' : formatCurrency(car.remaining_balance)}
+                            <span style={{
+                              marginLeft: '4px',
+                              fontSize: '11px',
+                              color: paymentPercent === 100 ? '#10b981' : '#f59e0b',
+                              fontWeight: '500'
+                            }}>
+                              ({paymentPercent}%)
+                            </span>
+                          </span>
+                        ) : '-'}
                       </div>
-                      {/* Mini progress bar for mobile */}
-                      {car.status === 'sold' && (
-                        <div style={{
-                          marginTop: '4px',
-                          height: '3px',
-                          backgroundColor: '#e5e7eb',
-                          borderRadius: '2px',
-                          overflow: 'hidden'
-                        }}>
-                          <div style={{
-                            height: '100%',
-                            width: `${paymentPercent}%`,
-                            backgroundColor: paymentPercent === 100 ? '#10b981' : '#f59e0b',
-                            borderRadius: '2px'
-                          }} />
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -774,7 +772,7 @@ export default function Cars() {
                   </div>
 
                   {/* Actions */}
-                  <div style={{ width: '80px', display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                  <div className="hidden sm:flex" style={{ width: '80px', justifyContent: 'center', gap: '6px' }}>
                     <button
                       onClick={() => handleView(car)}
                       style={{
@@ -823,6 +821,57 @@ export default function Cars() {
                       </button>
                     )}
                   </div>
+                  {/* Mobile Actions - full width */}
+                  <div className="flex sm:hidden" style={{ gap: '8px', marginTop: '4px' }}>
+                    <button
+                      onClick={() => handleView(car)}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: '#167bff',
+                        color: 'white',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      Voir Détails
+                    </button>
+                    {canWrite && !car.deleted && (
+                      <button
+                        onClick={() => handleDelete(car.id)}
+                        style={{
+                          padding: '10px 14px',
+                          borderRadius: '6px',
+                          border: '1px solid #e5e7eb',
+                          backgroundColor: 'white',
+                          color: '#dc2626',
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        🗑️
+                      </button>
+                    )}
+                    {canWrite && car.deleted && (
+                      <button
+                        onClick={() => handleRestore(car.id)}
+                        style={{
+                          padding: '10px 14px',
+                          borderRadius: '6px',
+                          border: '1px solid #10b981',
+                          backgroundColor: 'white',
+                          color: '#10b981',
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        ↶
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -833,7 +882,7 @@ export default function Cars() {
         <div className="cars-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 350px), 1fr))',
-          gap: '20px'
+          gap: '16px'
         }}>
           {filteredCars.map((car) => (
             <div
@@ -841,10 +890,11 @@ export default function Cars() {
               style={{
                 backgroundColor: car.deleted ? '#fef2f2' : 'white',
                 borderRadius: '8px',
-                padding: '20px',
+                padding: '16px',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                 border: car.deleted ? '2px solid #dc2626' : '1px solid #e5e7eb',
-                opacity: car.deleted ? 0.7 : 1
+                opacity: car.deleted ? 0.7 : 1,
+                overflow: 'hidden'
               }}
             >
               {/* Status Badges */}
@@ -1002,7 +1052,7 @@ export default function Cars() {
               {/* Compact Financial Summary */}
               <div style={{ marginBottom: '15px', fontSize: '14px' }}>
                 {/* Basic info row */}
-                <div style={{ display: 'flex', gap: '12px', marginBottom: '10px', fontSize: '13px', color: '#64748b' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', fontSize: '13px', color: '#64748b', flexWrap: 'wrap' }}>
                   <span>{car.year}</span>
                   {car.color && <span>• {car.color}</span>}
                   {car.mileage && <span>• {car.mileage.toLocaleString()} km</span>}
@@ -1012,15 +1062,15 @@ export default function Cars() {
                 <div style={{
                   backgroundColor: '#f8fafc',
                   borderRadius: '8px',
-                  padding: '12px',
+                  padding: '10px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '8px'
+                  gap: '6px'
                 }}>
                   {/* Prix de revient with tooltip */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <span style={{ color: '#64748b', fontSize: '13px' }}>Prix de revient</span>
+                      <span style={{ color: '#64748b', fontSize: '12px' }}>Prix de revient</span>
                       <InfoTooltip
                         title="Détail des coûts"
                         items={[
@@ -1031,16 +1081,16 @@ export default function Cars() {
                         ]}
                       />
                     </div>
-                    <span style={{ fontWeight: '700', color: '#dc2626', fontSize: '15px' }}>
+                    <span style={{ fontWeight: '700', color: '#dc2626', fontSize: '14px' }}>
                       {formatCurrency(car.total_cost || 0)}
                     </span>
                   </div>
 
                   {/* Prix de vente (only for sold cars) */}
                   {car.status === 'sold' && car.sale_price && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#64748b', fontSize: '13px' }}>Prix de vente</span>
-                      <span style={{ fontWeight: '700', color: '#10b981', fontSize: '15px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                      <span style={{ color: '#64748b', fontSize: '12px' }}>Prix de vente</span>
+                      <span style={{ fontWeight: '700', color: '#10b981', fontSize: '14px' }}>
                         {formatCurrency(car.sale_price)}
                       </span>
                     </div>
@@ -1048,9 +1098,9 @@ export default function Cars() {
 
                   {/* Total versé (only for sold cars) */}
                   {car.status === 'sold' && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <span style={{ color: '#64748b', fontSize: '13px' }}>Total versé</span>
+                        <span style={{ color: '#64748b', fontSize: '12px' }}>Total versé</span>
                         {car.payments && car.payments.length > 0 && (
                           <InfoTooltip
                             title={`${car.payments.length} paiement${car.payments.length > 1 ? 's' : ''}`}
@@ -1066,11 +1116,11 @@ export default function Cars() {
                       <span style={{
                         fontWeight: '700',
                         color: car.fully_paid ? '#10b981' : '#f59e0b',
-                        fontSize: '15px'
+                        fontSize: '14px'
                       }}>
                         {formatCurrency(car.total_paid || 0)}
                         {!car.fully_paid && car.sale_price && (
-                          <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '4px' }}>
+                          <span style={{ fontSize: '10px', color: '#64748b', marginLeft: '4px' }}>
                             ({car.payment_percentage || 0}%)
                           </span>
                         )}
@@ -1080,12 +1130,12 @@ export default function Cars() {
 
                   {/* Reste à payer (only for sold cars not fully paid) */}
                   {car.status === 'sold' && !car.fully_paid && car.remaining_balance > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#64748b', fontSize: '13px' }}>Reste à payer</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                      <span style={{ color: '#64748b', fontSize: '12px' }}>Reste à payer</span>
                       <span style={{
                         fontWeight: '700',
                         color: '#dc2626',
-                        fontSize: '15px'
+                        fontSize: '14px'
                       }}>
                         {formatCurrency(car.remaining_balance)}
                       </span>
@@ -1098,12 +1148,14 @@ export default function Cars() {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      paddingTop: '8px',
+                      flexWrap: 'wrap',
+                      gap: '4px',
+                      paddingTop: '6px',
                       marginTop: '4px',
                       borderTop: '1px dashed #e2e8f0'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <span style={{ color: '#1e293b', fontSize: '13px', fontWeight: '600' }}>Profit</span>
+                        <span style={{ color: '#1e293b', fontSize: '12px', fontWeight: '600' }}>Profit</span>
                         {car.has_profit_share && (
                           <InfoTooltip
                             title="Répartition du profit"
@@ -1117,7 +1169,7 @@ export default function Cars() {
                       </div>
                       <span style={{
                         fontWeight: '700',
-                        fontSize: '15px',
+                        fontSize: '14px',
                         color: parseFloat(car.profit) >= 0 ? '#10b981' : '#dc2626'
                       }}>
                         {parseFloat(car.profit) >= 0 ? '+' : ''}{formatCurrency(car.profit)}
@@ -1127,9 +1179,9 @@ export default function Cars() {
 
                   {/* Rental income (for cars with rental history) */}
                   {car.has_rental_history && car.total_rental_income > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#64748b', fontSize: '13px' }}>Revenus location</span>
-                      <span style={{ fontWeight: '700', color: '#8b5cf6', fontSize: '15px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                      <span style={{ color: '#64748b', fontSize: '12px' }}>Revenus location</span>
+                      <span style={{ fontWeight: '700', color: '#8b5cf6', fontSize: '14px' }}>
                         {formatCurrency(car.total_rental_income)}
                       </span>
                     </div>
