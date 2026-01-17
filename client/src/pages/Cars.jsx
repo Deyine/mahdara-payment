@@ -605,8 +605,8 @@ export default function Cars() {
                         <div style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {car.vin}
                         </div>
-                        {/* Status badge - inline */}
-                        <div style={{ marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {/* Status badge and tags - inline */}
+                        <div style={{ marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
                           {car.deleted && (
                             <span style={{
                               backgroundColor: '#dc2626',
@@ -655,6 +655,32 @@ export default function Cars() {
                               EN STOCK
                             </span>
                           )}
+                          {/* Tags */}
+                          {car.tags && car.tags.length > 0 && car.tags.map((tag) => (
+                            <span
+                              key={tag.id}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                padding: '1px 5px',
+                                borderRadius: '3px',
+                                fontSize: '9px',
+                                fontWeight: '500',
+                                backgroundColor: `${tag.color}20`,
+                                color: tag.color,
+                                border: `1px solid ${tag.color}40`
+                              }}
+                            >
+                              <div style={{
+                                width: '6px',
+                                height: '6px',
+                                borderRadius: '50%',
+                                backgroundColor: tag.color
+                              }} />
+                              {tag.name}
+                            </span>
+                          ))}
                         </div>
                       </div>
                     </div>
