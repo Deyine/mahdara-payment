@@ -2,7 +2,7 @@
  * Formats a number with thousands separator (space)
  * @param {number} value - The number to format
  * @param {number} decimals - Number of decimal places (default: 2)
- * @returns {string} Formatted number (e.g., "1 000.00" or "236 545.00")
+ * @returns {string} Formatted number (e.g., "1 000" or "236 545.50")
  */
 export const formatNumber = (value, decimals = 2) => {
   const num = Number(value);
@@ -14,26 +14,17 @@ export const formatNumber = (value, decimals = 2) => {
   // Add space thousands separator
   const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
-  return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+  // Only include decimals if they're not .00
+  const hasDecimals = decimalPart && decimalPart !== '00';
+  return hasDecimals ? `${formattedInteger}.${decimalPart}` : formattedInteger;
 };
 
 /**
- * Formats a currency amount with symbol and thousands separator
+ * Formats a currency amount with thousands separator (no currency symbol)
  * @param {number} value - The amount to format
- * @param {string} currency - Currency code (EUR, USD, MRU)
- * @returns {string} Formatted currency (e.g., "MRU 1 000.00")
+ * @param {string} currency - Currency code (not used, kept for compatibility)
+ * @returns {string} Formatted currency (e.g., "1 000" or "1 000.50")
  */
 export const formatCurrency = (value, currency = 'MRU') => {
-  const formattedValue = formatNumber(value);
-
-  switch (currency) {
-    case 'EUR':
-      return `€ ${formattedValue}`;
-    case 'USD':
-      return `$ ${formattedValue}`;
-    case 'MRU':
-      return `MRU ${formattedValue}`;
-    default:
-      return `${currency} ${formattedValue}`;
-  }
+  return formatNumber(value);
 };
