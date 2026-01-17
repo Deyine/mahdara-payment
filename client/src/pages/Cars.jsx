@@ -554,6 +554,13 @@ export default function Cars() {
             return (
               <div
                 key={car.id}
+                onClick={(e) => {
+                  // Only trigger on mobile and if not clicking on action buttons
+                  if (window.innerWidth < 640 && !e.target.closest('button')) {
+                    handleView(car);
+                  }
+                }}
+                className="sm:cursor-default"
                 style={{
                   backgroundColor: car.deleted ? '#fef2f2' : 'white',
                   borderRadius: '8px',
@@ -561,31 +568,38 @@ export default function Cars() {
                   boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
                   border: car.deleted ? '2px solid #dc2626' : '1px solid #e5e7eb',
                   opacity: car.deleted ? 0.7 : 1,
-                  position: 'relative'
+                  position: 'relative',
+                  cursor: window.innerWidth < 640 ? 'pointer' : 'default',
+                  transition: 'transform 0.15s ease'
+                }}
+                onTouchStart={(e) => {
+                  if (window.innerWidth < 640 && !e.target.closest('button')) {
+                    e.currentTarget.style.transform = 'scale(0.98)';
+                  }
+                }}
+                onTouchEnd={(e) => {
+                  if (window.innerWidth < 640) {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }
                 }}
               >
-                {/* Mobile: Top-right "Voir" button */}
-                <button
-                  onClick={() => handleView(car)}
+                {/* Mobile: Chevron indicator */}
+                <div
                   className="flex sm:hidden"
                   style={{
                     position: 'absolute',
-                    top: '12px',
+                    top: '50%',
                     right: '12px',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    border: 'none',
-                    backgroundColor: '#167bff',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                    zIndex: 1
+                    transform: 'translateY(-50%)',
+                    color: '#94a3b8',
+                    pointerEvents: 'none',
+                    zIndex: 0
                   }}
                 >
-                  Voir
-                </button>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </div>
 
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                   {/* Vehicle Info */}

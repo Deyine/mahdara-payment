@@ -895,24 +895,29 @@ setAllCarModels(response.data);
 ### Rule 12: Role-Based Permissions
 
 **Roles**:
-- **Super Admin**: System-wide access, can manage all tenants
+- **Super Admin**: System-wide access, can manage all tenants, can create both Admin and Manager users
 - **Admin**: Full CRUD access within their tenant
+- **Manager**: Read-only access to all data within their tenant (NEW)
 
 **Endpoint Access Matrix**:
 
-| Endpoint | Admin | Super Admin |
-|----------|-------|-------------|
-| GET /cars | ✅ | ✅* |
-| POST/PUT/DELETE /cars | ✅ | ✅* |
-| GET /car_models | ✅ | ✅* |
-| POST/PUT/DELETE /car_models | ✅ | ✅* |
-| GET /expense_categories | ✅ | ✅* |
-| POST/PUT/DELETE /expense_categories | ✅ | ✅* |
-| GET /expenses | ✅ | ✅* |
-| POST/PUT/DELETE /expenses | ✅ | ✅* |
-| GET /dashboard/statistics | ✅ | ✅* |
-| GET /tenants | ❌ | ✅ |
-| POST/PUT/DELETE /tenants | ❌ | ✅ |
+| Endpoint | Admin | Super Admin | Manager |
+|----------|-------|-------------|---------|
+| GET /cars | ✅ | ✅* | ✅ |
+| POST/PUT/DELETE /cars | ✅ | ✅* | ❌ |
+| GET /car_models | ✅ | ✅* | ✅ |
+| POST/PUT/DELETE /car_models | ✅ | ✅* | ❌ |
+| GET /expense_categories | ✅ | ✅* | ✅ |
+| POST/PUT/DELETE /expense_categories | ✅ | ✅* | ❌ |
+| GET /expenses | ✅ | ✅* | ✅ |
+| POST/PUT/DELETE /expenses | ✅ | ✅* | ❌ |
+| GET /payments | ✅ | ✅* | ✅ |
+| POST/PUT/DELETE /payments | ✅ | ✅* | ❌ |
+| GET /rental_transactions | ✅ | ✅* | ✅ |
+| POST/PUT/DELETE /rental_transactions | ✅ | ✅* | ❌ |
+| GET /dashboard/statistics | ✅ | ✅* | ✅ |
+| GET /tenants | ❌ | ✅ | ❌ |
+| POST/PUT/DELETE /tenants | ❌ | ✅ | ❌ |
 
 *Super Admin sees their own tenant's data (not cross-tenant)
 
@@ -935,8 +940,10 @@ before_action :require_admin, except: [:index, :show]
 before_action :require_super_admin  # TenantsController only
 ```
 
-**User Model Roles**:
+**User Model Roles** (`app/models/user.rb`):
 ```ruby
+ROLES = %w[admin super_admin manager].freeze
+
 def admin?
   role == 'admin'
 end
@@ -944,14 +951,26 @@ end
 def super_admin?
   role == 'super_admin'
 end
+
+def manager?
+  role == 'manager'
+end
+
+def can_write?
+  admin? || super_admin?
+end
+
+def can_read?
+  admin? || super_admin? || manager?
+end
 ```
 
-**Frontend Authorization**:
+**Frontend Authorization** (`client/src/context/AuthContext.jsx`):
 ```jsx
-const { user } = useAuth();
+const { user, canWrite } = useAuth();
 
-// Hide UI elements for non-admins
-{user?.role === 'admin' && (
+// Hide UI elements for users without write access
+{canWrite && (
   <button onClick={handleDelete}>Supprimer</button>
 )}
 
@@ -962,10 +981,39 @@ const { user } = useAuth();
 />
 ```
 
+**AuthContext Helpers**:
+```jsx
+const value = {
+  user,
+  isAdmin: user?.role === 'admin' || user?.role === 'super_admin',
+  isSuperAdmin: user?.role === 'super_admin',
+  isManager: user?.role === 'manager',
+  canWrite: user?.role === 'admin' || user?.role === 'super_admin',
+  canRead: user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'manager',
+};
+```
+
+**Role Display** (`client/src/components/Layout.jsx`):
+```jsx
+{user?.role === 'super_admin' ? 'Super Admin' :
+ user?.role === 'admin' ? 'Administrateur' :
+ user?.role === 'manager' ? 'Manager' : 'Opérateur'}
+```
+
+**Manager Role Characteristics**:
+- ✅ Can view all sections: Dashboard, Cars, Expenses, Payments, Rental Transactions
+- ✅ Can see all car details, photos, invoices, financial data
+- ❌ Cannot create, edit, or delete any data
+- ❌ Cannot access Settings pages
+- ❌ All action buttons (Add, Edit, Delete, Upload) are hidden in UI
+- ❌ API write operations return 403 Forbidden
+
 **Why This Matters**:
-- Prevents accidental data modification
+- Prevents accidental data modification by read-only users
 - Backend enforces security (frontend only for UX)
 - Super admins can manage system infrastructure
+- Managers can monitor operations without making changes
+- Clear separation of concerns: viewing vs. editing permissions
 
 ---
 

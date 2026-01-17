@@ -33,12 +33,12 @@ end
 puts "✅ Admin user created: username=ahd-admin, password=admin;123 (tenant: #{demo_tenant.name})"
 
 # Create manager user for demo tenant
-manager = User.find_or_create_by!(username: 'ahd-manager') do |user|
-  user.name = 'Manager User'
-  user.password = 'manager123'
-  user.password_confirmation = 'manager123'
+manager = User.find_or_create_by!(username: 'ahd') do |user|
+  user.name = 'Ahmed Manager'
+  user.password = 'azerty123!'
+  user.password_confirmation = 'azerty123!'
   user.role = 'manager'
-  user.tenant = demo_tenant
+  user.tenant = tenant
 end
 puts "✅ Manager user created: username=ahd-manager, password=manager123 (tenant: #{demo_tenant.name})"
 
