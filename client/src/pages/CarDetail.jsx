@@ -357,30 +357,30 @@ export default function CarDetail() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#fafbfc' }}>
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <div className="flex items-start gap-3 sm:gap-4 w-full sm:w-auto">
             <button
               onClick={() => navigate('/cars')}
-              className="p-2 rounded-lg transition-colors"
+              className="p-2 rounded-lg transition-colors flex-shrink-0"
               style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}
               onMouseEnter={(e) => e.target.style.backgroundColor = '#f1f5f9'}
               onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
             >
-              <svg className="h-6 w-6" style={{ color: '#475569' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: '#475569' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
-            <div>
-              <h1 className="text-3xl font-bold" style={{ color: '#1e293b' }}>
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: '#1e293b' }}>
                 {car.display_name || `${car.car_model?.name} ${car.year}`}
               </h1>
-              <p className="text-lg" style={{ color: '#64748b' }}>
+              <p className="text-sm sm:text-base md:text-lg" style={{ color: '#64748b' }}>
                 VIN: {car.vin}
               </p>
               {car.tags && car.tags.length > 0 && (
-                <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {car.tags.map((tag) => (
                     <span
                       key={tag.id}
@@ -388,9 +388,9 @@ export default function CarDetail() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        padding: '4px 12px',
+                        padding: '4px 10px',
                         borderRadius: '6px',
-                        fontSize: '13px',
+                        fontSize: '12px',
                         fontWeight: '600',
                         backgroundColor: `${tag.color}20`,
                         color: tag.color,
@@ -398,8 +398,8 @@ export default function CarDetail() {
                       }}
                     >
                       <div style={{
-                        width: '10px',
-                        height: '10px',
+                        width: '8px',
+                        height: '8px',
                         borderRadius: '50%',
                         backgroundColor: tag.color
                       }} />
@@ -411,26 +411,26 @@ export default function CarDetail() {
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             {canWrite && car.status === 'active' && (
               <>
                 <button
                   onClick={handleMarkAsRental}
-                  className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
+                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors text-white"
                   style={{ backgroundColor: '#f59e0b' }}
                   onMouseEnter={(e) => e.target.style.backgroundColor = '#d97706'}
                   onMouseLeave={(e) => e.target.style.backgroundColor = '#f59e0b'}
                 >
-                  🚗 Marquer comme Loué
+                  🚗 <span className="hidden sm:inline">Marquer comme </span>Loué
                 </button>
                 <button
                   onClick={handleSellCar}
-                  className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
+                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors text-white"
                   style={{ backgroundColor: '#10b981' }}
                   onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
                   onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
                 >
-                  💰 Marquer comme Vendu
+                  💰 <span className="hidden sm:inline">Marquer comme </span>Vendu
                 </button>
               </>
             )}
@@ -438,56 +438,56 @@ export default function CarDetail() {
             {canWrite && car.status === 'rental' && (
               <button
                 onClick={handleReturnFromRental}
-                className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors text-white"
                 style={{ backgroundColor: '#f59e0b' }}
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#d97706'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#f59e0b'}
               >
-                ↶ Retour de Location
+                ↶ Retour<span className="hidden sm:inline"> de Location</span>
               </button>
             )}
 
             {canWrite && car.status === 'sold' && (
               <button
                 onClick={handleUnsellCar}
-                className="px-4 py-2 rounded-lg font-medium transition-colors"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors"
                 style={{ backgroundColor: '#fafbfc', border: '1px solid #e2e8f0', color: '#475569' }}
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#f1f5f9'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#fafbfc'}
                 disabled={payments.length > 0}
                 title={payments.length > 0 ? 'Impossible: des paiements ont été enregistrés' : ''}
               >
-                ↶ Annuler la Vente
+                ↶ Annuler<span className="hidden sm:inline"> la Vente</span>
               </button>
             )}
             {canWrite && (
               <button
                 onClick={handleEdit}
-                className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors text-white"
                 style={{ backgroundColor: '#167bff' }}
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#0d5dd6'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#167bff'}
               >
-                ✏️ Modifier
+                ✏️ <span className="hidden sm:inline">Modifier</span>
               </button>
             )}
             {canWrite && expenses.length === 0 && payments.length === 0 && (
               <button
                 onClick={handleDeleteCar}
-                className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors text-white"
                 style={{ backgroundColor: '#ef4444' }}
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
               >
-                🗑️ Supprimer
+                🗑️ <span className="hidden sm:inline">Supprimer</span>
               </button>
             )}
           </div>
         </div>
 
         {/* Vehicle Information Card */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6" style={{ border: '1px solid #e2e8f0' }}>
-          <h2 className="text-xl font-bold mb-4" style={{ color: '#1e293b' }}>
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6" style={{ border: '1px solid #e2e8f0' }}>
+          <h2 className="text-lg sm:text-xl font-bold mb-4" style={{ color: '#1e293b' }}>
             Informations du Véhicule
           </h2>
 
@@ -536,23 +536,23 @@ export default function CarDetail() {
         </div>
 
         {/* Cost Breakdown Card */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6" style={{ border: '1px solid #e2e8f0' }}>
-          <h2 className="text-xl font-bold mb-4" style={{ color: '#1e293b' }}>
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6" style={{ border: '1px solid #e2e8f0' }}>
+          <h2 className="text-lg sm:text-xl font-bold mb-4" style={{ color: '#1e293b' }}>
             Détail des Coûts
           </h2>
 
           <div className="space-y-3">
             <div className="flex justify-between items-center pb-3" style={{ borderBottom: '1px solid #e2e8f0' }}>
-              <span style={{ color: '#475569' }}>Prix d'achat</span>
-              <span className="font-semibold" style={{ color: '#1e293b' }}>
+              <span className="text-sm sm:text-base" style={{ color: '#475569' }}>Prix d'achat</span>
+              <span className="text-sm sm:text-base font-semibold" style={{ color: '#1e293b' }}>
                 {formatCurrency(car.purchase_price)}
               </span>
             </div>
 
             {car.clearance_cost > 0 && (
               <div className="flex justify-between items-center pb-3" style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#475569' }}>Dédouanement</span>
-                <span className="font-semibold" style={{ color: '#1e293b' }}>
+                <span className="text-sm sm:text-base" style={{ color: '#475569' }}>Dédouanement</span>
+                <span className="text-sm sm:text-base font-semibold" style={{ color: '#1e293b' }}>
                   {formatCurrency(car.clearance_cost)}
                 </span>
               </div>
@@ -560,23 +560,23 @@ export default function CarDetail() {
 
             {car.towing_cost > 0 && (
               <div className="flex justify-between items-center pb-3" style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#475569' }}>Remorquage</span>
-                <span className="font-semibold" style={{ color: '#1e293b' }}>
+                <span className="text-sm sm:text-base" style={{ color: '#475569' }}>Remorquage</span>
+                <span className="text-sm sm:text-base font-semibold" style={{ color: '#1e293b' }}>
                   {formatCurrency(car.towing_cost)}
                 </span>
               </div>
             )}
 
             <div className="flex justify-between items-center pb-3" style={{ borderBottom: '1px solid #e2e8f0' }}>
-              <span style={{ color: '#475569' }}>Dépenses totales ({expenses.length})</span>
-              <span className="font-semibold" style={{ color: '#1e293b' }}>
+              <span className="text-sm sm:text-base" style={{ color: '#475569' }}>Dépenses totales ({expenses.length})</span>
+              <span className="text-sm sm:text-base font-semibold" style={{ color: '#1e293b' }}>
                 {formatCurrency(car.total_expenses || 0)}
               </span>
             </div>
 
             <div className="flex justify-between items-center pt-2">
-              <span className="text-lg font-bold" style={{ color: '#1e293b' }}>Coût Total</span>
-              <span className="text-2xl font-bold" style={{ color: '#167bff' }}>
+              <span className="text-base sm:text-lg font-bold" style={{ color: '#1e293b' }}>Coût Total</span>
+              <span className="text-xl sm:text-2xl font-bold" style={{ color: '#167bff' }}>
                 {formatCurrency(car.total_cost || 0)}
               </span>
             </div>
@@ -594,10 +594,10 @@ export default function CarDetail() {
             {/* Profit/Loss */}
             {car.profit !== null && car.profit !== undefined && (
               <div className="flex justify-between items-center pt-2">
-                <span className="text-lg font-bold" style={{ color: '#1e293b' }}>
+                <span className="text-base sm:text-lg font-bold" style={{ color: '#1e293b' }}>
                   {car.status === 'sold' ? 'Bénéfice Total' : 'Bénéfice Actuel'}
                 </span>
-                <span className="text-2xl font-bold" style={{ color: car.profit >= 0 ? '#10b981' : '#ef4444' }}>
+                <span className="text-xl sm:text-2xl font-bold" style={{ color: car.profit >= 0 ? '#10b981' : '#ef4444' }}>
                   {car.profit >= 0 ? '+' : ''}{formatCurrency(car.profit)}
                 </span>
               </div>

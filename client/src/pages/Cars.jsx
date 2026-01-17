@@ -560,12 +560,36 @@ export default function Cars() {
                   padding: '16px',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
                   border: car.deleted ? '2px solid #dc2626' : '1px solid #e5e7eb',
-                  opacity: car.deleted ? 0.7 : 1
+                  opacity: car.deleted ? 0.7 : 1,
+                  position: 'relative'
                 }}
               >
+                {/* Mobile: Top-right "Voir" button */}
+                <button
+                  onClick={() => handleView(car)}
+                  className="flex sm:hidden"
+                  style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: '#167bff',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    zIndex: 1
+                  }}
+                >
+                  Voir
+                </button>
+
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                   {/* Vehicle Info */}
-                  <div style={{ flex: 2 }}>
+                  <div style={{ flex: 2, paddingRight: '60px' }} className="sm:pr-0">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       {/* Small thumbnail */}
                       {car.salvage_photos && car.salvage_photos.length > 0 ? (
@@ -797,7 +821,7 @@ export default function Cars() {
                     )}
                   </div>
 
-                  {/* Actions */}
+                  {/* Desktop Actions */}
                   <div className="hidden sm:flex" style={{ width: '80px', justifyContent: 'center', gap: '6px' }}>
                     <button
                       onClick={() => handleView(car)}
@@ -847,57 +871,30 @@ export default function Cars() {
                       </button>
                     )}
                   </div>
-                  {/* Mobile Actions - full width */}
-                  <div className="flex sm:hidden" style={{ gap: '8px', marginTop: '4px' }}>
+
+                  {/* Mobile: Delete/Restore button (smaller, icon-only in corner near Voir) */}
+                  {canWrite && (
                     <button
-                      onClick={() => handleView(car)}
+                      onClick={() => car.deleted ? handleRestore(car.id) : handleDelete(car.id)}
+                      className="flex sm:hidden"
                       style={{
-                        flex: 1,
-                        padding: '10px',
+                        position: 'absolute',
+                        top: '12px',
+                        right: '80px',
+                        padding: '6px 10px',
                         borderRadius: '6px',
-                        border: 'none',
-                        backgroundColor: '#167bff',
-                        color: 'white',
+                        border: `1px solid ${car.deleted ? '#10b981' : '#e5e7eb'}`,
+                        backgroundColor: 'white',
+                        color: car.deleted ? '#10b981' : '#dc2626',
                         cursor: 'pointer',
                         fontSize: '14px',
-                        fontWeight: '500'
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        zIndex: 1
                       }}
                     >
-                      Voir Détails
+                      {car.deleted ? '↶' : '🗑️'}
                     </button>
-                    {canWrite && !car.deleted && (
-                      <button
-                        onClick={() => handleDelete(car.id)}
-                        style={{
-                          padding: '10px 14px',
-                          borderRadius: '6px',
-                          border: '1px solid #e5e7eb',
-                          backgroundColor: 'white',
-                          color: '#dc2626',
-                          cursor: 'pointer',
-                          fontSize: '14px'
-                        }}
-                      >
-                        🗑️
-                      </button>
-                    )}
-                    {canWrite && car.deleted && (
-                      <button
-                        onClick={() => handleRestore(car.id)}
-                        style={{
-                          padding: '10px 14px',
-                          borderRadius: '6px',
-                          border: '1px solid #10b981',
-                          backgroundColor: 'white',
-                          color: '#10b981',
-                          cursor: 'pointer',
-                          fontSize: '14px'
-                        }}
-                      >
-                        ↶
-                      </button>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
             );

@@ -106,13 +106,13 @@ export default function ProfitShareManager({ car, onCarUpdate }) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 mb-6" style={{ border: '1px solid #e2e8f0' }}>
-      <div className="flex justify-between items-start mb-4">
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6" style={{ border: '1px solid #e2e8f0' }}>
+      <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-3">
         <div>
-          <h2 className="text-xl font-bold" style={{ color: '#1e293b' }}>
+          <h2 className="text-lg sm:text-xl font-bold" style={{ color: '#1e293b' }}>
             Partage de Bénéfice
           </h2>
-          <p className="text-sm mt-1" style={{ color: '#64748b' }}>
+          <p className="text-xs sm:text-sm mt-1" style={{ color: '#64748b' }}>
             Définir le pourcentage de bénéfice attribué à un manager
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function ProfitShareManager({ car, onCarUpdate }) {
         {!showForm && canWrite && (
           <button
             onClick={() => setShowForm(true)}
-            className="px-4 py-2 rounded-lg font-medium transition-colors"
+            className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors"
             style={{ backgroundColor: '#eff6ff', color: '#167bff', border: '1px solid #167bff' }}
             onMouseEnter={(e) => {
               e.target.style.backgroundColor = '#167bff';
@@ -138,33 +138,33 @@ export default function ProfitShareManager({ car, onCarUpdate }) {
 
       {/* Current Profit Share Display */}
       {car.has_profit_share && !showForm && (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {/* User Share Card */}
-          <div className="rounded-lg p-4" style={{ backgroundColor: '#fef3c7', border: '1px solid #f59e0b' }}>
+          <div className="rounded-lg p-3 sm:p-4" style={{ backgroundColor: '#fef3c7', border: '1px solid #f59e0b' }}>
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium" style={{ color: '#92400e' }}>
+              <span className="text-xs sm:text-sm font-medium" style={{ color: '#92400e' }}>
                 Part de {car.profit_share_user?.name || 'Utilisateur'}
               </span>
-              <span className="text-lg font-bold" style={{ color: '#92400e' }}>
+              <span className="text-base sm:text-lg font-bold" style={{ color: '#92400e' }}>
                 {car.profit_share_percentage}%
               </span>
             </div>
-            <p className="text-2xl font-bold" style={{ color: '#d97706' }}>
+            <p className="text-lg sm:text-2xl font-bold" style={{ color: '#d97706' }}>
               {formatCurrency(car.user_profit_amount)}
             </p>
           </div>
 
           {/* Company Share Card */}
-          <div className="rounded-lg p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #10b981' }}>
+          <div className="rounded-lg p-3 sm:p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #10b981' }}>
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium" style={{ color: '#166534' }}>
+              <span className="text-xs sm:text-sm font-medium" style={{ color: '#166534' }}>
                 Bénéfice Net Entreprise
               </span>
-              <span className="text-lg font-bold" style={{ color: '#166534' }}>
+              <span className="text-base sm:text-lg font-bold" style={{ color: '#166534' }}>
                 {(100 - car.profit_share_percentage).toFixed(0)}%
               </span>
             </div>
-            <p className="text-2xl font-bold" style={{ color: '#10b981' }}>
+            <p className="text-lg sm:text-2xl font-bold" style={{ color: '#10b981' }}>
               {formatCurrency(car.company_net_profit)}
             </p>
           </div>

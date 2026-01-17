@@ -242,87 +242,136 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
             return (
               <div
                 key={expense.id}
-                className="flex items-center justify-between p-4 rounded-lg transition-colors"
+                className="p-3 sm:p-4 rounded-lg transition-colors"
                 style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
               >
-                <div className="flex-1 grid grid-cols-4 gap-4 items-center">
-                  <div>
-                    <p className="text-sm" style={{ color: '#64748b' }}>Date</p>
-                    <p className="font-medium" style={{ color: '#1e293b' }}>
-                      {new Date(expense.expense_date).toLocaleDateString('fr-FR')}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm mb-1" style={{ color: '#64748b' }}>Catégorie</p>
-                    <span
-                      className="px-3 py-1 rounded-full text-sm font-medium inline-block"
-                      style={{
-                        backgroundColor: badge.backgroundColor,
-                        color: badge.color
-                      }}
-                    >
-                      {expense.expense_category?.name}
-                    </span>
-                  </div>
-
-                  <div>
-                    <p className="text-sm" style={{ color: '#64748b' }}>Description</p>
-                    <p className="font-medium" style={{ color: '#1e293b' }}>
-                      {expense.description || '-'}
-                    </p>
-                  </div>
-
-                  <div className="text-right">
-                    <p className="text-sm" style={{ color: '#64748b' }}>Montant</p>
-                    <p className="text-xl font-bold" style={{ color: '#167bff' }}>
+                {/* Mobile Layout */}
+                <div className="flex sm:hidden flex-col gap-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-xs" style={{ color: '#64748b' }}>
+                        {new Date(expense.expense_date).toLocaleDateString('fr-FR')}
+                      </p>
+                      <span
+                        className="px-2 py-0.5 rounded-full text-xs font-medium inline-block mt-1"
+                        style={{
+                          backgroundColor: badge.backgroundColor,
+                          color: badge.color
+                        }}
+                      >
+                        {expense.expense_category?.name}
+                      </span>
+                    </div>
+                    <p className="text-base font-bold" style={{ color: '#167bff' }}>
                       {formatCurrency(expense.amount)}
                     </p>
                   </div>
+                  {expense.description && (
+                    <p className="text-xs" style={{ color: '#64748b' }}>
+                      {expense.description}
+                    </p>
+                  )}
+                  {canWrite && (
+                    <div className="flex gap-2 mt-1">
+                      <button
+                        onClick={() => handleEditExpense(expense)}
+                        className="flex-1 py-1.5 rounded text-xs font-medium transition-colors"
+                        style={{ backgroundColor: 'white', border: '1px solid #167bff', color: '#167bff' }}
+                      >
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => handleDeleteExpense(expense.id)}
+                        className="flex-1 py-1.5 rounded text-xs font-medium transition-colors"
+                        style={{ backgroundColor: 'white', border: '1px solid #ef4444', color: '#ef4444' }}
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                {canWrite && (
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => handleEditExpense(expense)}
-                      className="p-2 rounded-lg transition-colors"
-                      style={{ backgroundColor: 'white', border: '1px solid #167bff', color: '#167bff' }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#167bff';
-                        e.target.style.color = 'white';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = 'white';
-                        e.target.style.color = '#167bff';
-                      }}
-                      title="Modifier"
-                    >
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleDeleteExpense(expense.id)}
-                      className="p-2 rounded-lg transition-colors"
-                      style={{ backgroundColor: 'white', border: '1px solid #ef4444', color: '#ef4444' }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#ef4444';
-                        e.target.style.color = 'white';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = 'white';
-                        e.target.style.color = '#ef4444';
-                      }}
-                      title="Supprimer"
-                    >
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                {/* Desktop Layout */}
+                <div className="hidden sm:flex items-center justify-between">
+                  <div className="flex-1 grid grid-cols-4 gap-4 items-center">
+                    <div>
+                      <p className="text-sm" style={{ color: '#64748b' }}>Date</p>
+                      <p className="font-medium text-sm" style={{ color: '#1e293b' }}>
+                        {new Date(expense.expense_date).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm mb-1" style={{ color: '#64748b' }}>Catégorie</p>
+                      <span
+                        className="px-2.5 py-0.5 rounded-full text-xs font-medium inline-block"
+                        style={{
+                          backgroundColor: badge.backgroundColor,
+                          color: badge.color
+                        }}
+                      >
+                        {expense.expense_category?.name}
+                      </span>
+                    </div>
+
+                    <div>
+                      <p className="text-sm" style={{ color: '#64748b' }}>Description</p>
+                      <p className="font-medium text-sm" style={{ color: '#1e293b' }}>
+                        {expense.description || '-'}
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-sm" style={{ color: '#64748b' }}>Montant</p>
+                      <p className="text-lg font-bold" style={{ color: '#167bff' }}>
+                        {formatCurrency(expense.amount)}
+                      </p>
+                    </div>
                   </div>
-                )}
+
+                  {canWrite && (
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        onClick={() => handleEditExpense(expense)}
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ backgroundColor: 'white', border: '1px solid #167bff', color: '#167bff' }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#167bff';
+                          e.target.style.color = 'white';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'white';
+                          e.target.style.color = '#167bff';
+                        }}
+                        title="Modifier"
+                      >
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteExpense(expense.id)}
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ backgroundColor: 'white', border: '1px solid #ef4444', color: '#ef4444' }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#ef4444';
+                          e.target.style.color = 'white';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'white';
+                          e.target.style.color = '#ef4444';
+                        }}
+                        title="Supprimer"
+                      >
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}

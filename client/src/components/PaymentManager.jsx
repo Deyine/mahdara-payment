@@ -281,27 +281,27 @@ export default function PaymentManager({ car, payments, onPaymentChange }) {
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6" style={{ border: '1px solid #e2e8f0' }}>
       {/* Payment Progress Section */}
       <div className="mb-6">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h2 className="text-xl font-bold mb-2" style={{ color: '#1e293b' }}>
+        <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
+          <div className="w-full">
+            <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-2" style={{ color: '#1e293b' }}>
               Suivi des Paiements
             </h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <div>
-                <p className="text-sm mb-1" style={{ color: '#64748b' }}>Prix de vente</p>
-                <p className="text-lg font-bold" style={{ color: '#167bff' }}>
+                <p className="text-xs sm:text-sm mb-1" style={{ color: '#64748b' }}>Prix de vente</p>
+                <p className="text-base sm:text-lg font-bold" style={{ color: '#167bff' }}>
                   {formatCurrency(car.sale_price)}
                 </p>
               </div>
               <div>
-                <p className="text-sm mb-1" style={{ color: '#64748b' }}>Total payé</p>
-                <p className="text-lg font-bold" style={{ color: '#10b981' }}>
+                <p className="text-xs sm:text-sm mb-1" style={{ color: '#64748b' }}>Total payé</p>
+                <p className="text-base sm:text-lg font-bold" style={{ color: '#10b981' }}>
                   {formatCurrency(car.total_paid)}
                 </p>
               </div>
               <div>
-                <p className="text-sm mb-1" style={{ color: '#64748b' }}>Reste à payer</p>
-                <p className="text-lg font-bold" style={{ color: car.remaining_balance > 0 ? '#ef4444' : '#10b981' }}>
+                <p className="text-xs sm:text-sm mb-1" style={{ color: '#64748b' }}>Reste à payer</p>
+                <p className="text-base sm:text-lg font-bold" style={{ color: car.remaining_balance > 0 ? '#ef4444' : '#10b981' }}>
                   {formatCurrency(car.remaining_balance)}
                 </p>
               </div>
@@ -309,10 +309,10 @@ export default function PaymentManager({ car, payments, onPaymentChange }) {
           </div>
 
           {!car.fully_paid && canWrite && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <button
                 onClick={handleOpenImportModal}
-                className="px-4 py-2 rounded-lg font-medium transition-colors"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors"
                 style={{ backgroundColor: '#eff6ff', color: '#167bff', border: '1px solid #167bff' }}
                 onMouseEnter={(e) => {
                   e.target.style.backgroundColor = '#167bff';
@@ -323,16 +323,16 @@ export default function PaymentManager({ car, payments, onPaymentChange }) {
                   e.target.style.color = '#167bff';
                 }}
               >
-                📥 Importer
+                📥 <span className="hidden sm:inline">Importer</span>
               </button>
               <button
                 onClick={handleAddPayment}
-                className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors text-white"
                 style={{ backgroundColor: '#10b981' }}
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
               >
-                + Enregistrer un Paiement
+                + <span className="hidden sm:inline">Enregistrer un Paiement</span><span className="sm:hidden">Paiement</span>
               </button>
             </div>
           )}
@@ -395,14 +395,14 @@ export default function PaymentManager({ car, payments, onPaymentChange }) {
 
       {/* Payments List */}
       <div>
-        <h3 className="text-lg font-bold mb-3" style={{ color: '#1e293b' }}>
+        <h3 className="text-base sm:text-lg font-bold mb-3" style={{ color: '#1e293b' }}>
           Historique des Paiements ({payments.length})
         </h3>
 
         {payments.length === 0 ? (
-          <div className="rounded-lg p-8 text-center" style={{ backgroundColor: '#f1f5f9' }}>
-            <p style={{ color: '#64748b' }}>Aucun paiement enregistré pour ce véhicule</p>
-            <p className="text-sm mt-2" style={{ color: '#94a3b8' }}>
+          <div className="rounded-lg p-6 sm:p-8 text-center" style={{ backgroundColor: '#f1f5f9' }}>
+            <p className="text-sm sm:text-base" style={{ color: '#64748b' }}>Aucun paiement enregistré pour ce véhicule</p>
+            <p className="text-xs sm:text-sm mt-2" style={{ color: '#94a3b8' }}>
               Cliquez sur "Enregistrer un Paiement" pour commencer
             </p>
           </div>
@@ -411,13 +411,13 @@ export default function PaymentManager({ car, payments, onPaymentChange }) {
             {payments.map((payment) => (
               <div
                 key={payment.id}
-                className="rounded-lg p-4"
+                className="rounded-lg p-3 sm:p-4"
                 style={{ backgroundColor: '#fafbfc', border: '1px solid #e2e8f0' }}
               >
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start gap-2">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-xl font-bold" style={{ color: '#10b981' }}>
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <span className="text-base sm:text-xl font-bold" style={{ color: '#10b981' }}>
                         {formatCurrency(payment.amount)}
                       </span>
                       <span
@@ -427,33 +427,33 @@ export default function PaymentManager({ car, payments, onPaymentChange }) {
                         {payment.payment_method?.name || 'N/A'}
                       </span>
                     </div>
-                    <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+                    <p className="text-xs sm:text-sm mb-1" style={{ color: '#64748b' }}>
                       📅 {new Date(payment.payment_date).toLocaleDateString('fr-FR')}
                     </p>
                     {payment.notes && (
-                      <p className="text-sm" style={{ color: '#64748b' }}>
+                      <p className="text-xs sm:text-sm" style={{ color: '#64748b' }}>
                         💬 {payment.notes}
                       </p>
                     )}
                   </div>
 
                   {canWrite && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 sm:gap-2">
                       <button
                         onClick={() => handleEditPayment(payment)}
-                        className="p-2 rounded transition-colors"
+                        className="p-1.5 sm:p-2 rounded transition-colors"
                         style={{ color: '#167bff' }}
                         onMouseEnter={(e) => e.target.style.backgroundColor = '#eff6ff'}
                         onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
                         title="Modifier"
                       >
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </button>
                       <button
                         onClick={() => handleDeletePayment(payment.id)}
-                        className="p-2 rounded transition-colors"
+                        className="p-1.5 sm:p-2 rounded transition-colors"
                         style={{ color: '#64748b' }}
                         onMouseEnter={(e) => {
                           e.target.style.backgroundColor = '#fef2f2';
@@ -465,7 +465,7 @@ export default function PaymentManager({ car, payments, onPaymentChange }) {
                         }}
                         title="Supprimer"
                       >
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>

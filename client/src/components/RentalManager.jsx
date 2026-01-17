@@ -166,15 +166,15 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold" style={{ color: '#1e293b' }}>
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+        <h2 className="text-lg sm:text-2xl font-bold" style={{ color: '#1e293b' }}>
           Gestion des Locations
         </h2>
         {car.status === 'rental' && canWrite && (
           <button
             onClick={handleAddRental}
-            className="px-4 py-2 rounded font-medium"
+            className="w-full sm:w-auto px-4 py-2 rounded text-sm sm:text-base font-medium"
             style={{ backgroundColor: '#167bff', color: 'white' }}
           >
             📝 Nouvelle Transaction
@@ -183,23 +183,23 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
       </div>
 
       {/* Rental Summary */}
-      <div className="rounded-lg p-4 mb-6" style={{ backgroundColor: '#f8fafc' }}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="rounded-lg p-3 sm:p-4 mb-6" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
           <div>
-            <p className="text-sm mb-1" style={{ color: '#64748b' }}>Revenus totaux</p>
-            <p className="text-2xl font-bold" style={{ color: '#10b981' }}>
+            <p className="text-xs sm:text-sm mb-1" style={{ color: '#64748b' }}>Revenus totaux</p>
+            <p className="text-lg sm:text-2xl font-bold" style={{ color: '#10b981' }}>
               {formatCurrency(car.total_rental_income || 0)}
             </p>
           </div>
           <div>
-            <p className="text-sm mb-1" style={{ color: '#64748b' }}>Nombre de locations</p>
-            <p className="text-2xl font-bold" style={{ color: '#1e293b' }}>
+            <p className="text-xs sm:text-sm mb-1" style={{ color: '#64748b' }}>Nombre de locations</p>
+            <p className="text-lg sm:text-2xl font-bold" style={{ color: '#1e293b' }}>
               {rentalTransactions.length}
             </p>
           </div>
           <div>
-            <p className="text-sm mb-1" style={{ color: '#64748b' }}>Profit actuel</p>
-            <p className="text-2xl font-bold" style={{ color: car.profit >= 0 ? '#10b981' : '#ef4444' }}>
+            <p className="text-xs sm:text-sm mb-1" style={{ color: '#64748b' }}>Profit actuel</p>
+            <p className="text-lg sm:text-2xl font-bold" style={{ color: car.profit >= 0 ? '#10b981' : '#ef4444' }}>
               {car.profit !== null ? `${car.profit >= 0 ? '+' : ''}${formatCurrency(car.profit)}` : '-'}
             </p>
           </div>
@@ -252,13 +252,13 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
 
       {/* Rental History */}
       <div>
-        <h3 className="font-bold mb-3" style={{ color: '#1e293b' }}>Historique des Locations</h3>
+        <h3 className="text-base sm:text-lg font-bold mb-3" style={{ color: '#1e293b' }}>Historique des Locations</h3>
 
         {rentalTransactions.length === 0 ? (
-          <div className="rounded-lg p-8 text-center" style={{ backgroundColor: '#f1f5f9' }}>
-            <p style={{ color: '#64748b' }}>Aucune location enregistrée pour ce véhicule</p>
+          <div className="rounded-lg p-6 sm:p-8 text-center" style={{ backgroundColor: '#f1f5f9' }}>
+            <p className="text-sm sm:text-base" style={{ color: '#64748b' }}>Aucune location enregistrée pour ce véhicule</p>
             {car.status === 'rental' && (
-              <p className="text-sm mt-2" style={{ color: '#64748b' }}>
+              <p className="text-xs sm:text-sm mt-2" style={{ color: '#64748b' }}>
                 Cliquez sur "Nouvelle Transaction" pour ajouter une location
               </p>
             )}
@@ -268,22 +268,22 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
             {rentalTransactions.map((rental) => (
               <div
                 key={rental.id}
-                className="rounded-lg p-4"
+                className="rounded-lg p-3 sm:p-4"
                 style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold" style={{ color: '#1e293b' }}>
+                <div className="flex flex-col sm:flex-row justify-between items-start mb-2 gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm sm:text-base font-bold" style={{ color: '#1e293b' }}>
                       {rental.renter_name}
                     </span>
                     {getStatusBadge(rental.status)}
                   </div>
                   {canWrite && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5 sm:gap-2 w-full sm:w-auto">
                       {rental.status === 'active' && (
                         <button
                           onClick={() => handleCompleteRental(rental.id)}
-                          className="px-2 py-1 rounded text-xs"
+                          className="flex-1 sm:flex-none px-2 py-1 rounded text-xs"
                           style={{ backgroundColor: '#10b981', color: 'white' }}
                         >
                           ✓ Terminer
@@ -291,14 +291,14 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
                       )}
                       <button
                         onClick={() => handleEditRental(rental)}
-                        className="px-2 py-1 rounded text-xs"
+                        className="flex-1 sm:flex-none px-2 py-1 rounded text-xs"
                         style={{ backgroundColor: '#167bff', color: 'white' }}
                       >
-                        ✏️ Modifier
+                        ✏️ <span className="hidden sm:inline">Modifier</span>
                       </button>
                       <button
                         onClick={() => handleDeleteRental(rental.id)}
-                        className="px-2 py-1 rounded text-xs"
+                        className="flex-1 sm:flex-none px-2 py-1 rounded text-xs"
                         style={{ backgroundColor: '#ef4444', color: 'white' }}
                       >
                         🗑️
@@ -307,7 +307,7 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs sm:text-sm">
                   <div>
                     <span style={{ color: '#64748b' }}>Début:</span>
                     <span className="ml-1 font-medium">{formatDate(rental.start_date)}</span>
@@ -331,7 +331,7 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
                 </div>
 
                 {rental.notes && (
-                  <p className="mt-2 text-sm" style={{ color: '#64748b' }}>
+                  <p className="mt-2 text-xs sm:text-sm" style={{ color: '#64748b' }}>
                     Note: {rental.notes}
                   </p>
                 )}
