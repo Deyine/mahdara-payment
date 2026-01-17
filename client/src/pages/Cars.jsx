@@ -21,6 +21,7 @@ export default function Cars() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeleted, setShowDeleted] = useState(false);
   const [paymentFilter, setPaymentFilter] = useState('all'); // 'all', 'fully_paid', 'in_progress', 'not_sold'
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [selectedTagFilter, setSelectedTagFilter] = useState(null); // null means no tag filter
   const [formData, setFormData] = useState({
     vin: '',
@@ -302,21 +303,84 @@ export default function Cars() {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div style={{ marginBottom: '20px' }}>
+      {/* Search Bar and View Toggle */}
+      <div style={{ marginBottom: '20px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
         <input
           type="text"
           placeholder="Rechercher par VIN, modèle, couleur, vendeur..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{
-            width: '100%',
+            flex: 1,
+            minWidth: '200px',
             padding: '10px',
             borderRadius: '6px',
             border: '1px solid #ddd',
             fontSize: '14px'
           }}
         />
+        {/* View Toggle */}
+        <div style={{
+          display: 'flex',
+          backgroundColor: '#f1f5f9',
+          borderRadius: '8px',
+          padding: '4px'
+        }}>
+          <button
+            onClick={() => setViewMode('grid')}
+            title="Vue grille"
+            style={{
+              padding: '8px 12px',
+              borderRadius: '6px',
+              border: 'none',
+              backgroundColor: viewMode === 'grid' ? 'white' : 'transparent',
+              color: viewMode === 'grid' ? '#167bff' : '#64748b',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: viewMode === 'grid' ? '600' : '400',
+              boxShadow: viewMode === 'grid' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+              transition: 'all 0.2s'
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            <span className="hidden sm:inline">Grille</span>
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            title="Vue liste paiements"
+            style={{
+              padding: '8px 12px',
+              borderRadius: '6px',
+              border: 'none',
+              backgroundColor: viewMode === 'list' ? 'white' : 'transparent',
+              color: viewMode === 'list' ? '#167bff' : '#64748b',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: viewMode === 'list' ? '600' : '400',
+              boxShadow: viewMode === 'list' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+              transition: 'all 0.2s'
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <circle cx="4" cy="6" r="1.5" fill="currentColor" />
+              <circle cx="4" cy="12" r="1.5" fill="currentColor" />
+              <circle cx="4" cy="18" r="1.5" fill="currentColor" />
+            </svg>
+            <span className="hidden sm:inline">Paiements</span>
+          </button>
+        </div>
       </div>
 
       {/* Payment Status Filters */}
@@ -452,7 +516,312 @@ export default function Cars() {
             style={{ borderColor: '#167bff', width: '48px', height: '48px' }}
           />
         </div>
+      ) : viewMode === 'list' ? (
+        /* Payment-Focused List View */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* List Header */}
+          <div
+            className="hidden sm:flex"
+            style={{
+              backgroundColor: '#f8fafc',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              fontSize: '12px',
+              fontWeight: '600',
+              color: '#64748b',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}
+          >
+            <div style={{ flex: 2, minWidth: '180px' }}>Véhicule</div>
+            <div style={{ flex: 1, minWidth: '100px', textAlign: 'right' }}>Prix de vente</div>
+            <div style={{ flex: 1, minWidth: '100px', textAlign: 'right' }}>Payé</div>
+            <div style={{ flex: 1, minWidth: '100px', textAlign: 'right' }}>Reste</div>
+            <div style={{ flex: 1.5, minWidth: '150px' }}>Progression</div>
+            <div style={{ width: '100px', textAlign: 'center' }}>Actions</div>
+          </div>
+
+          {/* List Items */}
+          {filteredCars.map((car) => {
+            const paymentPercent = car.status === 'sold' && car.sale_price > 0
+              ? Math.min(100, Math.round((car.total_paid / car.sale_price) * 100))
+              : 0;
+
+            return (
+              <div
+                key={car.id}
+                style={{
+                  backgroundColor: car.deleted ? '#fef2f2' : 'white',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                  border: car.deleted ? '2px solid #dc2626' : '1px solid #e5e7eb',
+                  opacity: car.deleted ? 0.7 : 1
+                }}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0">
+                  {/* Vehicle Info */}
+                  <div style={{ flex: 2, minWidth: '180px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      {/* Small thumbnail */}
+                      {car.salvage_photos && car.salvage_photos.length > 0 ? (
+                        <div style={{
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '6px',
+                          overflow: 'hidden',
+                          flexShrink: 0
+                        }}>
+                          <img
+                            src={car.salvage_photos[0].url}
+                            alt=""
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
+                      ) : (
+                        <div style={{
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '6px',
+                          backgroundColor: '#f1f5f9',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          color: '#94a3b8'
+                        }}>
+                          🚗
+                        </div>
+                      )}
+                      <div>
+                        <div style={{ fontWeight: '600', color: '#1e293b', fontSize: '15px' }}>
+                          {car.display_name || car.car_model?.name || 'N/A'}
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#64748b' }}>
+                          {car.vin}
+                        </div>
+                        {/* Status badge - inline */}
+                        <div style={{ marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {car.deleted && (
+                            <span style={{
+                              backgroundColor: '#dc2626',
+                              color: 'white',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              fontWeight: 'bold'
+                            }}>
+                              SUPPRIMÉ
+                            </span>
+                          )}
+                          {car.status === 'sold' && !car.deleted && (
+                            <span style={{
+                              backgroundColor: car.fully_paid ? '#dcfce7' : '#fef3c7',
+                              color: car.fully_paid ? '#166534' : '#92400e',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              fontWeight: '600'
+                            }}>
+                              {car.fully_paid ? '✓ PAYÉ' : '⏳ EN COURS'}
+                            </span>
+                          )}
+                          {car.status === 'rental' && !car.deleted && (
+                            <span style={{
+                              backgroundColor: '#fef3c7',
+                              color: '#92400e',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              fontWeight: '600'
+                            }}>
+                              🚗 LOCATION
+                            </span>
+                          )}
+                          {car.status !== 'sold' && car.status !== 'rental' && !car.deleted && (
+                            <span style={{
+                              backgroundColor: '#f1f5f9',
+                              color: '#64748b',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              fontWeight: '600'
+                            }}>
+                              EN STOCK
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mobile: Financial summary in a row */}
+                  <div className="flex sm:hidden" style={{
+                    backgroundColor: '#f8fafc',
+                    borderRadius: '6px',
+                    padding: '10px',
+                    gap: '12px',
+                    flexWrap: 'wrap'
+                  }}>
+                    <div style={{ flex: 1, minWidth: '80px' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase' }}>Vente</div>
+                      <div style={{ fontWeight: '600', color: car.status === 'sold' ? '#1e293b' : '#94a3b8' }}>
+                        {car.status === 'sold' ? formatCurrency(car.sale_price) : '-'}
+                      </div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: '80px' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase' }}>Payé</div>
+                      <div style={{ fontWeight: '600', color: car.total_paid > 0 ? '#10b981' : '#94a3b8' }}>
+                        {car.status === 'sold' ? formatCurrency(car.total_paid || 0) : '-'}
+                      </div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: '80px' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase' }}>Reste</div>
+                      <div style={{ fontWeight: '600', color: car.remaining_balance > 0 ? '#dc2626' : '#94a3b8' }}>
+                        {car.status === 'sold' && !car.fully_paid ? formatCurrency(car.remaining_balance) : '-'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Desktop: Sale Price */}
+                  <div className="hidden sm:block" style={{ flex: 1, minWidth: '100px', textAlign: 'right' }}>
+                    {car.status === 'sold' ? (
+                      <span style={{ fontWeight: '600', color: '#1e293b' }}>
+                        {formatCurrency(car.sale_price)}
+                      </span>
+                    ) : (
+                      <span style={{ color: '#94a3b8' }}>-</span>
+                    )}
+                  </div>
+
+                  {/* Desktop: Total Paid */}
+                  <div className="hidden sm:block" style={{ flex: 1, minWidth: '100px', textAlign: 'right' }}>
+                    {car.status === 'sold' ? (
+                      <span style={{ fontWeight: '600', color: '#10b981' }}>
+                        {formatCurrency(car.total_paid || 0)}
+                      </span>
+                    ) : (
+                      <span style={{ color: '#94a3b8' }}>-</span>
+                    )}
+                  </div>
+
+                  {/* Desktop: Remaining */}
+                  <div className="hidden sm:block" style={{ flex: 1, minWidth: '100px', textAlign: 'right' }}>
+                    {car.status === 'sold' && !car.fully_paid ? (
+                      <span style={{ fontWeight: '600', color: '#dc2626' }}>
+                        {formatCurrency(car.remaining_balance)}
+                      </span>
+                    ) : car.status === 'sold' && car.fully_paid ? (
+                      <span style={{ color: '#10b981', fontWeight: '600' }}>0</span>
+                    ) : (
+                      <span style={{ color: '#94a3b8' }}>-</span>
+                    )}
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div style={{ flex: 1.5, minWidth: '150px' }}>
+                    {car.status === 'sold' ? (
+                      <div>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginBottom: '4px',
+                          fontSize: '12px'
+                        }}>
+                          <span style={{ color: '#64748b' }}>Progression</span>
+                          <span style={{
+                            fontWeight: '600',
+                            color: paymentPercent === 100 ? '#10b981' : '#f59e0b'
+                          }}>
+                            {paymentPercent}%
+                          </span>
+                        </div>
+                        <div style={{
+                          height: '8px',
+                          backgroundColor: '#e5e7eb',
+                          borderRadius: '4px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            height: '100%',
+                            width: `${paymentPercent}%`,
+                            backgroundColor: paymentPercent === 100 ? '#10b981' : '#f59e0b',
+                            borderRadius: '4px',
+                            transition: 'width 0.3s ease'
+                          }} />
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{
+                        backgroundColor: '#f1f5f9',
+                        borderRadius: '4px',
+                        padding: '8px 12px',
+                        fontSize: '12px',
+                        color: '#64748b',
+                        textAlign: 'center'
+                      }}>
+                        {car.status === 'rental' ? 'En location' : 'Non vendu'}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ width: '100px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                    <button
+                      onClick={() => handleView(car)}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid #167bff',
+                        backgroundColor: '#167bff',
+                        color: 'white',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      Voir
+                    </button>
+                    {canWrite && !car.deleted && (
+                      <button
+                        onClick={() => handleDelete(car.id)}
+                        style={{
+                          padding: '8px',
+                          borderRadius: '6px',
+                          border: '1px solid #e5e7eb',
+                          backgroundColor: 'white',
+                          color: '#dc2626',
+                          cursor: 'pointer',
+                          fontSize: '13px'
+                        }}
+                      >
+                        🗑️
+                      </button>
+                    )}
+                    {canWrite && car.deleted && (
+                      <button
+                        onClick={() => handleRestore(car.id)}
+                        style={{
+                          padding: '8px',
+                          borderRadius: '6px',
+                          border: '1px solid #10b981',
+                          backgroundColor: 'white',
+                          color: '#10b981',
+                          cursor: 'pointer',
+                          fontSize: '13px'
+                        }}
+                      >
+                        ↶
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       ) : (
+        /* Grid View (Original) */
         <div className="cars-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 350px), 1fr))',
