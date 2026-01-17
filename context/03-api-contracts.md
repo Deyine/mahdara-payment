@@ -48,7 +48,7 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### Get Statistics
 **Endpoint**: `GET /api/dashboard/statistics`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Returns comprehensive dashboard statistics
 
 **Request**: None (GET request with Authorization header)
@@ -118,7 +118,7 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### List Car Models
 **Endpoint**: `GET /api/car_models`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Returns all car models for the current tenant
 
 **Response**:
@@ -141,7 +141,7 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### List Active Car Models
 **Endpoint**: `GET /api/car_models/active`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Returns only active car models (for dropdowns)
 
 **Response**: Same format, filtered by `active: true`
@@ -236,7 +236,7 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### List Active Expense Categories
 **Endpoint**: `GET /api/expense_categories/active`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Returns only active expense categories (for dropdowns)
 
 **Response**: Same format, filtered by `active: true`
@@ -299,7 +299,7 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### List Expenses
 **Endpoint**: `GET /api/expenses`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Returns all expenses with category and car info, ordered by date desc
 
 **Query Parameters**:
@@ -341,7 +341,7 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### Get Single Expense
 **Endpoint**: `GET /api/expenses/:id`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 
 **Response**: Same as single expense object above
 
@@ -395,7 +395,7 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### List All Payment Methods
 **Endpoint**: `GET /api/payment_methods`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Returns all payment methods for the current tenant
 
 **Response**:
@@ -418,7 +418,7 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### List Active Payment Methods
 **Endpoint**: `GET /api/payment_methods/active`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Returns only active payment methods (for dropdowns)
 
 **Response**: Same format, filtered by `active: true`
@@ -493,7 +493,7 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### List Payments
 **Endpoint**: `GET /api/payments`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Returns all payments with car and payment method info, ordered by payment_date desc
 
 **Query Parameters**:
@@ -526,7 +526,7 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### Get Single Payment
 **Endpoint**: `GET /api/payments/:id`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 
 **Response**: Same as single payment object above
 
@@ -626,23 +626,27 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### List Users
 **Endpoint**: `GET /api/users`
-**Access**: Authenticated (admin, super_admin)
-**Description**: Returns all users in the current tenant (for profit share assignment)
+**Access**: Authenticated (admin, super_admin, manager)
+**Description**: Returns all users in the current tenant
 
 **Response**:
 ```json
 [
   {
-    "id": 1,
+    "id": "uuid",
     "name": "John Doe",
     "username": "john",
-    "role": "admin"
+    "role": "admin",
+    "created_at": "2025-12-07T12:00:00.000Z",
+    "updated_at": "2025-12-07T12:00:00.000Z"
   },
   {
-    "id": 2,
+    "id": "uuid",
     "name": "Jane Smith",
     "username": "jane",
-    "role": "user"
+    "role": "manager",
+    "created_at": "2025-12-08T12:00:00.000Z",
+    "updated_at": "2025-12-08T12:00:00.000Z"
   }
 ]
 ```
@@ -650,7 +654,146 @@ All endpoints are namespaced under `/api` and return JSON responses.
 **Notes**:
 - Users ordered by name alphabetically
 - Scoped to current user's tenant
-- Used for profit share user dropdown
+- Used for user management and profit share dropdown
+
+### List Managers
+**Endpoint**: `GET /api/users/managers`
+**Access**: Authenticated (admin, super_admin, manager)
+**Description**: Returns only manager users (for profit share dropdown)
+
+**Response**: Same format, filtered by `role: 'manager'`
+
+### Get Single User
+**Endpoint**: `GET /api/users/:id`
+**Access**: Authenticated (admin, super_admin, manager)
+
+**Response**: Same as single user object above
+
+### Create User
+**Endpoint**: `POST /api/users`
+**Access**: Admin only
+**Description**: Create a new user in the current tenant
+
+**Request**:
+```json
+{
+  "user": {
+    "name": "New User",
+    "username": "newuser",
+    "password": "securepassword123",
+    "role": "manager"
+  }
+}
+```
+
+**Response** (Success):
+```json
+{
+  "id": "uuid",
+  "name": "New User",
+  "username": "newuser",
+  "role": "manager",
+  "created_at": "2025-12-15T12:00:00.000Z",
+  "updated_at": "2025-12-15T12:00:00.000Z"
+}
+```
+
+**Response** (Error - validation failure):
+```json
+{
+  "errors": [
+    "Username has already been taken"
+  ]
+}
+```
+
+**Response** (Error - permission denied):
+```json
+{
+  "errors": [
+    "Seul un super admin peut créer des utilisateurs admin"
+  ]
+}
+```
+
+**Validation Rules**:
+- `name`: required
+- `username`: required, unique per tenant
+- `password`: required for new users
+- `role`: required, must be 'manager' or 'admin' (only super_admin can create admin users)
+- tenant_id automatically set from current_user
+
+**Status Codes**:
+- `201 Created` - Success
+- `403 Forbidden` - Trying to create admin without super_admin permission
+- `422 Unprocessable Entity` - Validation error
+
+### Update User
+**Endpoint**: `PUT /api/users/:id`
+**Access**: Admin only
+
+**Request**:
+```json
+{
+  "user": {
+    "name": "Updated Name",
+    "username": "updateduser",
+    "password": "newpassword",
+    "role": "manager"
+  }
+}
+```
+
+**Response**: Updated user object
+
+**Notes**:
+- Password is optional on update (leave empty to keep current password)
+- Cannot modify your own role
+- Only super_admin can assign admin role
+
+**Response** (Error - self role change):
+```json
+{
+  "errors": [
+    "Vous ne pouvez pas modifier votre propre rôle"
+  ]
+}
+```
+
+### Delete User
+**Endpoint**: `DELETE /api/users/:id`
+**Access**: Admin only
+
+**Response** (Success):
+```json
+{
+  "message": "Utilisateur supprimé avec succès"
+}
+```
+
+**Response** (Error - self delete):
+```json
+{
+  "error": "Vous ne pouvez pas supprimer votre propre compte"
+}
+```
+
+**Response** (Error - super_admin protection):
+```json
+{
+  "error": "Seul un super admin peut supprimer un super admin"
+}
+```
+
+**Validation Rules**:
+- Cannot delete yourself
+- Only super_admin can delete super_admin users
+- Regular admins can only delete manager users
+
+**Status Codes**:
+- `200 OK` - Success
+- `403 Forbidden` - Permission denied
+- `404 Not Found` - User not found
 
 ---
 
@@ -658,7 +801,7 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### List Cars
 **Endpoint**: `GET /api/cars`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Returns cars with their models and expenses (active by default)
 
 **Query Parameters**:
@@ -788,7 +931,7 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### Get Single Car
 **Endpoint**: `GET /api/cars/:id`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 
 **Response**: Same as single car object above
 
@@ -989,7 +1132,7 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 ### Add Salvage Photos
 **Endpoint**: `POST /api/cars/:id/salvage_photos`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Upload one or more salvage photos (initial condition)
 **Content-Type**: `multipart/form-data`
 
@@ -1018,7 +1161,7 @@ photos[]: File (image file)
 
 ### Delete Salvage Photo
 **Endpoint**: `DELETE /api/cars/:id/salvage_photos/:photo_id`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Delete a specific salvage photo
 
 **Response**:
@@ -1037,7 +1180,7 @@ photos[]: File (image file)
 
 ### Add After-Repair Photos
 **Endpoint**: `POST /api/cars/:id/after_repair_photos`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Upload one or more after-repair photos
 **Content-Type**: `multipart/form-data`
 
@@ -1066,7 +1209,7 @@ photos[]: File (image file)
 
 ### Delete After-Repair Photo
 **Endpoint**: `DELETE /api/cars/:id/after_repair_photos/:photo_id`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Delete a specific after-repair photo
 
 **Response**:
@@ -1085,7 +1228,7 @@ photos[]: File (image file)
 
 ### Add Invoices
 **Endpoint**: `POST /api/cars/:id/invoices`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Upload one or more purchase invoices/receipts
 **Content-Type**: `multipart/form-data`
 
@@ -1115,7 +1258,7 @@ invoices[]: File (PDF, JPG, or PNG file)
 
 ### Delete Invoice
 **Endpoint**: `DELETE /api/cars/:id/invoices/:invoice_id`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Delete a specific invoice
 
 **Response**:
@@ -1229,7 +1372,7 @@ invoices[]: File (PDF, JPG, or PNG file)
 
 ### List Rental Transactions
 **Endpoint**: `GET /api/rental_transactions`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Returns all rental transactions with car info, ordered by start_date desc
 
 **Query Parameters**:
@@ -1271,7 +1414,7 @@ invoices[]: File (PDF, JPG, or PNG file)
 
 ### Get Single Rental Transaction
 **Endpoint**: `GET /api/rental_transactions/:id`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 
 **Response**: Same as single rental transaction object above
 
@@ -1423,7 +1566,7 @@ invoices[]: File (PDF, JPG, or PNG file)
 ### List All Sellers
 
 **Endpoint**: `GET /api/sellers`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Returns all sellers/auction houses for the current tenant
 
 **Response**:
@@ -1449,7 +1592,7 @@ invoices[]: File (PDF, JPG, or PNG file)
 ### List Active Sellers
 
 **Endpoint**: `GET /api/sellers/active`
-**Access**: Authenticated (admin, super_admin)
+**Access**: Authenticated (admin, super_admin, manager)
 **Description**: Returns only active sellers (for dropdowns in car purchase forms)
 
 **Response**: Same format, filtered by `active: true`
@@ -1622,7 +1765,8 @@ All errors return JSON with `error` key:
 |--------|----------|--------|-------------|
 | POST | `/api/auth/login` | Public | Login |
 | GET | `/api/dashboard/statistics` | Auth | Dashboard stats |
-| GET | `/api/users` | Auth | List tenant users |
+| GET/POST/PUT/DELETE | `/api/users` | Auth/Admin | User CRUD |
+| GET | `/api/users/managers` | Auth | List managers only |
 | GET/POST/PUT/DELETE | `/api/cars` | Auth/Admin | Car CRUD |
 | POST | `/api/cars/:id/restore` | Admin | Restore soft-deleted car |
 | POST | `/api/cars/:id/sell` | Admin | Mark car as sold |

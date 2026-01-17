@@ -74,9 +74,14 @@ bestcar/
 │   │   │   ├── Dashboard.jsx
 │   │   │   ├── Cars.jsx
 │   │   │   ├── CarDetail.jsx
-│   │   │   ├── Settings.jsx
-│   │   │   ├── CarModels.jsx
-│   │   │   └── ExpenseCategories.jsx
+│   │   │   ├── ImportCars.jsx
+│   │   │   ├── Settings.jsx          # Settings container with tabs
+│   │   │   ├── CarModels.jsx         # Settings sub-page
+│   │   │   ├── ExpenseCategories.jsx # Settings sub-page
+│   │   │   ├── Sellers.jsx           # Settings sub-page
+│   │   │   ├── PaymentMethods.jsx    # Settings sub-page
+│   │   │   ├── Tags.jsx              # Settings sub-page
+│   │   │   └── Users.jsx             # Settings sub-page (user management)
 │   │   └── services/
 │   │       └── api.js           # Axios configuration
 │   ├── .env                     # Development API URL
@@ -107,10 +112,15 @@ t.timestamps
 t.string :name, null: false
 t.string :username, null: false, index: { unique: true }
 t.string :password_digest, null: false
-t.string :role, null: false  # 'admin' or 'super_admin'
+t.string :role, null: false  # 'admin', 'super_admin', or 'manager'
 t.references :tenant, null: false, foreign_key: true, type: :uuid
 t.timestamps
 ```
+
+**Roles**:
+- `admin`: Full CRUD access within tenant
+- `super_admin`: System-wide access, can manage tenants
+- `manager`: Read-only access to all data within tenant
 
 ### car_models
 ```ruby
