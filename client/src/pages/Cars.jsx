@@ -260,17 +260,19 @@ export default function Cars() {
         </h1>
         {/* Action buttons - stack on mobile */}
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setShowDeleted(!showDeleted)}
-            className="px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base flex-1 sm:flex-none"
-            style={{
-              backgroundColor: showDeleted ? '#dc2626' : '#f3f4f6',
-              color: showDeleted ? 'white' : '#374151',
-              border: showDeleted ? 'none' : '1px solid #e5e7eb',
-            }}
-          >
-            {showDeleted ? '🗑️ Supprimés' : '📋 Actifs'}
-          </button>
+          {canWrite && (
+            <button
+              onClick={() => setShowDeleted(!showDeleted)}
+              className="px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base flex-1 sm:flex-none"
+              style={{
+                backgroundColor: showDeleted ? '#dc2626' : '#f3f4f6',
+                color: showDeleted ? 'white' : '#374151',
+                border: showDeleted ? 'none' : '1px solid #e5e7eb',
+              }}
+            >
+              {showDeleted ? '🗑️ Supprimés' : '📋 Actifs'}
+            </button>
+          )}
           {canWrite && (
             <button
               onClick={() => navigate('/cars/import')}
@@ -533,12 +535,11 @@ export default function Cars() {
               letterSpacing: '0.05em'
             }}
           >
-            <div style={{ flex: 2, minWidth: '180px' }}>Véhicule</div>
-            <div style={{ flex: 1, minWidth: '100px', textAlign: 'right' }}>Prix de vente</div>
-            <div style={{ flex: 1, minWidth: '100px', textAlign: 'right' }}>Payé</div>
-            <div style={{ flex: 1, minWidth: '100px', textAlign: 'right' }}>Reste</div>
-            <div style={{ flex: 1.5, minWidth: '150px' }}>Progression</div>
-            <div style={{ width: '100px', textAlign: 'center' }}>Actions</div>
+            <div style={{ flex: 2 }}>Véhicule</div>
+            <div style={{ width: '110px', textAlign: 'right' }}>Prix de vente</div>
+            <div style={{ width: '110px', textAlign: 'right' }}>Payé</div>
+            <div style={{ width: '130px', textAlign: 'right' }}>Reste</div>
+            <div style={{ width: '80px', textAlign: 'center' }}>Actions</div>
           </div>
 
           {/* List Items */}
@@ -559,15 +560,15 @@ export default function Cars() {
                   opacity: car.deleted ? 0.7 : 1
                 }}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                   {/* Vehicle Info */}
-                  <div style={{ flex: 2, minWidth: '180px' }}>
+                  <div style={{ flex: 2 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       {/* Small thumbnail */}
                       {car.salvage_photos && car.salvage_photos.length > 0 ? (
                         <div style={{
-                          width: '48px',
-                          height: '48px',
+                          width: '44px',
+                          height: '44px',
                           borderRadius: '6px',
                           overflow: 'hidden',
                           flexShrink: 0
@@ -580,35 +581,36 @@ export default function Cars() {
                         </div>
                       ) : (
                         <div style={{
-                          width: '48px',
-                          height: '48px',
+                          width: '44px',
+                          height: '44px',
                           borderRadius: '6px',
                           backgroundColor: '#f1f5f9',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           flexShrink: 0,
-                          color: '#94a3b8'
+                          color: '#94a3b8',
+                          fontSize: '18px'
                         }}>
                           🚗
                         </div>
                       )}
-                      <div>
-                        <div style={{ fontWeight: '600', color: '#1e293b', fontSize: '15px' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: '600', color: '#1e293b', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {car.display_name || car.car_model?.name || 'N/A'}
                         </div>
-                        <div style={{ fontSize: '13px', color: '#64748b' }}>
+                        <div style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {car.vin}
                         </div>
                         {/* Status badge - inline */}
-                        <div style={{ marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        <div style={{ marginTop: '2px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                           {car.deleted && (
                             <span style={{
                               backgroundColor: '#dc2626',
                               color: 'white',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              fontSize: '10px',
+                              padding: '1px 5px',
+                              borderRadius: '3px',
+                              fontSize: '9px',
                               fontWeight: 'bold'
                             }}>
                               SUPPRIMÉ
@@ -618,9 +620,9 @@ export default function Cars() {
                             <span style={{
                               backgroundColor: car.fully_paid ? '#dcfce7' : '#fef3c7',
                               color: car.fully_paid ? '#166534' : '#92400e',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              fontSize: '10px',
+                              padding: '1px 5px',
+                              borderRadius: '3px',
+                              fontSize: '9px',
                               fontWeight: '600'
                             }}>
                               {car.fully_paid ? '✓ PAYÉ' : '⏳ EN COURS'}
@@ -630,21 +632,21 @@ export default function Cars() {
                             <span style={{
                               backgroundColor: '#fef3c7',
                               color: '#92400e',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              fontSize: '10px',
+                              padding: '1px 5px',
+                              borderRadius: '3px',
+                              fontSize: '9px',
                               fontWeight: '600'
                             }}>
-                              🚗 LOCATION
+                              LOCATION
                             </span>
                           )}
                           {car.status !== 'sold' && car.status !== 'rental' && !car.deleted && (
                             <span style={{
                               backgroundColor: '#f1f5f9',
                               color: '#64748b',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              fontSize: '10px',
+                              padding: '1px 5px',
+                              borderRadius: '3px',
+                              fontSize: '9px',
                               fontWeight: '600'
                             }}>
                               EN STOCK
@@ -660,123 +662,129 @@ export default function Cars() {
                     backgroundColor: '#f8fafc',
                     borderRadius: '6px',
                     padding: '10px',
-                    gap: '12px',
-                    flexWrap: 'wrap'
+                    gap: '8px'
                   }}>
-                    <div style={{ flex: 1, minWidth: '80px' }}>
-                      <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase' }}>Vente</div>
-                      <div style={{ fontWeight: '600', color: car.status === 'sold' ? '#1e293b' : '#94a3b8' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '9px', color: '#64748b', textTransform: 'uppercase', marginBottom: '2px' }}>Vente</div>
+                      <div style={{ fontWeight: '600', fontSize: '13px', color: car.status === 'sold' ? '#1e293b' : '#94a3b8' }}>
                         {car.status === 'sold' ? formatCurrency(car.sale_price) : '-'}
                       </div>
                     </div>
-                    <div style={{ flex: 1, minWidth: '80px' }}>
-                      <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase' }}>Payé</div>
-                      <div style={{ fontWeight: '600', color: car.total_paid > 0 ? '#10b981' : '#94a3b8' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '9px', color: '#64748b', textTransform: 'uppercase', marginBottom: '2px' }}>Payé</div>
+                      <div style={{ fontWeight: '600', fontSize: '13px', color: car.total_paid > 0 ? '#10b981' : '#94a3b8' }}>
                         {car.status === 'sold' ? formatCurrency(car.total_paid || 0) : '-'}
                       </div>
                     </div>
-                    <div style={{ flex: 1, minWidth: '80px' }}>
-                      <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase' }}>Reste</div>
-                      <div style={{ fontWeight: '600', color: car.remaining_balance > 0 ? '#dc2626' : '#94a3b8' }}>
-                        {car.status === 'sold' && !car.fully_paid ? formatCurrency(car.remaining_balance) : '-'}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '9px', color: '#64748b', textTransform: 'uppercase', marginBottom: '2px' }}>Reste</div>
+                      <div style={{ fontWeight: '600', fontSize: '13px', color: car.remaining_balance > 0 ? '#dc2626' : '#10b981' }}>
+                        {car.status === 'sold' ? (car.fully_paid ? '0' : formatCurrency(car.remaining_balance)) : '-'}
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Desktop: Sale Price */}
-                  <div className="hidden sm:block" style={{ flex: 1, minWidth: '100px', textAlign: 'right' }}>
-                    {car.status === 'sold' ? (
-                      <span style={{ fontWeight: '600', color: '#1e293b' }}>
-                        {formatCurrency(car.sale_price)}
-                      </span>
-                    ) : (
-                      <span style={{ color: '#94a3b8' }}>-</span>
-                    )}
-                  </div>
-
-                  {/* Desktop: Total Paid */}
-                  <div className="hidden sm:block" style={{ flex: 1, minWidth: '100px', textAlign: 'right' }}>
-                    {car.status === 'sold' ? (
-                      <span style={{ fontWeight: '600', color: '#10b981' }}>
-                        {formatCurrency(car.total_paid || 0)}
-                      </span>
-                    ) : (
-                      <span style={{ color: '#94a3b8' }}>-</span>
-                    )}
-                  </div>
-
-                  {/* Desktop: Remaining */}
-                  <div className="hidden sm:block" style={{ flex: 1, minWidth: '100px', textAlign: 'right' }}>
-                    {car.status === 'sold' && !car.fully_paid ? (
-                      <span style={{ fontWeight: '600', color: '#dc2626' }}>
-                        {formatCurrency(car.remaining_balance)}
-                      </span>
-                    ) : car.status === 'sold' && car.fully_paid ? (
-                      <span style={{ color: '#10b981', fontWeight: '600' }}>0</span>
-                    ) : (
-                      <span style={{ color: '#94a3b8' }}>-</span>
-                    )}
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div style={{ flex: 1.5, minWidth: '150px' }}>
-                    {car.status === 'sold' ? (
-                      <div>
+                      {/* Mini progress bar for mobile */}
+                      {car.status === 'sold' && (
                         <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          marginBottom: '4px',
-                          fontSize: '12px'
-                        }}>
-                          <span style={{ color: '#64748b' }}>Progression</span>
-                          <span style={{
-                            fontWeight: '600',
-                            color: paymentPercent === 100 ? '#10b981' : '#f59e0b'
-                          }}>
-                            {paymentPercent}%
-                          </span>
-                        </div>
-                        <div style={{
-                          height: '8px',
+                          marginTop: '4px',
+                          height: '3px',
                           backgroundColor: '#e5e7eb',
-                          borderRadius: '4px',
+                          borderRadius: '2px',
                           overflow: 'hidden'
                         }}>
                           <div style={{
                             height: '100%',
                             width: `${paymentPercent}%`,
                             backgroundColor: paymentPercent === 100 ? '#10b981' : '#f59e0b',
-                            borderRadius: '4px',
+                            borderRadius: '2px'
+                          }} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Desktop: Sale Price */}
+                  <div className="hidden sm:block" style={{ width: '110px', textAlign: 'right' }}>
+                    {car.status === 'sold' ? (
+                      <span style={{ fontWeight: '600', color: '#1e293b', fontSize: '14px' }}>
+                        {formatCurrency(car.sale_price)}
+                      </span>
+                    ) : (
+                      <span style={{ color: '#94a3b8', fontSize: '13px' }}>-</span>
+                    )}
+                  </div>
+
+                  {/* Desktop: Total Paid */}
+                  <div className="hidden sm:block" style={{ width: '110px', textAlign: 'right' }}>
+                    {car.status === 'sold' ? (
+                      <span style={{ fontWeight: '600', color: '#10b981', fontSize: '14px' }}>
+                        {formatCurrency(car.total_paid || 0)}
+                      </span>
+                    ) : (
+                      <span style={{ color: '#94a3b8', fontSize: '13px' }}>-</span>
+                    )}
+                  </div>
+
+                  {/* Desktop: Remaining with mini progress bar */}
+                  <div className="hidden sm:block" style={{ width: '130px', textAlign: 'right' }}>
+                    {car.status === 'sold' ? (
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                          <span style={{
+                            fontWeight: '600',
+                            color: car.fully_paid ? '#10b981' : '#dc2626',
+                            fontSize: '14px'
+                          }}>
+                            {car.fully_paid ? '0' : formatCurrency(car.remaining_balance)}
+                          </span>
+                          <span style={{
+                            fontSize: '11px',
+                            color: paymentPercent === 100 ? '#10b981' : '#f59e0b',
+                            fontWeight: '500'
+                          }}>
+                            {paymentPercent}%
+                          </span>
+                        </div>
+                        {/* Mini progress bar */}
+                        <div style={{
+                          marginTop: '4px',
+                          height: '4px',
+                          backgroundColor: '#e5e7eb',
+                          borderRadius: '2px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            height: '100%',
+                            width: `${paymentPercent}%`,
+                            backgroundColor: paymentPercent === 100 ? '#10b981' : '#f59e0b',
+                            borderRadius: '2px',
                             transition: 'width 0.3s ease'
                           }} />
                         </div>
                       </div>
                     ) : (
-                      <div style={{
+                      <span style={{
+                        fontSize: '11px',
+                        color: '#94a3b8',
                         backgroundColor: '#f1f5f9',
-                        borderRadius: '4px',
-                        padding: '8px 12px',
-                        fontSize: '12px',
-                        color: '#64748b',
-                        textAlign: 'center'
+                        padding: '2px 6px',
+                        borderRadius: '3px'
                       }}>
-                        {car.status === 'rental' ? 'En location' : 'Non vendu'}
-                      </div>
+                        {car.status === 'rental' ? 'Location' : 'Non vendu'}
+                      </span>
                     )}
                   </div>
 
                   {/* Actions */}
-                  <div style={{ width: '100px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                  <div style={{ width: '80px', display: 'flex', justifyContent: 'center', gap: '6px' }}>
                     <button
                       onClick={() => handleView(car)}
                       style={{
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        border: '1px solid #167bff',
+                        padding: '6px 10px',
+                        borderRadius: '5px',
+                        border: 'none',
                         backgroundColor: '#167bff',
                         color: 'white',
                         cursor: 'pointer',
-                        fontSize: '13px',
+                        fontSize: '12px',
                         fontWeight: '500'
                       }}
                     >
@@ -786,13 +794,13 @@ export default function Cars() {
                       <button
                         onClick={() => handleDelete(car.id)}
                         style={{
-                          padding: '8px',
-                          borderRadius: '6px',
+                          padding: '6px 8px',
+                          borderRadius: '5px',
                           border: '1px solid #e5e7eb',
                           backgroundColor: 'white',
                           color: '#dc2626',
                           cursor: 'pointer',
-                          fontSize: '13px'
+                          fontSize: '12px'
                         }}
                       >
                         🗑️
@@ -802,13 +810,13 @@ export default function Cars() {
                       <button
                         onClick={() => handleRestore(car.id)}
                         style={{
-                          padding: '8px',
-                          borderRadius: '6px',
+                          padding: '6px 8px',
+                          borderRadius: '5px',
                           border: '1px solid #10b981',
                           backgroundColor: 'white',
                           color: '#10b981',
                           cursor: 'pointer',
-                          fontSize: '13px'
+                          fontSize: '12px'
                         }}
                       >
                         ↶
