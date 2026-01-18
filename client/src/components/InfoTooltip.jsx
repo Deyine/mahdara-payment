@@ -9,64 +9,8 @@ import { useState, useRef, useEffect } from 'react';
  */
 export default function InfoTooltip({ items, title }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isPositioned, setIsPositioned] = useState(false);
-  const [position, setPosition] = useState({ left: '50%', transform: 'translateX(-50%)' });
-  const [arrowPosition, setArrowPosition] = useState({ left: '50%', transform: 'translateX(-50%) rotate(45deg)' });
   const tooltipRef = useRef(null);
   const buttonRef = useRef(null);
-
-  // Adjust tooltip position to prevent overflow
-  useEffect(() => {
-    if (isOpen && tooltipRef.current && buttonRef.current) {
-      setIsPositioned(false);
-
-      // Small delay to ensure tooltip is fully rendered in DOM
-      const timer = setTimeout(() => {
-        if (!tooltipRef.current || !buttonRef.current) return;
-
-        const tooltip = tooltipRef.current;
-        const button = buttonRef.current;
-        const tooltipRect = tooltip.getBoundingClientRect();
-        const buttonRect = button.getBoundingClientRect();
-
-        const viewportWidth = window.innerWidth;
-        const margin = 16; // Minimum margin from screen edge
-
-        // Calculate if tooltip would overflow left or right
-        const overflowLeft = tooltipRect.left < margin;
-        const overflowRight = tooltipRect.right > (viewportWidth - margin);
-
-        if (overflowLeft) {
-          // Align tooltip to left edge with margin
-          const buttonCenter = buttonRect.left + (buttonRect.width / 2);
-          setPosition({ left: '0', transform: 'none' });
-          setArrowPosition({
-            left: `${buttonCenter - tooltipRect.left}px`,
-            transform: 'translateX(-50%) rotate(45deg)'
-          });
-        } else if (overflowRight) {
-          // Align tooltip to right edge with margin
-          const buttonCenter = buttonRect.left + (buttonRect.width / 2);
-          const tooltipWidth = tooltipRect.width;
-          setPosition({ right: '0', left: 'auto', transform: 'none' });
-          setArrowPosition({
-            left: `${tooltipWidth - (viewportWidth - buttonCenter)}px`,
-            transform: 'translateX(-50%) rotate(45deg)'
-          });
-        } else {
-          // Center position (default)
-          setPosition({ left: '50%', transform: 'translateX(-50%)' });
-          setArrowPosition({ left: '50%', transform: 'translateX(-50%) rotate(45deg)' });
-        }
-
-        setIsPositioned(true);
-      }, 10);
-
-      return () => clearTimeout(timer);
-    } else {
-      setIsPositioned(false);
-    }
-  }, [isOpen]);
 
   // Close tooltip when clicking outside
   useEffect(() => {
@@ -133,9 +77,9 @@ export default function InfoTooltip({ items, title }) {
           ref={tooltipRef}
           style={{
             position: 'absolute',
-            bottom: '100%',
-            ...position,
-            marginBottom: '8px',
+            left: 'calc(100% + 8px)',
+            top: '50%',
+            transform: 'translateY(-50%)',
             backgroundColor: 'white',
             borderRadius: '8px',
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
@@ -143,23 +87,22 @@ export default function InfoTooltip({ items, title }) {
             padding: '12px',
             minWidth: '200px',
             zIndex: 100,
-            whiteSpace: 'nowrap',
-            opacity: isPositioned ? 1 : 0,
-            transition: 'opacity 0.15s ease-in-out'
+            whiteSpace: 'nowrap'
           }}
           onMouseEnter={() => setIsOpen(true)}
           onMouseLeave={() => setIsOpen(false)}
         >
-          {/* Arrow */}
+          {/* Arrow pointing left */}
           <div
             style={{
               position: 'absolute',
-              bottom: '-6px',
-              ...arrowPosition,
+              left: '-6px',
+              top: '50%',
+              transform: 'translateY(-50%) rotate(45deg)',
               width: '12px',
               height: '12px',
               backgroundColor: 'white',
-              borderRight: '1px solid #e2e8f0',
+              borderLeft: '1px solid #e2e8f0',
               borderBottom: '1px solid #e2e8f0'
             }}
           />
