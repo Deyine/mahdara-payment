@@ -49,7 +49,7 @@ class Api::UsersController < ApplicationController
           id: car.id,
           ref: car.ref,
           vin: car.vin,
-          model_name: car.car_model&.full_name,
+          model_name: car.car_model ? "#{car.car_model.name} #{car.year}" : nil,
           status: car.status,
           profit: car.profit,
           profit_share_percentage: car.profit_share_percentage&.to_f,
