@@ -20,7 +20,7 @@ export default function Cars() {
   const [editingCar, setEditingCar] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeleted, setShowDeleted] = useState(false);
-  const [paymentFilter, setPaymentFilter] = useState('all'); // 'all', 'fully_paid', 'in_progress', 'not_sold'
+  const [paymentFilter, setPaymentFilter] = useState('all'); // 'all', 'fully_paid', 'in_progress', 'not_sold', 'rental'
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [selectedTagFilter, setSelectedTagFilter] = useState(null); // null means no tag filter
   const [formData, setFormData] = useState({
@@ -223,7 +223,8 @@ export default function Cars() {
 
     // Payment status filter
     if (paymentFilter !== 'all') {
-      if (paymentFilter === 'not_sold' && car.status === 'sold') return false;
+      if (paymentFilter === 'not_sold' && (car.status === 'sold' || car.status === 'rental')) return false;
+      if (paymentFilter === 'rental' && car.status !== 'rental') return false;
       if (paymentFilter === 'fully_paid' && !(car.status === 'sold' && car.fully_paid)) return false;
       if (paymentFilter === 'in_progress' && !(car.status === 'sold' && !car.fully_paid)) return false;
     }
@@ -421,6 +422,22 @@ export default function Cars() {
           }}
         >
           Non Vendus
+        </button>
+        <button
+          onClick={() => setPaymentFilter('rental')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: paymentFilter === 'rental' ? 'none' : '1px solid #e5e7eb',
+            backgroundColor: paymentFilter === 'rental' ? '#f59e0b' : 'white',
+            color: paymentFilter === 'rental' ? 'white' : '#475569',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500',
+            transition: 'all 0.2s'
+          }}
+        >
+          En Location
         </button>
         <button
           onClick={() => setPaymentFilter('in_progress')}
@@ -931,7 +948,7 @@ export default function Cars() {
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                 border: car.deleted ? '2px solid #dc2626' : '1px solid #e5e7eb',
                 opacity: car.deleted ? 0.7 : 1,
-                overflow: 'hidden'
+                overflow: 'visible'
               }}
             >
               {/* Status Badges */}
