@@ -10,6 +10,7 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
   const [expenseCategories, setExpenseCategories] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [formData, setFormData] = useState({
     expense_category_id: '',
     amount: '',
@@ -204,40 +205,82 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
     }
   };
 
+  const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 mb-6" style={{ border: '1px solid #e2e8f0' }}>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold" style={{ color: '#1e293b' }}>
-          Dépenses ({expenses.length})
-        </h2>
-        {canWrite && (
-          <button
-            onClick={handleAddExpense}
-            className="px-4 py-2 rounded-lg font-medium transition-colors text-white"
-            style={{ backgroundColor: '#10b981' }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6" style={{ border: '1px solid #e2e8f0' }}>
+      {/* Header with toggle */}
+      <div className="p-4 sm:p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <h2 className="text-lg sm:text-xl font-bold" style={{ color: '#1e293b' }}>
+              Dépenses ({expenses.length})
+            </h2>
+          </div>
+          <div className="flex items-center gap-2">
+            {canWrite && (
+              <button
+                onClick={handleAddExpense}
+                className="px-3 py-2 sm:px-4 rounded-lg font-medium transition-colors text-white text-sm sm:text-base"
+                style={{ backgroundColor: '#10b981' }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+              >
+                <span className="hidden sm:inline">+ Ajouter</span>
+                <span className="sm:hidden">+</span>
+              </button>
+            )}
+            {expenses.length > 0 && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="p-2 rounded-lg transition-colors"
+                style={{ color: '#64748b' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                <svg
+                  className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Summary - Always visible */}
+        {expenses.length === 0 ? (
+          <div
+            className="rounded-lg p-6 sm:p-8 text-center"
+            style={{ backgroundColor: '#f1f5f9', border: '2px dashed #cbd5e1' }}
           >
-            + Ajouter une Dépense
-          </button>
+            <p style={{ color: '#64748b' }}>
+              Aucune dépense enregistrée pour ce véhicule
+            </p>
+            <p style={{ color: '#94a3b8', fontSize: '14px', marginTop: '8px' }}>
+              Cliquez sur "Ajouter" pour commencer
+            </p>
+          </div>
+        ) : (
+          <div className="bg-blue-50 rounded-lg p-4">
+            <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+              Total des Dépenses
+            </p>
+            <p className="text-xl sm:text-2xl font-bold" style={{ color: '#167bff' }}>
+              {formatCurrency(totalExpenses)} MRU
+            </p>
+          </div>
         )}
       </div>
 
-      {expenses.length === 0 ? (
-        <div
-          className="rounded-lg p-8 text-center"
-          style={{ backgroundColor: '#f1f5f9', border: '2px dashed #cbd5e1' }}
-        >
-          <p style={{ color: '#64748b' }}>
-            Aucune dépense enregistrée pour ce véhicule
-          </p>
-          <p style={{ color: '#94a3b8', fontSize: '14px', marginTop: '8px' }}>
-            Cliquez sur "Ajouter une Dépense" pour commencer
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {expenses.map((expense) => {
+      {/* Expandable expense list */}
+      {isExpanded && expenses.length > 0 && (
+        <div className="border-t" style={{ borderColor: '#e2e8f0' }}>
+          <div className="p-4 sm:p-6 space-y-2">
+            {expenses.map((expense) => {
             const badge = getExpenseTypeBadge(expense.expense_category?.expense_type);
             return (
               <div
@@ -375,6 +418,7 @@ export default function ExpenseManager({ expenses, carId, onExpenseChange }) {
               </div>
             );
           })}
+          </div>
         </div>
       )}
 
