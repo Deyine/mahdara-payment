@@ -9,8 +9,50 @@ import { useState, useRef, useEffect } from 'react';
  */
 export default function InfoTooltip({ items, title }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState({ left: '50%', transform: 'translateX(-50%)' });
+  const [arrowPosition, setArrowPosition] = useState({ left: '50%', transform: 'translateX(-50%) rotate(45deg)' });
   const tooltipRef = useRef(null);
   const buttonRef = useRef(null);
+
+  // Adjust tooltip position to prevent overflow
+  useEffect(() => {
+    if (isOpen && tooltipRef.current && buttonRef.current) {
+      const tooltip = tooltipRef.current;
+      const button = buttonRef.current;
+      const tooltipRect = tooltip.getBoundingClientRect();
+      const buttonRect = button.getBoundingClientRect();
+
+      const viewportWidth = window.innerWidth;
+      const margin = 16; // Minimum margin from screen edge
+
+      // Calculate if tooltip would overflow left or right
+      const overflowLeft = tooltipRect.left < margin;
+      const overflowRight = tooltipRect.right > (viewportWidth - margin);
+
+      if (overflowLeft) {
+        // Align tooltip to left edge with margin
+        const buttonCenter = buttonRect.left + (buttonRect.width / 2);
+        setPosition({ left: '0', transform: 'none' });
+        setArrowPosition({
+          left: `${buttonCenter - tooltipRect.left}px`,
+          transform: 'translateX(-50%) rotate(45deg)'
+        });
+      } else if (overflowRight) {
+        // Align tooltip to right edge with margin
+        const buttonCenter = buttonRect.left + (buttonRect.width / 2);
+        const tooltipWidth = tooltipRect.width;
+        setPosition({ right: '0', left: 'auto', transform: 'none' });
+        setArrowPosition({
+          left: `${tooltipWidth - (viewportWidth - buttonCenter)}px`,
+          transform: 'translateX(-50%) rotate(45deg)'
+        });
+      } else {
+        // Center position (default)
+        setPosition({ left: '50%', transform: 'translateX(-50%)' });
+        setArrowPosition({ left: '50%', transform: 'translateX(-50%) rotate(45deg)' });
+      }
+    }
+  }, [isOpen]);
 
   // Close tooltip when clicking outside
   useEffect(() => {
@@ -78,8 +120,7 @@ export default function InfoTooltip({ items, title }) {
           style={{
             position: 'absolute',
             bottom: '100%',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            ...position,
             marginBottom: '8px',
             backgroundColor: 'white',
             borderRadius: '8px',
@@ -98,8 +139,7 @@ export default function InfoTooltip({ items, title }) {
             style={{
               position: 'absolute',
               bottom: '-6px',
-              left: '50%',
-              transform: 'translateX(-50%) rotate(45deg)',
+              ...arrowPosition,
               width: '12px',
               height: '12px',
               backgroundColor: 'white',
