@@ -30,16 +30,18 @@ class Api::UsersController < ApplicationController
 
     profits_data = managers_with_profits.map do |manager|
       # Get all cars where this manager has profit share
-      cars = tenant_scope(Car)
+      all_cars = tenant_scope(Car)
               .includes(:car_model)
               .where(profit_share_user_id: manager.id)
-              .where.not(profit: nil)
               .order(sale_date: :desc, created_at: :desc)
 
+      # Filter to only cars with profit (calculated method, not DB column)
+      cars = all_cars.select { |car| car.profit.present? }
+
       # Calculate totals
-      total_profit = cars.sum(&:profit).to_f
-      total_user_profit = cars.sum(&:user_profit_amount).to_f
-      total_company_profit = cars.sum(&:company_net_profit).to_f
+      total_profit = cars.sum { |car| car.profit.to_f }
+      total_user_profit = cars.sum { |car| car.user_profit_amount.to_f }
+      total_company_profit = cars.sum { |car| car.company_net_profit.to_f }
 
       # Build car data
       cars_data = cars.map do |car|
