@@ -2,7 +2,7 @@ class Api::UsersController < ApplicationController
   include MultiTenantable
 
   before_action :authenticate_user!
-  before_action :require_admin, except: [:index, :show, :managers]
+  before_action :require_admin, except: [:index, :show, :managers, :profits]
   before_action :set_user, only: [:show, :update, :destroy]
 
   # GET /api/users - List users in the current tenant
@@ -15,6 +15,66 @@ class Api::UsersController < ApplicationController
   def managers
     @managers = tenant_scope(User).managers.order(:name)
     render json: @managers.map { |user| user_json(user) }
+  end
+
+  # GET /api/users/profits - Get profit share data for managers
+  def profits
+    # If user is a manager, show only their own profit data
+    # If user is admin/super_admin, show all managers' profit data
+    if current_user.manager?
+      managers_with_profits = [current_user]
+    else
+      # Get all managers in the tenant
+      managers_with_profits = tenant_scope(User).managers.order(:name)
+    end
+
+    profits_data = managers_with_profits.map do |manager|
+      # Get all cars where this manager has profit share
+      cars = tenant_scope(Car)
+              .includes(:car_model)
+              .where(profit_share_user_id: manager.id)
+              .where.not(profit: nil)
+              .order(sale_date: :desc, created_at: :desc)
+
+      # Calculate totals
+      total_profit = cars.sum(&:profit).to_f
+      total_user_profit = cars.sum(&:user_profit_amount).to_f
+      total_company_profit = cars.sum(&:company_net_profit).to_f
+
+      # Build car data
+      cars_data = cars.map do |car|
+        {
+          id: car.id,
+          ref: car.ref,
+          vin: car.vin,
+          model_name: car.car_model&.full_name,
+          status: car.status,
+          profit: car.profit,
+          profit_share_percentage: car.profit_share_percentage&.to_f,
+          user_profit_amount: car.user_profit_amount,
+          company_net_profit: car.company_net_profit,
+          sale_date: car.sale_date,
+          purchase_date: car.purchase_date
+        }
+      end
+
+      {
+        user: {
+          id: manager.id,
+          name: manager.name,
+          username: manager.username
+        },
+        total_profit: total_profit.round(2),
+        total_user_profit: total_user_profit.round(2),
+        total_company_profit: total_company_profit.round(2),
+        cars: cars_data
+      }
+    end
+
+    # Filter out managers with no profit share cars (only for admin view)
+    profits_data = profits_data.select { |p| p[:cars].any? } unless current_user.manager?
+
+    render json: { profits: profits_data }
   end
 
   # GET /api/users/:id

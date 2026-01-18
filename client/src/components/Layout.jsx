@@ -17,9 +17,12 @@ export default function Layout({ children }) {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
+  const isManagerOrAdmin = user?.role === 'manager' || user?.role === 'admin' || user?.role === 'super_admin';
+
   const navItems = [
     { path: '/', label: 'Tableau de Bord', icon: '📊', adminOnly: false },
     { path: '/cars', label: 'Véhicules', icon: '🚗', adminOnly: false },
+    { path: '/profits', label: 'Profits', icon: '💰', adminOnly: false, requireManagerOrAdmin: true },
     { path: '/settings', label: 'Paramètres', icon: '⚙️', adminOnly: true },
   ];
 
@@ -102,6 +105,7 @@ export default function Layout({ children }) {
           <div className="flex gap-1">
             {navItems.map((item) => {
               if (item.adminOnly && !isAdmin) return null;
+              if (item.requireManagerOrAdmin && !isManagerOrAdmin) return null;
 
               return (
                 <Link
@@ -192,6 +196,7 @@ export default function Layout({ children }) {
             <nav className="p-4">
               {navItems.map((item) => {
                 if (item.adminOnly && !isAdmin) return null;
+                if (item.requireManagerOrAdmin && !isManagerOrAdmin) return null;
 
                 return (
                   <Link

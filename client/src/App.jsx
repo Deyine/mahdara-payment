@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Cars from './pages/Cars';
 import CarDetail from './pages/CarDetail';
 import ImportCars from './pages/ImportCars';
+import ManagerProfits from './pages/ManagerProfits';
 import Settings from './pages/Settings';
 import CarModels from './pages/CarModels';
 import ExpenseCategories from './pages/ExpenseCategories';
@@ -75,6 +76,14 @@ function AppRoutes() {
         element={
           <PrivateRoute>
             <CarDetail />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/profits"
+        element={
+          <PrivateRoute>
+            <ManagerProfits />
           </PrivateRoute>
         }
       />
