@@ -52,7 +52,6 @@ class CarSerializer
       rental_transactions: rental_transactions_data,
       total_rental_income: @car.total_rental_income,
       rental_break_even: @car.rental_break_even?,
-      active_rental: active_rental_data,
       has_rental_history: @car.has_rental_history?,
 
       # Associations
@@ -122,11 +121,6 @@ class CarSerializer
     @car.rental_transactions.map do |rental|
       RentalTransactionSerializer.new(rental).as_json
     end
-  end
-
-  def active_rental_data
-    return nil unless @car.active_rental
-    RentalTransactionSerializer.new(@car.active_rental).as_json
   end
 
   def profit_share_user_data
