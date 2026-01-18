@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_15_131157) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_18_003435) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -155,24 +155,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_131157) do
   create_table "rental_transactions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "tenant_id", null: false
     t.uuid "car_id", null: false
-    t.date "start_date", null: false
-    t.date "end_date"
     t.decimal "amount", precision: 10, scale: 2, null: false
-    t.string "billing_frequency"
-    t.decimal "rate_per_period", precision: 10, scale: 2
-    t.string "renter_name", null: false
-    t.string "renter_phone"
-    t.string "renter_id_number"
     t.text "notes"
-    t.string "status", default: "active", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["car_id", "start_date"], name: "index_rental_transactions_on_car_id_and_start_date"
-    t.index ["car_id", "status"], name: "index_rental_transactions_on_car_id_and_status"
+    t.string "locataire", null: false
+    t.date "rental_date", null: false
+    t.integer "days", null: false
+    t.decimal "daily_rate", precision: 10, scale: 2, null: false
     t.index ["car_id"], name: "index_rental_transactions_on_car_id"
-    t.index ["end_date"], name: "index_rental_transactions_on_end_date"
-    t.index ["start_date"], name: "index_rental_transactions_on_start_date"
-    t.index ["status"], name: "index_rental_transactions_on_status"
+    t.index ["rental_date"], name: "index_rental_transactions_on_rental_date"
     t.index ["tenant_id"], name: "index_rental_transactions_on_tenant_id"
   end
 

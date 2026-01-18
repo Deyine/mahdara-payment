@@ -169,11 +169,7 @@ class Car < ApplicationRecord
 
   # Rental calculations
   def total_rental_income
-    rental_transactions.where(status: ['active', 'completed']).sum(:amount).to_f
-  end
-
-  def active_rental
-    rental_transactions.find_by(status: 'active', end_date: nil)
+    rental_transactions.sum(:amount).to_f
   end
 
   def has_rental_history?

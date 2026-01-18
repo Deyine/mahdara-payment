@@ -2431,6 +2431,321 @@ Car list cards display comprehensive vehicle information including photos, finan
 
 ---
 
+## Cars Page Filters and View Modes
+
+### Overview
+
+The Cars page (`Cars.jsx`) provides multiple filtering and viewing options to help users manage their vehicle inventory efficiently.
+
+### Status Filters
+
+**Implementation** (`Cars.jsx` - lines 386-457):
+
+```jsx
+const [paymentFilter, setPaymentFilter] = useState('all'); // 'all', 'fully_paid', 'in_progress', 'not_sold', 'rental'
+
+// Payment status filter
+if (paymentFilter !== 'all') {
+  if (paymentFilter === 'not_sold' && (car.status === 'sold' || car.status === 'rental')) return false;
+  if (paymentFilter === 'rental' && car.status !== 'rental') return false;
+  if (paymentFilter === 'fully_paid' && !(car.status === 'sold' && car.fully_paid)) return false;
+  if (paymentFilter === 'in_progress' && !(car.status === 'sold' && !car.fully_paid)) return false;
+}
+```
+
+**Filter Buttons**:
+
+```jsx
+{/* All vehicles */}
+<button
+  onClick={() => setPaymentFilter('all')}
+  style={{
+    backgroundColor: paymentFilter === 'all' ? '#167bff' : 'white',
+    color: paymentFilter === 'all' ? 'white' : '#475569'
+  }}
+>
+  Tous
+</button>
+
+{/* Non-sold vehicles (excludes sold and rental) */}
+<button
+  onClick={() => setPaymentFilter('not_sold')}
+  style={{
+    backgroundColor: paymentFilter === 'not_sold' ? '#167bff' : 'white'
+  }}
+>
+  Non Vendus
+</button>
+
+{/* Rental vehicles only */}
+<button
+  onClick={() => setPaymentFilter('rental')}
+  style={{
+    backgroundColor: paymentFilter === 'rental' ? '#f59e0b' : 'white',
+    color: paymentFilter === 'rental' ? 'white' : '#475569'
+  }}
+>
+  En Location
+</button>
+
+{/* In-progress payments */}
+<button
+  onClick={() => setPaymentFilter('in_progress')}
+  style={{
+    backgroundColor: paymentFilter === 'in_progress' ? '#167bff' : 'white'
+  }}
+>
+  En Cours de Paiement
+</button>
+
+{/* Fully paid vehicles */}
+<button
+  onClick={() => setPaymentFilter('fully_paid')}
+  style={{
+    backgroundColor: paymentFilter === 'fully_paid' ? '#167bff' : 'white'
+  }}
+>
+  Payés Intégralement
+</button>
+```
+
+**Filter Logic**:
+
+- **Tous**: Shows all vehicles regardless of status
+- **Non Vendus**: Shows only vehicles with `status !== 'sold'` AND `status !== 'rental'` (active inventory)
+- **En Location**: Shows only vehicles with `status === 'rental'` (currently rented out)
+- **En Cours de Paiement**: Shows sold vehicles where `fully_paid === false`
+- **Payés Intégralement**: Shows sold vehicles where `fully_paid === true`
+
+**Color Coding**:
+
+- Primary filters (Tous, Non Vendus, En Cours, Payés): Blue (`#167bff`)
+- Rental filter: Orange (`#f59e0b`) - matches rental status theme
+
+### View Mode Toggle
+
+**Implementation** (`Cars.jsx` - lines 322-383):
+
+```jsx
+const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+
+{/* View Toggle */}
+<div style={{
+  display: 'flex',
+  backgroundColor: '#f1f5f9',
+  borderRadius: '8px',
+  padding: '4px'
+}}>
+  <button
+    onClick={() => setViewMode('grid')}
+    style={{
+      backgroundColor: viewMode === 'grid' ? 'white' : 'transparent',
+      color: viewMode === 'grid' ? '#167bff' : '#64748b',
+      boxShadow: viewMode === 'grid' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+    }}
+  >
+    <svg>📊 Grid Icon</svg>
+    <span>Grille</span>
+  </button>
+  <button
+    onClick={() => setViewMode('list')}
+    style={{
+      backgroundColor: viewMode === 'list' ? 'white' : 'transparent',
+      color: viewMode === 'list' ? '#167bff' : '#64748b',
+      boxShadow: viewMode === 'list' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+    }}
+  >
+    <svg>📋 List Icon</svg>
+    <span>Paiements</span>
+  </button>
+</div>
+```
+
+**Two View Modes**:
+
+1. **Grid View** (default):
+   - Card-based layout with photos
+   - Comprehensive financial details
+   - Photo swiper with up to 5 images
+   - Info tooltips for detailed cost breakdown
+   - Best for visual browsing
+
+2. **List View** (Payment-focused):
+   - Tabular layout optimized for payment tracking
+   - Columns: Vehicle, Prix de vente, Payé, Reste
+   - Mini progress bars showing payment completion
+   - Compact rows for high-density viewing
+   - Best for payment management
+
+### Mobile Tappable Card Pattern
+
+**Implementation** (`Cars.jsx` - List View, lines 486-515):
+
+```jsx
+<div
+  onClick={(e) => {
+    // Only trigger on mobile and if not clicking on action buttons
+    if (window.innerWidth < 640 && !e.target.closest('button')) {
+      handleView(car);
+    }
+  }}
+  className="sm:cursor-default"
+  style={{
+    cursor: window.innerWidth < 640 ? 'pointer' : 'default',
+    transition: 'transform 0.15s ease'
+  }}
+  onTouchStart={(e) => {
+    if (window.innerWidth < 640 && !e.target.closest('button')) {
+      e.currentTarget.style.transform = 'scale(0.98)';
+    }
+  }}
+  onTouchEnd={(e) => {
+    if (window.innerWidth < 640) {
+      e.currentTarget.style.transform = 'scale(1)';
+    }
+  }}
+>
+  {/* Chevron indicator */}
+  <div
+    className="flex sm:hidden"
+    style={{
+      position: 'absolute',
+      top: '50%',
+      right: '12px',
+      transform: 'translateY(-50%)',
+      color: '#94a3b8',
+      pointerEvents: 'none',
+      zIndex: 0
+    }}
+  >
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  </div>
+  {/* Card content */}
+</div>
+```
+
+**Mobile Interaction Features**:
+
+- **Full card tap**: Entire card is clickable on mobile (< 640px width)
+- **Touch feedback**: Card scales down to 0.98 on touch, returns to 1.0 on release
+- **Chevron indicator**: Subtle arrow (→) on right side shows card is tappable
+- **Smart click detection**: `e.target.closest('button')` prevents conflicts with action buttons
+- **Pointer events**: Chevron has `pointerEvents: 'none'` to avoid blocking taps
+- **Desktop behavior**: Cards are not clickable on desktop, maintaining button-based navigation
+
+**Why This Pattern**:
+
+- Modern mobile-native interaction (like iOS/Android apps)
+- More intuitive than top-corner buttons
+- Maximizes tap target area
+- Provides tactile feedback
+- Prevents accidental action button triggers
+
+### Payment-Focused List View Details
+
+**Desktop Layout** (`Cars.jsx` - lines 458-477):
+
+```jsx
+{/* List Header */}
+<div className="hidden sm:flex" style={{
+  backgroundColor: '#f8fafc',
+  borderRadius: '8px',
+  padding: '12px 16px',
+  fontSize: '12px',
+  fontWeight: '600',
+  color: '#64748b',
+  textTransform: 'uppercase'
+}}>
+  <div style={{ flex: 2 }}>Véhicule</div>
+  <div style={{ width: '110px', textAlign: 'right' }}>Prix de vente</div>
+  <div style={{ width: '110px', textAlign: 'right' }}>Payé</div>
+  <div style={{ width: '130px', textAlign: 'right' }}>Reste</div>
+  <div style={{ width: '80px', textAlign: 'center' }}>Actions</div>
+</div>
+```
+
+**Vehicle Info Column**:
+- 44x44px thumbnail (photo or car icon)
+- Display name or model name
+- VIN number
+- Status badges (SUPPRIMÉ, ✓ PAYÉ, ⏳ EN COURS, LOCATION, EN STOCK)
+- Tags with colored dots
+
+**Financial Columns**:
+- **Prix de vente**: Sale price (or "-" if not sold)
+- **Payé**: Total paid amount in green
+- **Reste**: Remaining balance with payment percentage
+- **Mini progress bar**: Visual payment completion indicator
+
+**Mobile Layout** (`Cars.jsx` - lines 658-695):
+
+```jsx
+{/* Mobile: Financial summary in a row */}
+<div className="flex sm:hidden" style={{
+  backgroundColor: '#f8fafc',
+  borderRadius: '6px',
+  padding: '10px',
+  gap: '8px'
+}}>
+  <div style={{ flex: 1 }}>
+    <div style={{ fontSize: '9px', color: '#64748b', textTransform: 'uppercase' }}>Vente</div>
+    <div style={{ fontWeight: '600', fontSize: '13px' }}>
+      {car.status === 'sold' ? formatCurrency(car.sale_price) : '-'}
+    </div>
+  </div>
+  <div style={{ flex: 1 }}>
+    <div style={{ fontSize: '9px', color: '#64748b' }}>Payé</div>
+    <div style={{ fontWeight: '600', fontSize: '13px', color: '#10b981' }}>
+      {car.status === 'sold' ? formatCurrency(car.total_paid || 0) : '-'}
+    </div>
+  </div>
+  <div style={{ flex: 1 }}>
+    <div style={{ fontSize: '9px', color: '#64748b' }}>Reste</div>
+    <div style={{ fontWeight: '600', fontSize: '13px', color: car.remaining_balance > 0 ? '#dc2626' : '#10b981' }}>
+      {car.status === 'sold' ? (
+        <span>
+          {car.fully_paid ? '0' : formatCurrency(car.remaining_balance)}
+          <span style={{ marginLeft: '4px', fontSize: '11px', color: '#f59e0b' }}>
+            ({paymentPercent}%)
+          </span>
+        </span>
+      ) : '-'}
+    </div>
+  </div>
+</div>
+```
+
+**Mobile Optimizations**:
+- Financial data in compact 3-column row
+- 9px uppercase labels
+- 13px values with color coding
+- Inline payment percentage
+- All data visible without scrolling
+
+### Benefits
+
+**Filter System**:
+- Quick access to specific vehicle categories
+- Rental filter helps track vehicles currently generating income
+- Payment filters aid in cash flow management
+- Clear visual distinction with color coding
+
+**View Modes**:
+- Grid view for general inventory browsing
+- List view optimized for payment tracking workflows
+- Persistent view mode preference per session
+
+**Mobile Experience**:
+- Native app-like tappable cards
+- Touch feedback provides tactile confirmation
+- Chevron indicates interactivity
+- Prevents accidental button presses
+- Optimized layouts for small screens
+
+---
+
 ## Excel Import with Searchable Category Matching
 
 ### Overview

@@ -75,10 +75,6 @@ Rails.application.routes.draw do
     resources :payments
 
     # Rental Transactions
-    resources :rental_transactions do
-      member do
-        post 'complete'
-      end
-    end
+    resources :rental_transactions
   end
 end

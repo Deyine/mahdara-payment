@@ -204,10 +204,6 @@ export const rentalTransactionsAPI = {
   create: (data) => api.post('/rental_transactions', { rental_transaction: data }),
   update: (id, data) => api.put(`/rental_transactions/${id}`, { rental_transaction: data }),
   delete: (id) => api.delete(`/rental_transactions/${id}`),
-  complete: (id, endDate = null) => {
-    const data = endDate ? { end_date: endDate } : {};
-    return api.post(`/rental_transactions/${id}/complete`, data);
-  },
 };
 
 // Tags
