@@ -33,15 +33,18 @@ class Api::UsersController < ApplicationController
       all_cars = tenant_scope(Car)
               .includes(:car_model)
               .where(profit_share_user_id: manager.id)
-              .order(sale_date: :desc, created_at: :desc)
 
-      # Filter to only cars with profit (calculated method, not DB column)
-      cars = all_cars.select { |car| car.profit.present? }
+      # Filter to only cars with profit OR sold cars (to show unpaid sold cars)
+      cars = all_cars.select { |car| car.profit.present? || car.status == 'sold' }
 
-      # Calculate totals
-      total_profit = cars.sum { |car| car.profit.to_f }
-      total_user_profit = cars.sum { |car| car.user_profit_amount.to_f }
-      total_company_profit = cars.sum { |car| car.company_net_profit.to_f }
+      # Sort by ref (handle nil refs)
+      cars = cars.sort_by { |car| car.ref || '' }
+
+      # Calculate totals (only from fully paid cars)
+      paid_cars = cars.select { |car| car.fully_paid? && car.profit.present? }
+      total_profit = paid_cars.sum { |car| car.profit.to_f }
+      total_user_profit = paid_cars.sum { |car| car.user_profit_amount.to_f }
+      total_company_profit = paid_cars.sum { |car| car.company_net_profit.to_f }
 
       # Build car data
       cars_data = cars.map do |car|
@@ -51,6 +54,7 @@ class Api::UsersController < ApplicationController
           vin: car.vin,
           model_name: car.car_model ? "#{car.car_model.name} #{car.year}" : nil,
           status: car.status,
+          fully_paid: car.fully_paid?,
           profit: car.profit,
           profit_share_percentage: car.profit_share_percentage&.to_f,
           user_profit_amount: car.user_profit_amount,

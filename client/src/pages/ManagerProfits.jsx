@@ -243,36 +243,52 @@ export default function ManagerProfits() {
                               <span
                                 className="inline-flex px-2 py-1 rounded text-xs font-medium"
                                 style={{
-                                  backgroundColor: car.status === 'sold' ? '#dcfce7' : '#dbeafe',
-                                  color: car.status === 'sold' ? '#166534' : '#1e40af'
+                                  backgroundColor: car.status === 'sold' && !car.fully_paid ? '#fef2f2' : car.status === 'sold' ? '#dcfce7' : '#dbeafe',
+                                  color: car.status === 'sold' && !car.fully_paid ? '#dc2626' : car.status === 'sold' ? '#166534' : '#1e40af'
                                 }}
                               >
-                                {car.status === 'sold' ? 'Vendu' : car.status === 'rental' ? 'En location' : 'Actif'}
+                                {car.status === 'sold' && !car.fully_paid ? 'Non payé' : car.status === 'sold' ? 'Vendu' : car.status === 'rental' ? 'En location' : 'Actif'}
                               </span>
                             </td>
                             <td className="px-4 py-3 text-right">
-                              <span
-                                className="font-semibold"
-                                style={{ color: car.profit >= 0 ? '#10b981' : '#dc2626' }}
-                              >
-                                {car.profit >= 0 ? '+' : ''}
-                                {formatCurrency(car.profit)}
-                              </span>
+                              {car.fully_paid ? (
+                                <span
+                                  className="font-semibold"
+                                  style={{ color: car.profit >= 0 ? '#10b981' : '#dc2626' }}
+                                >
+                                  {car.profit >= 0 ? '+' : ''}
+                                  {formatCurrency(car.profit)}
+                                </span>
+                              ) : (
+                                <span className="font-semibold" style={{ color: '#94a3b8' }}>--</span>
+                              )}
                             </td>
                             <td className="px-4 py-3 text-right hidden lg:table-cell">
-                              <span className="text-sm font-medium" style={{ color: '#f59e0b' }}>
-                                {car.profit_share_percentage}%
-                              </span>
+                              {car.fully_paid ? (
+                                <span className="text-sm font-medium" style={{ color: '#f59e0b' }}>
+                                  {car.profit_share_percentage}%
+                                </span>
+                              ) : (
+                                <span className="text-sm font-medium" style={{ color: '#94a3b8' }}>--</span>
+                              )}
                             </td>
                             <td className="px-4 py-3 text-right">
-                              <span className="font-semibold" style={{ color: '#f59e0b' }}>
-                                {formatCurrency(car.user_profit_amount)}
-                              </span>
+                              {car.fully_paid ? (
+                                <span className="font-semibold" style={{ color: '#f59e0b' }}>
+                                  {formatCurrency(car.user_profit_amount)}
+                                </span>
+                              ) : (
+                                <span className="font-semibold" style={{ color: '#94a3b8' }}>--</span>
+                              )}
                             </td>
                             <td className="px-4 py-3 text-right hidden xl:table-cell">
-                              <span className="font-semibold" style={{ color: '#10b981' }}>
-                                {formatCurrency(car.company_net_profit)}
-                              </span>
+                              {car.fully_paid ? (
+                                <span className="font-semibold" style={{ color: '#10b981' }}>
+                                  {formatCurrency(car.company_net_profit)}
+                                </span>
+                              ) : (
+                                <span className="font-semibold" style={{ color: '#94a3b8' }}>--</span>
+                              )}
                             </td>
                           </tr>
                         ))}
