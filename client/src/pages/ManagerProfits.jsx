@@ -391,22 +391,22 @@ export default function ManagerProfits() {
                           <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#64748b' }}>
                             Référence
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium hidden md:table-cell" style={{ color: '#64748b' }}>
+                          <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#64748b' }}>
                             Modèle
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium hidden sm:table-cell" style={{ color: '#64748b' }}>
+                          <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#64748b' }}>
                             Statut
                           </th>
                           <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
                             Bénéfice Total
                           </th>
-                          <th className="px-4 py-3 text-right text-xs font-medium hidden lg:table-cell" style={{ color: '#64748b' }}>
+                          <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
                             Part (%)
                           </th>
                           <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
                             Part Manager
                           </th>
-                          <th className="px-4 py-3 text-right text-xs font-medium hidden xl:table-cell" style={{ color: '#64748b' }}>
+                          <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
                             Part Entreprise
                           </th>
                         </tr>
@@ -426,12 +426,12 @@ export default function ManagerProfits() {
                                 {car.ref}
                               </span>
                             </td>
-                            <td className="px-4 py-3 hidden md:table-cell">
+                            <td className="px-4 py-3">
                               <span className="text-sm" style={{ color: '#64748b' }}>
                                 {car.model_name}
                               </span>
                             </td>
-                            <td className="px-4 py-3 hidden sm:table-cell">
+                            <td className="px-4 py-3">
                               <span
                                 className="inline-flex px-2 py-1 rounded text-xs font-medium"
                                 style={{
@@ -455,7 +455,7 @@ export default function ManagerProfits() {
                                 <span className="font-semibold" style={{ color: '#94a3b8' }}>--</span>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-right hidden lg:table-cell">
+                            <td className="px-4 py-3 text-right">
                               {car.fully_paid ? (
                                 <span className="text-sm font-medium" style={{ color: '#f59e0b' }}>
                                   {car.profit_share_percentage}%
@@ -473,7 +473,7 @@ export default function ManagerProfits() {
                                 <span className="font-semibold" style={{ color: '#94a3b8' }}>--</span>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-right hidden xl:table-cell">
+                            <td className="px-4 py-3 text-right">
                               {car.fully_paid ? (
                                 <span className="font-semibold" style={{ color: '#10b981' }}>
                                   {formatCurrency(car.company_net_profit)}
@@ -505,16 +505,16 @@ export default function ManagerProfits() {
                           <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#64748b' }}>
                             Référence
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium hidden md:table-cell" style={{ color: '#64748b' }}>
+                          <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#64748b' }}>
                             Locataire
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium hidden sm:table-cell" style={{ color: '#64748b' }}>
+                          <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#64748b' }}>
                             Date
                           </th>
                           <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
                             Jours
                           </th>
-                          <th className="px-4 py-3 text-right text-xs font-medium hidden lg:table-cell" style={{ color: '#64748b' }}>
+                          <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
                             Profit/Jour
                           </th>
                           <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
@@ -523,7 +523,7 @@ export default function ManagerProfits() {
                           <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
                             Part Manager
                           </th>
-                          <th className="px-4 py-3 text-right text-xs font-medium hidden xl:table-cell" style={{ color: '#64748b' }}>
+                          <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
                             Part Entreprise
                           </th>
                         </tr>
@@ -543,12 +543,12 @@ export default function ManagerProfits() {
                                 {rental.car_ref || rental.car_vin}
                               </span>
                             </td>
-                            <td className="px-4 py-3 hidden md:table-cell">
+                            <td className="px-4 py-3">
                               <span className="text-sm" style={{ color: '#64748b' }}>
                                 {rental.locataire}
                               </span>
                             </td>
-                            <td className="px-4 py-3 hidden sm:table-cell">
+                            <td className="px-4 py-3">
                               <span className="text-sm" style={{ color: '#64748b' }}>
                                 {new Date(rental.rental_date).toLocaleDateString('fr-FR')}
                               </span>
@@ -558,7 +558,7 @@ export default function ManagerProfits() {
                                 {rental.days}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-right hidden lg:table-cell">
+                            <td className="px-4 py-3 text-right">
                               <span className="text-sm font-medium" style={{ color: '#9333ea' }}>
                                 {formatCurrency(rental.profit_per_day)}
                               </span>
@@ -573,7 +573,7 @@ export default function ManagerProfits() {
                                 {formatCurrency(rental.user_profit_amount)}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-right hidden xl:table-cell">
+                            <td className="px-4 py-3 text-right">
                               <span className="font-semibold" style={{ color: '#10b981' }}>
                                 {formatCurrency(rental.company_net_profit)}
                               </span>
@@ -604,7 +604,7 @@ export default function ManagerProfits() {
                           <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
                             Montant
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium hidden md:table-cell" style={{ color: '#64748b' }}>
+                          <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#64748b' }}>
                             Notes
                           </th>
                           {canWrite && (
@@ -630,7 +630,7 @@ export default function ManagerProfits() {
                                 {formatCurrency(cashout.amount)}
                               </span>
                             </td>
-                            <td className="px-4 py-3 hidden md:table-cell">
+                            <td className="px-4 py-3">
                               <span className="text-sm" style={{ color: '#64748b' }}>
                                 {cashout.notes || '--'}
                               </span>
@@ -668,13 +668,13 @@ export default function ManagerProfits() {
                           <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#64748b' }}>
                             Date
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium hidden sm:table-cell" style={{ color: '#64748b' }}>
+                          <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#64748b' }}>
                             Direction
                           </th>
                           <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
                             Montant
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium hidden md:table-cell" style={{ color: '#64748b' }}>
+                          <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#64748b' }}>
                             Notes
                           </th>
                         </tr>
@@ -690,7 +690,7 @@ export default function ManagerProfits() {
                                 {new Date(debt.debt_date).toLocaleDateString('fr-FR')}
                               </span>
                             </td>
-                            <td className="px-4 py-3 hidden sm:table-cell">
+                            <td className="px-4 py-3">
                               <span
                                 className="px-2 py-1 rounded text-xs font-medium"
                                 style={{
@@ -709,7 +709,7 @@ export default function ManagerProfits() {
                                 {formatCurrency(debt.amount)} MRU
                               </span>
                             </td>
-                            <td className="px-4 py-3 hidden md:table-cell">
+                            <td className="px-4 py-3">
                               <span className="text-sm" style={{ color: '#64748b' }}>
                                 {debt.notes || '--'}
                               </span>
