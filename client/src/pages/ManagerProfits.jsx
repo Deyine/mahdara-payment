@@ -357,15 +357,6 @@ export default function ManagerProfits() {
                     </div>
                   </div>
                 </div>
-
-                {/* Car Count Badge */}
-                {hasCars && (
-                  <div className="mt-4 flex items-center gap-2">
-                    <span className="text-sm" style={{ color: '#64748b' }}>
-                      {managerProfit.cars.length} véhicule{managerProfit.cars.length > 1 ? 's' : ''} avec partage de profit
-                    </span>
-                  </div>
-                )}
               </div>
 
               {/* Expandable Cars Table */}
