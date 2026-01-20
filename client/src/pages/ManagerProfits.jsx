@@ -314,7 +314,7 @@ export default function ManagerProfits() {
                         </button>
                       )}
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       {/* Total Manager Profit */}
                       <div className="bg-blue-50 rounded-lg p-4">
                         <p className="text-sm mb-1" style={{ color: '#64748b' }}>
@@ -331,7 +331,24 @@ export default function ManagerProfits() {
                           Retraits Effectués
                         </p>
                         <p className="text-xl sm:text-2xl font-bold" style={{ color: '#dc2626' }}>
-                          {formatCurrency(managerProfit.total_cashouts)} MRU
+                          -{formatCurrency(managerProfit.total_cashouts)} MRU
+                        </p>
+                      </div>
+
+                      {/* Debt Situation (Net Balance) */}
+                      <div className="bg-orange-50 rounded-lg p-4">
+                        <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+                          Situation Dettes
+                        </p>
+                        <p
+                          className="text-xl sm:text-2xl font-bold"
+                          style={{ color: managerProfit.net_debt > 0 ? '#ea580c' : managerProfit.net_debt < 0 ? '#10b981' : '#64748b' }}
+                        >
+                          {managerProfit.net_debt > 0 ? '-' : managerProfit.net_debt < 0 ? '+' : ''}
+                          {formatCurrency(Math.abs(managerProfit.net_debt))} MRU
+                        </p>
+                        <p className="text-xs mt-1" style={{ color: '#64748b' }}>
+                          {managerProfit.net_debt > 0 ? 'Vous devez' : managerProfit.net_debt < 0 ? 'On vous doit' : 'Aucune dette'}
                         </p>
                       </div>
 
