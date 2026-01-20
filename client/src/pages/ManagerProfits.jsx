@@ -314,7 +314,7 @@ export default function ManagerProfits() {
                         </button>
                       )}
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {/* Total Manager Profit */}
                       <div className="bg-blue-50 rounded-lg p-4">
                         <p className="text-sm mb-1" style={{ color: '#64748b' }}>
@@ -332,16 +332,6 @@ export default function ManagerProfits() {
                         </p>
                         <p className="text-xl sm:text-2xl font-bold" style={{ color: '#dc2626' }}>
                           {formatCurrency(managerProfit.total_cashouts)} MRU
-                        </p>
-                      </div>
-
-                      {/* Total Debt Owed to Company */}
-                      <div className="bg-orange-50 rounded-lg p-4">
-                        <p className="text-sm mb-1" style={{ color: '#64748b' }}>
-                          Dettes (vous devez)
-                        </p>
-                        <p className="text-xl sm:text-2xl font-bold" style={{ color: '#ea580c' }}>
-                          {formatCurrency(managerProfit.total_owed_to_company || 0)} MRU
                         </p>
                       </div>
 
