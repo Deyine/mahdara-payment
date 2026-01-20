@@ -19,6 +19,9 @@ class Api::UsersController < ApplicationController
 
   # GET /api/users/profits - Get profit share data for managers
   def profits
+    # Ensure user is authenticated
+    return render json: { error: 'Unauthorized' }, status: :unauthorized unless current_user
+
     # If user is a manager, show only their own profit data
     # If user is admin/super_admin, show all managers' profit data
     if current_user.manager?
