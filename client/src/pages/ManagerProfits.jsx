@@ -740,7 +740,6 @@ export default function ManagerProfits() {
                     type="number"
                     step="0.01"
                     min="0.01"
-                    max={selectedManager.available_balance}
                     value={cashoutForm.amount}
                     onChange={(e) => setCashoutForm({ ...cashoutForm, amount: e.target.value })}
                     className="w-full px-3 py-2 rounded"
