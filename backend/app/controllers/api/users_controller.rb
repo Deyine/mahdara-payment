@@ -144,8 +144,8 @@ class Api::UsersController < ApplicationController
       total_manager_profit = total_user_profit + total_rental_user_profit
 
       # Calculate available balance (total profit - total cashouts - net debt)
-      # net_debt is positive if they owe us, so we subtract it
-      available_balance = total_manager_profit - total_cashouts - total_owed_to_company
+      # net_debt is positive if they owe us, negative if we owe them
+      available_balance = total_manager_profit - total_cashouts - net_debt
 
       {
         user: {
