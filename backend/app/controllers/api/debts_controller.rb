@@ -97,13 +97,13 @@ class Api::DebtsController < ApplicationController
           # Parse date
           debt_date = Date.parse(row['Creation date'])
 
-          # Parse direction based on Type
+          # Parse direction based on Type (from company perspective)
           type = row['Type'].to_s.strip
           direction = case type
                       when 'I owe'
-                        'we_lent'  # They owe us
+                        'we_borrowed'  # Company owes them
                       when 'Owes me'
-                        'we_borrowed'  # We owe them
+                        'we_lent'  # They owe the company
                       else
                         next # Skip rows with unknown type
                       end

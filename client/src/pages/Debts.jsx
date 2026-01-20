@@ -298,35 +298,20 @@ export default function Debts() {
         )}
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-green-50 rounded-lg p-4">
-          <p className="text-sm mb-1" style={{ color: '#64748b' }}>
-            Créances (On nous doit)
-          </p>
-          <p className="text-2xl font-bold" style={{ color: '#10b981' }}>
-            {formatCurrency(summary.total_we_lent)} MRU
-          </p>
-        </div>
-
-        <div className="bg-red-50 rounded-lg p-4">
-          <p className="text-sm mb-1" style={{ color: '#64748b' }}>
-            Dettes (Nous devons)
-          </p>
-          <p className="text-2xl font-bold" style={{ color: '#dc2626' }}>
-            {formatCurrency(summary.total_we_borrowed)} MRU
-          </p>
-        </div>
-
-        <div className="bg-blue-50 rounded-lg p-4">
-          <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+      {/* Summary Card */}
+      <div className="mb-6">
+        <div className="bg-blue-50 rounded-lg p-6 max-w-md">
+          <p className="text-sm mb-2" style={{ color: '#64748b' }}>
             Solde Net
           </p>
           <p
-            className="text-2xl font-bold"
+            className="text-3xl font-bold"
             style={{ color: summary.net_balance >= 0 ? '#10b981' : '#dc2626' }}
           >
             {formatCurrency(summary.net_balance)} MRU
+          </p>
+          <p className="text-xs mt-2" style={{ color: '#64748b' }}>
+            {summary.net_balance >= 0 ? 'On nous doit de l\'argent' : 'Nous devons de l\'argent'}
           </p>
         </div>
       </div>
@@ -665,7 +650,7 @@ export default function Debts() {
               </p>
               <p className="text-xs mb-4" style={{ color: '#64748b' }}>
                 • Montants en MRO (seront convertis en MRU)<br />
-                • Type: "I owe" (ils nous doivent) ou "Owes me" (nous leur devons)<br />
+                • Type: "I owe" (nous leur devons) ou "Owes me" (ils nous doivent)<br />
                 • Concept utilisé comme notes
               </p>
 
