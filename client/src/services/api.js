@@ -207,6 +207,17 @@ export const rentalTransactionsAPI = {
   delete: (id) => api.delete(`/rental_transactions/${id}`),
 };
 
+// Cashouts
+export const cashoutsAPI = {
+  getAll: (userId = null) => {
+    const params = userId ? `?user_id=${userId}` : '';
+    return api.get(`/cashouts${params}`);
+  },
+  getOne: (id) => api.get(`/cashouts/${id}`),
+  create: (data) => api.post('/cashouts', { cashout: data }),
+  delete: (id) => api.delete(`/cashouts/${id}`),
+};
+
 // Tags
 export const tagsAPI = {
   getAll: () => api.get('/tags'),

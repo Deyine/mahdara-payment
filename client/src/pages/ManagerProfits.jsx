@@ -1,16 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { usersAPI } from '../services/api';
+import { usersAPI, cashoutsAPI } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
 import { useAuth } from '../context/AuthContext';
+import { useDialog } from '../context/DialogContext';
 
 export default function ManagerProfits() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, canWrite } = useAuth();
+  const { showAlert, showConfirm } = useDialog();
   const [loading, setLoading] = useState(true);
   const [profitsData, setProfitsData] = useState([]);
   const [expandedManagers, setExpandedManagers] = useState(new Set());
   const [error, setError] = useState(null);
+  const [showCashoutModal, setShowCashoutModal] = useState(false);
+  const [selectedManager, setSelectedManager] = useState(null);
+  const [cashoutForm, setCashoutForm] = useState({
+    amount: '',
+    cashout_date: new Date().toISOString().split('T')[0],
+    notes: ''
+  });
 
   useEffect(() => {
     fetchProfits();
@@ -42,6 +51,67 @@ export default function ManagerProfits() {
 
   const handleCarClick = (carId) => {
     navigate(`/cars/${carId}`);
+  };
+
+  const handleOpenCashoutModal = (managerData) => {
+    setSelectedManager(managerData);
+    setCashoutForm({
+      amount: '',
+      cashout_date: new Date().toISOString().split('T')[0],
+      notes: ''
+    });
+    setShowCashoutModal(true);
+  };
+
+  const handleCloseCashoutModal = () => {
+    setShowCashoutModal(false);
+    setSelectedManager(null);
+    setCashoutForm({
+      amount: '',
+      cashout_date: new Date().toISOString().split('T')[0],
+      notes: ''
+    });
+  };
+
+  const handleCashoutSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedManager) return;
+
+    const cashoutData = {
+      user_id: selectedManager.user.id,
+      amount: parseFloat(cashoutForm.amount),
+      cashout_date: cashoutForm.cashout_date,
+      notes: cashoutForm.notes
+    };
+
+    try {
+      await cashoutsAPI.create(cashoutData);
+      await showAlert('Retrait effectué avec succès', 'success');
+      handleCloseCashoutModal();
+      fetchProfits(); // Refresh data
+    } catch (error) {
+      console.error('Error creating cashout:', error);
+      await showAlert('Erreur lors du retrait', 'error');
+    }
+  };
+
+  const handleDeleteCashout = async (cashoutId, managerData) => {
+    const confirmed = await showConfirm(
+      'Supprimer le retrait?',
+      'Cette action est irréversible.'
+    );
+
+    if (confirmed) {
+      try {
+        await cashoutsAPI.delete(cashoutId);
+        await showAlert('Retrait supprimé avec succès', 'success');
+        fetchProfits(); // Refresh data
+      } catch (error) {
+        console.error('Error deleting cashout:', error);
+        await showAlert('Erreur lors de la suppression', 'error');
+      }
+    }
   };
 
   if (loading) {
@@ -225,6 +295,57 @@ export default function ManagerProfits() {
                       </div>
                     </div>
                   )}
+
+                  {/* Balance Summary */}
+                  <div className="pt-4 border-t" style={{ borderColor: '#e2e8f0' }}>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-semibold" style={{ color: '#1e293b' }}>
+                        Solde et Retraits
+                      </h3>
+                      {canWrite && managerProfit.available_balance > 0 && (
+                        <button
+                          onClick={() => handleOpenCashoutModal(managerProfit)}
+                          className="px-3 py-1.5 rounded-lg text-sm font-medium text-white transition-colors"
+                          style={{ backgroundColor: '#167bff' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0d5fd9'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#167bff'}
+                        >
+                          + Retrait
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {/* Total Manager Profit */}
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+                          Profit Total Manager
+                        </p>
+                        <p className="text-xl sm:text-2xl font-bold" style={{ color: '#167bff' }}>
+                          {formatCurrency(managerProfit.total_manager_profit)} MRU
+                        </p>
+                      </div>
+
+                      {/* Total Cashouts */}
+                      <div className="bg-red-50 rounded-lg p-4">
+                        <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+                          Retraits Effectués
+                        </p>
+                        <p className="text-xl sm:text-2xl font-bold" style={{ color: '#dc2626' }}>
+                          {formatCurrency(managerProfit.total_cashouts)} MRU
+                        </p>
+                      </div>
+
+                      {/* Available Balance */}
+                      <div className="bg-green-50 rounded-lg p-4">
+                        <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+                          Solde Disponible
+                        </p>
+                        <p className="text-xl sm:text-2xl font-bold" style={{ color: '#10b981' }}>
+                          {formatCurrency(managerProfit.available_balance)} MRU
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Car Count Badge */}
@@ -446,10 +567,164 @@ export default function ManagerProfits() {
                   </div>
                 </div>
               )}
+
+              {/* Expandable Cashouts Table */}
+              {isExpanded && managerProfit.cashouts && managerProfit.cashouts.length > 0 && (
+                <div className="border-t" style={{ borderColor: '#e2e8f0' }}>
+                  <div className="px-4 sm:px-6 py-4" style={{ backgroundColor: '#fef2f2' }}>
+                    <h4 className="font-semibold text-sm" style={{ color: '#1e293b' }}>
+                      Historique des Retraits
+                    </h4>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead style={{ backgroundColor: '#fef2f2' }}>
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#64748b' }}>
+                            Date
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
+                            Montant
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium hidden md:table-cell" style={{ color: '#64748b' }}>
+                            Notes
+                          </th>
+                          {canWrite && (
+                            <th className="px-4 py-3 text-center text-xs font-medium" style={{ color: '#64748b' }}>
+                              Actions
+                            </th>
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y" style={{ borderColor: '#e2e8f0' }}>
+                        {managerProfit.cashouts.map((cashout) => (
+                          <tr
+                            key={cashout.id}
+                            style={{ backgroundColor: 'white' }}
+                          >
+                            <td className="px-4 py-3">
+                              <span className="font-medium" style={{ color: '#1e293b' }}>
+                                {new Date(cashout.cashout_date).toLocaleDateString('fr-FR')}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <span className="font-semibold" style={{ color: '#dc2626' }}>
+                                {formatCurrency(cashout.amount)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 hidden md:table-cell">
+                              <span className="text-sm" style={{ color: '#64748b' }}>
+                                {cashout.notes || '--'}
+                              </span>
+                            </td>
+                            {canWrite && (
+                              <td className="px-4 py-3 text-center">
+                                <button
+                                  onClick={() => handleDeleteCashout(cashout.id, managerProfit)}
+                                  className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                >
+                                  Supprimer
+                                </button>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
+
+      {/* Cashout Modal */}
+      {showCashoutModal && selectedManager && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <h2 className="text-xl font-bold mb-4" style={{ color: '#1e293b' }}>
+                Nouveau Retrait
+              </h2>
+              <p className="text-sm mb-4" style={{ color: '#64748b' }}>
+                Manager: <strong>{selectedManager.user.name}</strong>
+              </p>
+              <p className="text-sm mb-6" style={{ color: '#64748b' }}>
+                Solde disponible: <strong style={{ color: '#10b981' }}>{formatCurrency(selectedManager.available_balance)} MRU</strong>
+              </p>
+
+              <form onSubmit={handleCashoutSubmit}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1" style={{ color: '#1e293b' }}>
+                    Montant (MRU) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    max={selectedManager.available_balance}
+                    value={cashoutForm.amount}
+                    onChange={(e) => setCashoutForm({ ...cashoutForm, amount: e.target.value })}
+                    className="w-full px-3 py-2 rounded"
+                    style={{ border: '1px solid #cbd5e1' }}
+                    required
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1" style={{ color: '#1e293b' }}>
+                    Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={cashoutForm.cashout_date}
+                    onChange={(e) => setCashoutForm({ ...cashoutForm, cashout_date: e.target.value })}
+                    className="w-full px-3 py-2 rounded"
+                    style={{ border: '1px solid #cbd5e1' }}
+                    required
+                  />
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-1" style={{ color: '#1e293b' }}>
+                    Notes (optionnel)
+                  </label>
+                  <textarea
+                    value={cashoutForm.notes}
+                    onChange={(e) => setCashoutForm({ ...cashoutForm, notes: e.target.value })}
+                    className="w-full px-3 py-2 rounded"
+                    style={{ border: '1px solid #cbd5e1' }}
+                    rows="3"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCloseCashoutModal}
+                    className="flex-1 px-4 py-2 rounded-lg font-medium transition-colors"
+                    style={{ backgroundColor: '#f1f5f9', color: '#1e293b' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 rounded-lg font-medium text-white transition-colors"
+                    style={{ backgroundColor: '#167bff' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0d5fd9'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#167bff'}
+                  >
+                    Confirmer
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

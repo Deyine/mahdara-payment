@@ -722,10 +722,10 @@ end
 
 **Manager Profits Display** (`GET /api/users/profits`):
 
-The profits endpoint now includes rental transaction data for managers:
+The profits endpoint includes car sales, rental transactions, and cashout data for managers:
 
 ```ruby
-# Backend response includes both car sales and rental profits
+# Backend response includes car sales, rental profits, and cashouts
 {
   user: { id, name, username },
   # Car sales profits
@@ -733,26 +733,121 @@ The profits endpoint now includes rental transaction data for managers:
   total_user_profit: 540.00,
   total_company_profit: 1260.00,
   cars: [...],
-  # Rental profits (NEW)
+  # Rental profits
   total_rental_amount: 4500.00,
   total_rental_user_profit: 600.00,
   total_rental_company_profit: 3900.00,
-  rentals: [
+  rentals: [...],
+  # Cashout data (NEW)
+  total_manager_profit: 1140.00,  # total_user_profit + total_rental_user_profit
+  total_cashouts: 500.00,
+  available_balance: 640.00,      # total_manager_profit - total_cashouts
+  cashouts: [
     {
-      id, car_id, car_ref, car_vin, car_model_name,
-      locataire, rental_date, days,
-      daily_rate, profit_per_day, amount,
-      user_profit_amount, company_net_profit, notes
+      id, amount, cashout_date, notes, created_at
     }
   ]
 }
 ```
 
 **Frontend Profits Page** (`ManagerProfits.jsx`):
-- Displays separate sections for "Profits Vente de Véhicules" and "Profits Locations de Véhicules"
+- Displays separate sections for "Profits Vente de Véhicules", "Profits Locations de Véhicules", and "Solde et Retraits"
 - Shows total rental amount, manager's share, and company's share for rentals
-- Expandable tables show individual car sales and rental transactions
+- Shows total manager profit, total cashouts, and available balance
+- "Cash Out" button to create new cashouts (only visible when balance > 0)
+- Expandable tables show individual car sales, rental transactions, and cashout history
 - Rental table displays: ref, locataire, date, days, profit/day, total amount, manager profit, company profit
+- Cashout table displays: date, amount, notes, delete action
+
+---
+
+### Rule 7b: Manager Profit Cashouts
+
+**CRITICAL**: Managers can cash out their available profit balance.
+
+**Cashout Model**:
+- Belongs to user and tenant
+- Tracks withdrawals from manager profit balance
+- Cannot exceed available balance
+
+**Required Fields**:
+- `user_id` - Manager receiving the cashout (bigint, required, must be a manager)
+- `amount` - Cashout amount (decimal > 0, required)
+- `cashout_date` - Date when cashout occurred (date, required)
+
+**Optional Fields**:
+- `notes` - Additional notes (text)
+
+**Backend Validation**:
+```ruby
+validates :amount, presence: true, numericality: { greater_than: 0 }
+validates :cashout_date, presence: true
+validates :user_id, presence: true
+validate :user_belongs_to_tenant
+validate :user_must_be_manager
+
+def user_belongs_to_tenant
+  if user_id.present? && tenant_id.present?
+    user = User.find_by(id: user_id)
+    unless user && user.tenant_id == tenant_id
+      errors.add(:user_id, 'must belong to the same tenant')
+    end
+  end
+end
+
+def user_must_be_manager
+  if user_id.present?
+    user = User.find_by(id: user_id)
+    unless user && user.manager?
+      errors.add(:user_id, 'must be a manager')
+    end
+  end
+end
+```
+
+**Balance Calculations**:
+```ruby
+# In UsersController#profits
+total_manager_profit = total_user_profit + total_rental_user_profit
+total_cashouts = cashouts.sum { |cashout| cashout.amount.to_f }
+available_balance = total_manager_profit - total_cashouts
+```
+
+**API Endpoints**:
+- `GET /api/cashouts?user_id=:id` - List cashouts for a user
+- `POST /api/cashouts` - Create cashout
+- `DELETE /api/cashouts/:id` - Delete cashout
+
+**Workflow**:
+1. Manager accumulates profit from car sales and/or rentals
+2. Admin can create cashout for manager (up to available_balance)
+3. Cashout is recorded with amount, date, and notes
+4. Available balance is reduced by cashout amount
+5. Cashout can be deleted if recorded incorrectly
+
+**Example**:
+```text
+Manager has:
+- Total profit from car sales: $540.00
+- Total profit from rentals: $600.00
+- Total manager profit: $1,140.00
+
+Previous cashouts: $500.00
+Available balance: $640.00
+
+New cashout created:
+- Amount: $300.00
+- Date: 2026-01-20
+- Notes: "Monthly withdrawal"
+
+New available balance: $340.00
+```
+
+**Frontend Implementation**:
+- Cashout modal with amount, date, and notes fields
+- Amount input with max validation (cannot exceed available_balance)
+- Displays current available balance in modal
+- Refreshes profits data after creating or deleting cashout
 
 ---
 

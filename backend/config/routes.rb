@@ -77,5 +77,8 @@ Rails.application.routes.draw do
 
     # Rental Transactions
     resources :rental_transactions
+
+    # Cashouts
+    resources :cashouts, only: [:index, :show, :create, :destroy]
   end
 end

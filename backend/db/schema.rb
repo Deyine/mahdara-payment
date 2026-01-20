@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_20_014633) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_20_091704) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -94,6 +94,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_014633) do
     t.index ["tenant_id", "ref"], name: "index_cars_on_tenant_id_and_ref", unique: true
     t.index ["tenant_id", "vin"], name: "index_cars_on_tenant_id_and_vin", unique: true
     t.index ["tenant_id"], name: "index_cars_on_tenant_id"
+  end
+
+  create_table "cashouts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "tenant_id", null: false
+    t.bigint "user_id", null: false
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.date "cashout_date", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cashout_date"], name: "index_cashouts_on_cashout_date"
+    t.index ["tenant_id"], name: "index_cashouts_on_tenant_id"
+    t.index ["user_id"], name: "index_cashouts_on_user_id"
   end
 
   create_table "expense_categories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -225,6 +238,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_014633) do
   add_foreign_key "cars", "sellers"
   add_foreign_key "cars", "tenants"
   add_foreign_key "cars", "users", column: "profit_share_user_id"
+  add_foreign_key "cashouts", "tenants"
+  add_foreign_key "cashouts", "users"
   add_foreign_key "expense_categories", "tenants"
   add_foreign_key "expenses", "cars"
   add_foreign_key "expenses", "expense_categories"

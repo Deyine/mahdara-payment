@@ -98,6 +98,31 @@ class Api::UsersController < ApplicationController
         }
       end
 
+      # Get all cashouts for this manager
+      cashouts = tenant_scope(Cashout)
+                  .where(user_id: manager.id)
+                  .order(cashout_date: :desc)
+
+      # Calculate total cashouts
+      total_cashouts = cashouts.sum { |cashout| cashout.amount.to_f }
+
+      # Build cashout data
+      cashouts_data = cashouts.map do |cashout|
+        {
+          id: cashout.id,
+          amount: cashout.amount.to_f,
+          cashout_date: cashout.cashout_date,
+          notes: cashout.notes,
+          created_at: cashout.created_at
+        }
+      end
+
+      # Calculate total manager profit (from car sales + rentals)
+      total_manager_profit = total_user_profit + total_rental_user_profit
+
+      # Calculate available balance (total profit - total cashouts)
+      available_balance = total_manager_profit - total_cashouts
+
       {
         user: {
           id: manager.id,
@@ -110,8 +135,12 @@ class Api::UsersController < ApplicationController
         total_rental_user_profit: total_rental_user_profit.round(2),
         total_rental_company_profit: total_rental_company_profit.round(2),
         total_rental_amount: total_rental_amount.round(2),
+        total_manager_profit: total_manager_profit.round(2),
+        total_cashouts: total_cashouts.round(2),
+        available_balance: available_balance.round(2),
         cars: cars_data,
-        rentals: rentals_data
+        rentals: rentals_data,
+        cashouts: cashouts_data
       }
     end
 
