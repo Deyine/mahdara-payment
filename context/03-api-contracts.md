@@ -663,6 +663,79 @@ All endpoints are namespaced under `/api` and return JSON responses.
 
 **Response**: Same format, filtered by `role: 'manager'`
 
+### Get Manager Profits
+
+**Endpoint**: `GET /api/users/profits`
+**Access**: Authenticated (admin, super_admin, manager)
+**Description**: Returns profit share data for managers with role-based filtering
+
+**Response**:
+```json
+{
+  "profits": [
+    {
+      "user": {
+        "id": 123,
+        "name": "Manager Name",
+        "username": "manager1"
+      },
+      "total_profit": 15000.50,
+      "total_user_profit": 3000.10,
+      "total_company_profit": 12000.40,
+      "cars": [
+        {
+          "id": "uuid",
+          "ref": "CAR-001",
+          "vin": "1HGBH41JXMN109186",
+          "model_name": "Toyota Camry 2020",
+          "status": "sold",
+          "fully_paid": true,
+          "profit": 5000.00,
+          "profit_share_percentage": 20.0,
+          "user_profit_amount": 1000.00,
+          "company_net_profit": 4000.00,
+          "sale_date": "2026-01-15",
+          "purchase_date": "2025-12-01"
+        },
+        {
+          "id": "uuid",
+          "ref": "CAR-002",
+          "vin": "2HGBH41JXMN109187",
+          "model_name": "Honda Accord 2021",
+          "status": "sold",
+          "fully_paid": false,
+          "profit": null,
+          "profit_share_percentage": 20.0,
+          "user_profit_amount": null,
+          "company_net_profit": null,
+          "sale_date": "2026-01-18",
+          "purchase_date": "2025-12-15"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Access Control**:
+
+- **Managers**: See only their own profit share data
+- **Admins/Super Admins**: See all managers' profit data
+
+**Business Rules**:
+
+- Cars are sorted by reference number (alphabetically)
+- Only fully paid cars are included in total calculations
+- Unpaid sold cars are shown in the list but with null profit values
+- Totals only include cars where `fully_paid: true` and `profit` is present
+- Filters out managers with no profit share cars (admin view only)
+
+**Notes**:
+
+- Used by `/profits` page for manager earnings dashboard
+- `fully_paid` field indicates if car payment is complete
+- Unpaid cars shown as "--" in UI to indicate profit not yet counted
+
 ### Get Single User
 **Endpoint**: `GET /api/users/:id`
 **Access**: Authenticated (admin, super_admin, manager)
@@ -1373,11 +1446,10 @@ invoices[]: File (PDF, JPG, or PNG file)
 ### List Rental Transactions
 **Endpoint**: `GET /api/rental_transactions`
 **Access**: Authenticated (admin, super_admin, manager)
-**Description**: Returns all rental transactions with car info, ordered by start_date desc
+**Description**: Returns all completed rental transactions with car info, ordered by rental_date desc
 
 **Query Parameters**:
 - `car_id=uuid` - Filter rental transactions for a specific car
-- `status=in_progress` - Filter by status ('in_progress' or 'completed')
 
 **Response**:
 ```json
@@ -1385,19 +1457,19 @@ invoices[]: File (PDF, JPG, or PNG file)
   {
     "id": 1,
     "car_id": "uuid",
-    "start_date": "2026-01-01",
-    "end_date": "2026-01-15",
-    "days": 14,
+    "locataire": "Jean Dupont",
+    "rental_date": "2026-01-01",
+    "days": 15,
     "daily_rate": 150.00,
-    "amount": 2100.00,
-    "status": "completed",
-    "notes": "Rented to ABC Company",
+    "amount": 2250.00,
+    "notes": "Location pour mariage",
     "created_at": "2026-01-01T12:00:00.000Z",
-    "updated_at": "2026-01-15T12:00:00.000Z",
+    "updated_at": "2026-01-01T12:00:00.000Z",
     "car": {
       "id": "uuid",
       "vin": "1HGCM82633A123456",
       "car_model": {
+        "id": "uuid",
         "name": "Honda Accord"
       }
     }
@@ -1407,10 +1479,9 @@ invoices[]: File (PDF, JPG, or PNG file)
 
 **Notes**:
 - Scoped to current user's tenant
-- Ordered by start_date DESC (most recent first)
-- `status` is either 'in_progress' or 'completed'
-- `days` and `amount` are null for in_progress rentals
-- `end_date` is null for in_progress rentals
+- Ordered by rental_date DESC (most recent first)
+- All rentals are completed transactions (no status tracking)
+- Amount is auto-calculated: amount = days × daily_rate
 
 ### Get Single Rental Transaction
 **Endpoint**: `GET /api/rental_transactions/:id`
@@ -1421,16 +1492,18 @@ invoices[]: File (PDF, JPG, or PNG file)
 ### Create Rental Transaction
 **Endpoint**: `POST /api/rental_transactions`
 **Access**: Admin only
-**Description**: Create a new rental transaction for a rental car
+**Description**: Record a completed rental transaction for a rental car
 
 **Request**:
 ```json
 {
   "rental_transaction": {
     "car_id": "uuid",
-    "start_date": "2026-01-01",
+    "locataire": "Jean Dupont",
+    "rental_date": "2026-01-01",
+    "days": 15,
     "daily_rate": 150.00,
-    "notes": "Rented to ABC Company"
+    "notes": "Location pour mariage"
   }
 }
 ```
@@ -1440,38 +1513,40 @@ invoices[]: File (PDF, JPG, or PNG file)
 {
   "id": 1,
   "car_id": "uuid",
-  "start_date": "2026-01-01",
-  "end_date": null,
-  "days": null,
+  "locataire": "Jean Dupont",
+  "rental_date": "2026-01-01",
+  "days": 15,
   "daily_rate": 150.00,
-  "amount": null,
-  "status": "in_progress",
-  "notes": "Rented to ABC Company",
+  "amount": 2250.00,
+  "notes": "Location pour mariage",
   "created_at": "2026-01-01T12:00:00.000Z",
-  "updated_at": "2026-01-01T12:00:00.000Z"
+  "updated_at": "2026-01-01T12:00:00.000Z",
+  "car": {
+    "id": "uuid",
+    "vin": "1HGCM82633A123456",
+    "car_model": {
+      "id": "uuid",
+      "name": "Honda Accord"
+    }
+  }
 }
 ```
 
 **Response** (Error - car not rental):
 ```json
 {
-  "errors": ["Car must be in rental status"]
-}
-```
-
-**Response** (Error - active rental exists):
-```json
-{
-  "errors": ["Car already has an active rental transaction"]
+  "errors": ["Rental transactions can only be added to cars with rental status"]
 }
 ```
 
 **Validation Rules**:
 - car_id: required, must be a rental car (status='rental')
-- start_date: required
-- daily_rate: required, must be > 0
+- locataire: required, name of the renter
+- rental_date: required, date when rental occurred
+- days: required, must be > 0 (integer)
+- daily_rate: required, must be > 0 (decimal)
 - notes: optional
-- Car cannot have another in_progress rental transaction
+- amount: auto-calculated as days × daily_rate (not provided in request)
 - tenant_id automatically set from current_user
 
 **Status Codes**:
@@ -1487,59 +1562,8 @@ invoices[]: File (PDF, JPG, or PNG file)
 **Response**: Updated rental transaction object
 
 **Notes**:
-- Can only update in_progress rentals
-- Cannot modify completed rentals
-
-### Complete Rental Transaction
-**Endpoint**: `POST /api/rental_transactions/:id/complete`
-**Access**: Admin only
-**Description**: Complete an in-progress rental transaction
-
-**Request** (optional):
-```json
-{
-  "end_date": "2026-01-15"
-}
-```
-
-**Response** (Success):
-```json
-{
-  "id": 1,
-  "car_id": "uuid",
-  "start_date": "2026-01-01",
-  "end_date": "2026-01-15",
-  "days": 14,
-  "daily_rate": 150.00,
-  "amount": 2100.00,
-  "status": "completed",
-  "notes": "Rented to ABC Company",
-  "created_at": "2026-01-01T12:00:00.000Z",
-  "updated_at": "2026-01-15T12:00:00.000Z"
-}
-```
-
-**Response** (Error):
-```json
-{
-  "errors": ["Rental transaction is already completed"]
-}
-```
-
-**Validation Rules**:
-- end_date: optional, defaults to current date if not provided
-- end_date must be >= start_date
-- Rental must have status='in_progress'
-- Calculates: days = end_date - start_date + 1
-- Calculates: amount = days * daily_rate
-
-**Status Codes**:
-- `200 OK` - Success
-- `422 Unprocessable Entity` - Validation error
-
-**Notes**:
-- Sets status to 'completed'
-- Updates car's total_rental_income
+- Amount is recalculated when days or daily_rate changes
+- All fields can be updated
 
 ### Delete Rental Transaction
 **Endpoint**: `DELETE /api/rental_transactions/:id`
@@ -1555,9 +1579,6 @@ invoices[]: File (PDF, JPG, or PNG file)
 **Status Codes**:
 - `200 OK` - Success
 - `404 Not Found` - Rental transaction not found
-
-**Notes**:
-- Updates car's total_rental_income after deletion
 
 ---
 

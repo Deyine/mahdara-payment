@@ -1005,6 +1005,149 @@ const navItems = [
 - **Active Tab Detection** - `location.pathname` determines which tab is highlighted
 - **Layout Simplification** - ExpenseTypes and Brands components no longer have full-page wrappers
 
+## Manager Profits Dashboard
+
+### Profits Page Overview
+
+The Manager Profits page (`/profits`) provides role-based profit visibility for managers and administrators. Managers can view their own profit earnings, while admins can see all managers' profits with detailed car-level breakdowns.
+
+### API Integration
+
+**API Service** (`client/src/services/api.js`):
+
+```javascript
+export const usersAPI = {
+  getAll: () => api.get('/users'),
+  getManagers: () => api.get('/users/managers'),
+  getProfits: () => api.get('/users/profits'),  // NEW
+  // ...
+};
+```
+
+**Backend Endpoint**: `GET /api/users/profits`
+
+- **Managers**: Returns only their own profit data
+- **Admins/Super Admins**: Returns all managers' profit data
+
+### Component Structure
+
+**ManagerProfits Page** (`client/src/pages/ManagerProfits.jsx`):
+
+```javascript
+export default function ManagerProfits() {
+  const { user } = useAuth();
+  const [profitsData, setProfitsData] = useState([]);
+  const [expandedManagers, setExpandedManagers] = useState(new Set());
+
+  useEffect(() => {
+    fetchProfits();
+  }, []);
+
+  const fetchProfits = async () => {
+    const response = await usersAPI.getProfits();
+    setProfitsData(response.data.profits);
+  };
+
+  // Expandable manager cards with car-level details
+  // ...
+}
+```
+
+### UI Pattern: Expandable Summary
+
+The page uses a consistent expandable pattern also used in Expenses and Payment Tracking:
+
+**Collapsed State (Default)**:
+
+- Manager avatar and name
+- Three summary cards:
+  - Total Profit (blue background)
+  - Manager Share (amber background)
+  - Company Share (green background)
+- Expand/collapse arrow button
+- Car count badge
+
+**Expanded State**:
+
+- Full car list in table format
+- Columns: Ref, Model, Status, Total Profit, Share %, Manager Amount, Company Amount
+- Click any row to navigate to car detail page
+- Ordered by reference number
+
+### Business Logic
+
+**Profit Calculation Rules**:
+
+- Only fully paid cars are counted in totals
+- Unpaid sold cars are shown but display "--" for profit amounts
+- Status badges:
+  - Green "Vendu": Sold and fully paid
+  - Red "Non payé": Sold but not fully paid
+  - Blue: Rental or Active status
+
+**Data Flow**:
+
+```text
+Backend calculates:
+├── total_profit (sum of fully paid cars only)
+├── total_user_profit (manager's share)
+├── total_company_profit (company's share)
+└── cars[] (all profit share cars, sorted by ref)
+    ├── fully_paid: true/false
+    ├── profit: amount or null
+    └── user_profit_amount: amount or null
+
+Frontend displays:
+├── Summary cards (from totals)
+└── Car table (from cars array)
+    └── Show "--" if !fully_paid
+```
+
+### Navigation & Access Control
+
+**Route** (`client/src/App.jsx`):
+
+```javascript
+<Route
+  path="/profits"
+  element={
+    <PrivateRoute>
+      <ManagerProfits />
+    </PrivateRoute>
+  }
+/>
+```
+
+**Navigation Item** (`client/src/components/Layout.jsx`):
+
+```javascript
+const navItems = [
+  { path: '/', label: 'Tableau de Bord', icon: '📊', adminOnly: false },
+  { path: '/cars', label: 'Véhicules', icon: '🚗', adminOnly: false },
+  { path: '/profits', label: 'Profits', icon: '💰', adminOnly: false, requireManagerOrAdmin: true },
+  { path: '/settings', label: 'Paramètres', icon: '⚙️', adminOnly: true },
+];
+
+// Visibility logic
+if (item.requireManagerOrAdmin && !isManagerOrAdmin) return null;
+```
+
+**Access Control Helper**:
+
+```javascript
+const isManagerOrAdmin = user?.role === 'manager' || user?.role === 'admin' || user?.role === 'super_admin';
+```
+
+### Key Features
+
+- **Role-based filtering**: Backend automatically filters based on user role
+- **Smart totals**: Only counts profits from fully paid cars
+- **Unpaid visibility**: Shows unpaid cars with "--" to indicate pending profit
+- **Alphabetical ordering**: Cars sorted by reference for easy lookup
+- **Click-through navigation**: Click any car row to view full details
+- **Responsive design**: Works on mobile and desktop
+- **Empty state**: Clear messaging when no profit data exists
+
 ## Brand Filtering & Product Association
 
 ### Brand Selection in Product Form
