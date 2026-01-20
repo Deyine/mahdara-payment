@@ -565,125 +565,194 @@ end
 
 ### Rule 7a: Rental Transaction Tracking
 
-**CRITICAL**: Rental transactions track rental periods for cars with rental status.
+**CRITICAL**: Rental transactions record completed rental periods for cars with rental status.
 
 **Rental Transaction Model**:
 - Belongs to car and tenant
 - Can only be created for rental cars (status='rental')
-- Only one active (in_progress) rental per car at a time
+- All transactions are completed rentals (no status tracking)
+- Support for profit sharing with managers
 
 **Required Fields**:
 - `car_id` - Associated rental car (UUID)
-- `start_date` - Rental start date (date)
+- `locataire` - Name of the renter (string)
+- `rental_date` - Date when rental occurred (date)
+- `days` - Duration of rental in days (integer > 0)
 - `daily_rate` - Daily rental rate (decimal > 0)
 
 **Optional Fields**:
-- `end_date` - Rental end date (date, null for in_progress)
 - `notes` - Additional notes (text)
+- `profit_share_user_id` - Manager receiving profit share (bigint, optional, must belong to tenant)
+- `profit_per_day` - Profit per day for manager (decimal >= 0, default: 0)
 
-**Calculated Fields** (when completed):
-- `days` - Number of rental days (end_date - start_date + 1)
-- `amount` - Total rental amount (days × daily_rate)
-
-**Status Values**:
-- `in_progress` - Rental is ongoing (default)
-- `completed` - Rental has ended
+**Auto-Calculated Fields**:
+- `amount` - Total rental amount (days × daily_rate), calculated before validation
 
 **Backend Validation**:
 ```ruby
-validates :start_date, presence: true
+validates :locataire, presence: true
+validates :rental_date, presence: true
+validates :days, presence: true, numericality: { only_integer: true, greater_than: 0 }
 validates :daily_rate, presence: true, numericality: { greater_than: 0 }
-validates :status, presence: true, inclusion: { in: %w[in_progress completed] }
-validate :car_must_be_rental
-validate :only_one_active_rental_per_car
-validate :end_date_after_start_date
+validates :amount, presence: true, numericality: { greater_than: 0 }
+validates :profit_per_day, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+validate :car_must_be_rental, on: :create
+validate :profit_share_user_belongs_to_tenant
+
+before_validation :calculate_amount
 
 def car_must_be_rental
-  unless car&.status == 'rental'
-    errors.add(:base, 'Car must be in rental status')
+  if car && car.status != 'rental'
+    errors.add(:base, 'Rental transactions can only be added to cars with rental status')
   end
 end
 
-def only_one_active_rental_per_car
-  return if status == 'completed'
-  return unless car
-
-  existing = car.rental_transactions.where(status: 'in_progress').where.not(id: id)
-  if existing.exists?
-    errors.add(:base, 'Car already has an active rental transaction')
+def profit_share_user_belongs_to_tenant
+  if profit_share_user_id.present?
+    user = User.find_by(id: profit_share_user_id)
+    unless user && user.tenant_id == tenant_id
+      errors.add(:profit_share_user_id, 'must belong to the same tenant')
+    end
   end
 end
 
-def end_date_after_start_date
-  return unless end_date && start_date
-
-  if end_date < start_date
-    errors.add(:end_date, 'must be after or equal to start date')
+def calculate_amount
+  if days.present? && daily_rate.present?
+    self.amount = days * daily_rate.to_f
   end
 end
 ```
 
-**Complete Rental Calculations**:
+**Profit Share Calculations**:
 ```ruby
 # In RentalTransaction model
-def complete!(end_date = nil)
-  self.end_date = end_date || Date.current
-  self.days = (self.end_date - start_date).to_i + 1
-  self.amount = days * daily_rate.to_f
-  self.status = 'completed'
-  save!
+def has_profit_share?
+  profit_share_user_id.present? && profit_per_day.to_f > 0
+end
 
-  # Update car's total rental income
-  car.update_rental_income!
+def user_profit_amount
+  return 0 unless has_profit_share?
+  (days.to_i * profit_per_day.to_f).round(2)
+end
+
+def company_net_profit
+  return amount.to_f unless has_profit_share?
+  (amount.to_f - user_profit_amount).round(2)
 end
 ```
 
 **API Endpoints**:
 - `GET /api/rental_transactions?car_id=:id` - List rentals for a car
-- `GET /api/rental_transactions?status=in_progress` - List active rentals
 - `POST /api/rental_transactions` - Create rental
-- `PUT /api/rental_transactions/:id` - Update rental (in_progress only)
-- `POST /api/rental_transactions/:id/complete` - Complete rental
+- `PUT /api/rental_transactions/:id` - Update rental
 - `DELETE /api/rental_transactions/:id` - Delete rental
 
 **Workflow**:
 
 1. Car must have status='rental'
-2. Create rental transaction with start_date and daily_rate
-3. Status defaults to 'in_progress'
-4. When rental ends, complete the transaction:
-   - Sets end_date (defaults to current date)
-   - Calculates days and amount
-   - Changes status to 'completed'
-   - Updates car's total_rental_income
-5. Can only update in_progress rentals
-6. Cannot complete already completed rentals
+2. Create rental transaction with:
+   - locataire (renter name)
+   - rental_date (when it occurred)
+   - days (duration)
+   - daily_rate (price per day)
+   - profit_share_user_id (optional - manager to share profit with)
+   - profit_per_day (optional - profit amount per day for manager)
+   - notes (optional)
+3. Amount is auto-calculated: amount = days × daily_rate
+4. If profit share is configured, calculate:
+   - user_profit_amount = days × profit_per_day
+   - company_net_profit = amount - user_profit_amount
+5. Transaction is immediately saved as completed
+6. Car's total_rental_income is updated
+7. All rentals can be updated or deleted at any time
 
-**Example**:
+**Example Without Profit Share**:
 
 ```text
 Rental created:
-- start_date: 2026-01-01
+- locataire: "Jean Dupont"
+- rental_date: 2026-01-01
+- days: 15
 - daily_rate: 150.00 MRU
-- status: in_progress
-- end_date: null
-- days: null
-- amount: null
+- notes: "Location pour mariage"
+- amount: 2,250.00 MRU (auto-calculated: 15 × 150.00)
+```
 
-Rental completed (2026-01-15):
-- end_date: 2026-01-15
-- days: 15 (2026-01-15 - 2026-01-01 + 1)
-- amount: 2,250.00 MRU (15 × 150.00)
-- status: completed
+**Example With Profit Share**:
+
+```text
+Rental created:
+- locataire: "Jean Dupont"
+- rental_date: 2026-01-01
+- days: 15
+- daily_rate: 150.00 MRU
+- profit_share_user_id: 2 (Jane Smith - Manager)
+- profit_per_day: 20.00 MRU
+- notes: "Location pour mariage"
+
+Auto-calculated values:
+- amount: 2,250.00 MRU (15 days × 150.00 MRU/day)
+- user_profit_amount: 300.00 MRU (15 days × 20.00 MRU/day)
+- company_net_profit: 1,950.00 MRU (2,250.00 - 300.00)
+```
+
+**Car Rental Calculations**:
+```ruby
+# In Car model
+def total_rental_income
+  rental_transactions.sum(:amount).to_f
+end
+
+def rental_break_even?
+  return false unless rental? && daily_rental_rate.to_f > 0
+  total_rental_income >= total_cost
+end
 ```
 
 **Frontend RentalManager Component**:
-- Shows active rental with days elapsed
-- Shows rental history with amounts
+- Shows rental history with completed transactions
 - Displays total rental income
-- Shows break-even point (total_cost / daily_rate)
-- Allows creating new rentals
-- Allows completing active rentals
+- Shows break-even indicator (total_rental_income ≥ total_cost)
+- Allows recording new completed rentals with optional profit share
+- Allows selecting manager and setting profit per day
+- Shows calculated manager profit and company profit in form
+- Displays profit share info in rental history cards
+- Allows editing/deleting existing rentals
+- Shows calculated total before submission
+
+**Manager Profits Display** (`GET /api/users/profits`):
+
+The profits endpoint now includes rental transaction data for managers:
+
+```ruby
+# Backend response includes both car sales and rental profits
+{
+  user: { id, name, username },
+  # Car sales profits
+  total_profit: 1800.00,
+  total_user_profit: 540.00,
+  total_company_profit: 1260.00,
+  cars: [...],
+  # Rental profits (NEW)
+  total_rental_amount: 4500.00,
+  total_rental_user_profit: 600.00,
+  total_rental_company_profit: 3900.00,
+  rentals: [
+    {
+      id, car_id, car_ref, car_vin, car_model_name,
+      locataire, rental_date, days,
+      daily_rate, profit_per_day, amount,
+      user_profit_amount, company_net_profit, notes
+    }
+  ]
+}
+```
+
+**Frontend Profits Page** (`ManagerProfits.jsx`):
+- Displays separate sections for "Profits Vente de Véhicules" and "Profits Locations de Véhicules"
+- Shows total rental amount, manager's share, and company's share for rentals
+- Expandable tables show individual car sales and rental transactions
+- Rental table displays: ref, locataire, date, days, profit/day, total amount, manager profit, company profit
 
 ---
 

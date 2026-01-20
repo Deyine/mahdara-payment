@@ -7,7 +7,7 @@ class Api::RentalTransactionsController < ApplicationController
 
   def index
     # Support filtering by car_id
-    rentals_scope = tenant_scope(RentalTransaction).includes(:car)
+    rentals_scope = tenant_scope(RentalTransaction).includes(:car, :profit_share_user)
 
     if params[:car_id].present?
       rentals_scope = rentals_scope.for_car(params[:car_id])
@@ -53,7 +53,8 @@ class Api::RentalTransactionsController < ApplicationController
 
   def rental_transaction_params
     params.require(:rental_transaction).permit(
-      :car_id, :locataire, :rental_date, :days, :daily_rate, :notes
+      :car_id, :locataire, :rental_date, :days, :daily_rate, :notes,
+      :profit_share_user_id, :profit_per_day
     )
   end
 

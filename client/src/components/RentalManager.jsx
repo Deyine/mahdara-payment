@@ -1,20 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDialog } from '../context/DialogContext';
 import { useAuth } from '../context/AuthContext';
 import { formatCurrency } from '../utils/formatters';
+import { usersAPI } from '../services/api';
 
 export default function RentalManager({ car, rentalTransactions, onRentalTransactionChange }) {
   const { canWrite } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [showForm, setShowForm] = useState(false);
   const [editingRental, setEditingRental] = useState(null);
+  const [managers, setManagers] = useState([]);
   const [formData, setFormData] = useState({
     locataire: '',
     rental_date: new Date().toISOString().split('T')[0],
     days: '',
     daily_rate: car.daily_rental_rate || '',
+    profit_share_user_id: '',
+    profit_per_day: '',
     notes: ''
   });
+
+  useEffect(() => {
+    fetchManagers();
+  }, []);
+
+  const fetchManagers = async () => {
+    try {
+      const response = await usersAPI.getManagers();
+      setManagers(response.data);
+    } catch (error) {
+      console.error('Error fetching managers:', error);
+    }
+  };
 
   const resetForm = () => {
     setShowForm(false);
@@ -24,6 +41,8 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
       rental_date: new Date().toISOString().split('T')[0],
       days: '',
       daily_rate: car.daily_rental_rate || '',
+      profit_share_user_id: '',
+      profit_per_day: '',
       notes: ''
     });
   };
@@ -35,6 +54,8 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
       rental_date: new Date().toISOString().split('T')[0],
       days: '',
       daily_rate: car.daily_rental_rate || '',
+      profit_share_user_id: '',
+      profit_per_day: '',
       notes: ''
     });
     setShowForm(true);
@@ -47,6 +68,8 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
       rental_date: rental.rental_date,
       days: rental.days,
       daily_rate: rental.daily_rate,
+      profit_share_user_id: rental.profit_share_user_id || '',
+      profit_per_day: rental.profit_per_day || '',
       notes: rental.notes || ''
     });
     setShowForm(true);
@@ -61,6 +84,8 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
       rental_date: formData.rental_date,
       days: parseInt(formData.days),
       daily_rate: parseFloat(formData.daily_rate),
+      profit_share_user_id: formData.profit_share_user_id || null,
+      profit_per_day: formData.profit_per_day ? parseFloat(formData.profit_per_day) : 0,
       notes: formData.notes
     };
 
@@ -109,6 +134,12 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
   const calculatedAmount = formData.days && formData.daily_rate
     ? parseFloat(formData.days) * parseFloat(formData.daily_rate)
     : 0;
+
+  const calculatedManagerProfit = formData.days && formData.profit_per_day
+    ? parseFloat(formData.days) * parseFloat(formData.profit_per_day)
+    : 0;
+
+  const calculatedCompanyProfit = calculatedAmount - calculatedManagerProfit;
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
@@ -233,6 +264,31 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
                   </div>
                 </div>
 
+                {rental.has_profit_share && rental.profit_share_user && (
+                  <div className="mt-2 p-2 rounded text-xs" style={{ backgroundColor: '#eff6ff', border: '1px solid #93c5fd' }}>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-1">
+                      <div>
+                        <span style={{ color: '#64748b' }}>Manager:</span>
+                        <span className="ml-1 font-medium" style={{ color: '#1e40af' }}>
+                          {rental.profit_share_user.name}
+                        </span>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b' }}>Profit manager:</span>
+                        <span className="ml-1 font-medium" style={{ color: '#1e40af' }}>
+                          {formatCurrency(rental.user_profit_amount)}
+                        </span>
+                      </div>
+                      <div>
+                        <span style={{ color: '#64748b' }}>Profit entreprise:</span>
+                        <span className="ml-1 font-medium" style={{ color: '#1e40af' }}>
+                          {formatCurrency(rental.company_net_profit)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {rental.notes && (
                   <p className="mt-2 text-xs sm:text-sm" style={{ color: '#64748b' }}>
                     Note: {rental.notes}
@@ -327,6 +383,55 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
                   </div>
                 </div>
 
+                {/* Profit Share Section */}
+                <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: '#eff6ff', border: '1px solid #93c5fd' }}>
+                  <h3 className="text-sm font-bold mb-3" style={{ color: '#1e40af' }}>
+                    Partage de Profit (Optionnel)
+                  </h3>
+
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium mb-1" style={{ color: '#1e293b' }}>
+                      Manager
+                    </label>
+                    <select
+                      value={formData.profit_share_user_id}
+                      onChange={(e) => setFormData({ ...formData, profit_share_user_id: e.target.value })}
+                      className="w-full px-3 py-2 rounded"
+                      style={{ border: '1px solid #cbd5e1' }}
+                    >
+                      <option value="">-- Aucun --</option>
+                      {managers.map((manager) => (
+                        <option key={manager.id} value={manager.id}>
+                          {manager.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {formData.profit_share_user_id && (
+                    <div>
+                      <label className="block text-sm font-medium mb-1" style={{ color: '#1e293b' }}>
+                        Profit/jour pour le manager (MRU)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.profit_per_day}
+                        onChange={(e) => setFormData({ ...formData, profit_per_day: e.target.value })}
+                        className="w-full px-3 py-2 rounded"
+                        style={{ border: '1px solid #cbd5e1' }}
+                        placeholder="Ex: 20.00"
+                      />
+                      {calculatedManagerProfit > 0 && (
+                        <p className="text-xs mt-1" style={{ color: '#64748b' }}>
+                          Profit total du manager: <strong>{formatCurrency(calculatedManagerProfit)}</strong>
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 {/* Calculated Amount Display */}
                 {formData.days && formData.daily_rate && (
                   <div className="mb-4 rounded-lg p-3" style={{ backgroundColor: '#f0fdf4', border: '1px solid #86efac' }}>
@@ -341,6 +446,22 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
                     <p className="text-xs mt-1" style={{ color: '#166534' }}>
                       {formData.days} jours × {formatCurrency(formData.daily_rate)}/jour
                     </p>
+                    {formData.profit_share_user_id && calculatedManagerProfit > 0 && (
+                      <div className="mt-2 pt-2" style={{ borderTop: '1px solid #86efac' }}>
+                        <div className="flex justify-between text-xs">
+                          <span style={{ color: '#166534' }}>Profit manager:</span>
+                          <span className="font-medium" style={{ color: '#166534' }}>
+                            {formatCurrency(calculatedManagerProfit)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-xs mt-1">
+                          <span style={{ color: '#166534' }}>Profit entreprise:</span>
+                          <span className="font-medium" style={{ color: '#166534' }}>
+                            {formatCurrency(calculatedCompanyProfit)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

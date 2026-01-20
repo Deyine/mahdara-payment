@@ -64,6 +64,37 @@ class Api::UsersController < ApplicationController
         }
       end
 
+      # Get all rental transactions where this manager has profit share
+      rental_transactions = tenant_scope(RentalTransaction)
+                             .includes(car: :car_model)
+                             .where(profit_share_user_id: manager.id)
+                             .order(rental_date: :desc)
+
+      # Calculate rental totals
+      total_rental_user_profit = rental_transactions.sum { |rental| rental.user_profit_amount }
+      total_rental_company_profit = rental_transactions.sum { |rental| rental.company_net_profit }
+      total_rental_amount = rental_transactions.sum { |rental| rental.amount.to_f }
+
+      # Build rental data
+      rentals_data = rental_transactions.map do |rental|
+        {
+          id: rental.id,
+          car_id: rental.car_id,
+          car_ref: rental.car&.ref,
+          car_vin: rental.car&.vin,
+          car_model_name: rental.car&.car_model ? "#{rental.car.car_model.name} #{rental.car.year}" : nil,
+          locataire: rental.locataire,
+          rental_date: rental.rental_date,
+          days: rental.days,
+          daily_rate: rental.daily_rate.to_f,
+          profit_per_day: rental.profit_per_day.to_f,
+          amount: rental.amount.to_f,
+          user_profit_amount: rental.user_profit_amount,
+          company_net_profit: rental.company_net_profit,
+          notes: rental.notes
+        }
+      end
+
       {
         user: {
           id: manager.id,
@@ -73,12 +104,16 @@ class Api::UsersController < ApplicationController
         total_profit: total_profit.round(2),
         total_user_profit: total_user_profit.round(2),
         total_company_profit: total_company_profit.round(2),
-        cars: cars_data
+        total_rental_user_profit: total_rental_user_profit.round(2),
+        total_rental_company_profit: total_rental_company_profit.round(2),
+        total_rental_amount: total_rental_amount.round(2),
+        cars: cars_data,
+        rentals: rentals_data
       }
     end
 
-    # Filter out managers with no profit share cars (only for admin view)
-    profits_data = profits_data.select { |p| p[:cars].any? } unless current_user.manager?
+    # Filter out managers with no profit share cars or rentals (only for admin view)
+    profits_data = profits_data.select { |p| p[:cars].any? || p[:rentals].any? } unless current_user.manager?
 
     render json: { profits: profits_data }
   end

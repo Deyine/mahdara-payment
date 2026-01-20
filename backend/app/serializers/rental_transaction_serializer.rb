@@ -15,12 +15,29 @@ class RentalTransactionSerializer
       notes: @rental.notes,
       created_at: @rental.created_at,
       updated_at: @rental.updated_at,
+      # Profit share fields
+      profit_share_user_id: @rental.profit_share_user_id,
+      profit_per_day: @rental.profit_per_day.to_f,
+      has_profit_share: @rental.has_profit_share?,
+      user_profit_amount: @rental.user_profit_amount,
+      company_net_profit: @rental.company_net_profit,
+      profit_share_user: profit_share_user_details,
       # Include car details if loaded
       car: car_details
     }
   end
 
   private
+
+  def profit_share_user_details
+    return nil unless @rental.profit_share_user
+
+    {
+      id: @rental.profit_share_user.id,
+      name: @rental.profit_share_user.name,
+      username: @rental.profit_share_user.username
+    }
+  end
 
   def car_details
     return nil unless @rental.car

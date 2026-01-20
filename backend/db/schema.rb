@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_18_003435) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_20_014633) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -163,7 +163,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_18_003435) do
     t.date "rental_date", null: false
     t.integer "days", null: false
     t.decimal "daily_rate", precision: 10, scale: 2, null: false
+    t.bigint "profit_share_user_id"
+    t.decimal "profit_per_day", precision: 10, scale: 2, default: "0.0"
     t.index ["car_id"], name: "index_rental_transactions_on_car_id"
+    t.index ["profit_share_user_id"], name: "index_rental_transactions_on_profit_share_user_id"
     t.index ["rental_date"], name: "index_rental_transactions_on_rental_date"
     t.index ["tenant_id"], name: "index_rental_transactions_on_tenant_id"
   end
@@ -232,6 +235,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_18_003435) do
   add_foreign_key "payments", "tenants"
   add_foreign_key "rental_transactions", "cars"
   add_foreign_key "rental_transactions", "tenants"
+  add_foreign_key "rental_transactions", "users", column: "profit_share_user_id"
   add_foreign_key "sellers", "tenants"
   add_foreign_key "tags", "tenants"
   add_foreign_key "users", "tenants"

@@ -143,40 +143,88 @@ export default function ManagerProfits() {
                 </div>
 
                 {/* Profit Summary Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Total Profit */}
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <p className="text-sm mb-1" style={{ color: '#64748b' }}>
-                      Bénéfice Total
-                    </p>
-                    <p
-                      className="text-xl sm:text-2xl font-bold"
-                      style={{ color: managerProfit.total_profit >= 0 ? '#10b981' : '#dc2626' }}
-                    >
-                      {managerProfit.total_profit >= 0 ? '+' : ''}
-                      {formatCurrency(managerProfit.total_profit)} MRU
-                    </p>
+                <div className="space-y-4">
+                  {/* Car Sales Profits */}
+                  <div>
+                    <h3 className="text-sm font-semibold mb-2" style={{ color: '#1e293b' }}>
+                      Profits Vente de Véhicules
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {/* Total Profit */}
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+                          Bénéfice Total
+                        </p>
+                        <p
+                          className="text-xl sm:text-2xl font-bold"
+                          style={{ color: managerProfit.total_profit >= 0 ? '#10b981' : '#dc2626' }}
+                        >
+                          {managerProfit.total_profit >= 0 ? '+' : ''}
+                          {formatCurrency(managerProfit.total_profit)} MRU
+                        </p>
+                      </div>
+
+                      {/* User Share */}
+                      <div className="bg-amber-50 rounded-lg p-4">
+                        <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+                          Part du Manager
+                        </p>
+                        <p className="text-xl sm:text-2xl font-bold" style={{ color: '#f59e0b' }}>
+                          {formatCurrency(managerProfit.total_user_profit)} MRU
+                        </p>
+                      </div>
+
+                      {/* Company Share */}
+                      <div className="bg-green-50 rounded-lg p-4">
+                        <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+                          Part de l'Entreprise
+                        </p>
+                        <p className="text-xl sm:text-2xl font-bold" style={{ color: '#10b981' }}>
+                          {formatCurrency(managerProfit.total_company_profit)} MRU
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* User Share */}
-                  <div className="bg-amber-50 rounded-lg p-4">
-                    <p className="text-sm mb-1" style={{ color: '#64748b' }}>
-                      Part du Manager
-                    </p>
-                    <p className="text-xl sm:text-2xl font-bold" style={{ color: '#f59e0b' }}>
-                      {formatCurrency(managerProfit.total_user_profit)} MRU
-                    </p>
-                  </div>
+                  {/* Rental Profits */}
+                  {managerProfit.rentals && managerProfit.rentals.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold mb-2" style={{ color: '#1e293b' }}>
+                        Profits Locations de Véhicules
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {/* Total Rental Amount */}
+                        <div className="bg-purple-50 rounded-lg p-4">
+                          <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+                            Revenus Location Total
+                          </p>
+                          <p className="text-xl sm:text-2xl font-bold" style={{ color: '#9333ea' }}>
+                            {formatCurrency(managerProfit.total_rental_amount)} MRU
+                          </p>
+                        </div>
 
-                  {/* Company Share */}
-                  <div className="bg-green-50 rounded-lg p-4">
-                    <p className="text-sm mb-1" style={{ color: '#64748b' }}>
-                      Part de l'Entreprise
-                    </p>
-                    <p className="text-xl sm:text-2xl font-bold" style={{ color: '#10b981' }}>
-                      {formatCurrency(managerProfit.total_company_profit)} MRU
-                    </p>
-                  </div>
+                        {/* Rental User Share */}
+                        <div className="bg-amber-50 rounded-lg p-4">
+                          <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+                            Part du Manager
+                          </p>
+                          <p className="text-xl sm:text-2xl font-bold" style={{ color: '#f59e0b' }}>
+                            {formatCurrency(managerProfit.total_rental_user_profit)} MRU
+                          </p>
+                        </div>
+
+                        {/* Rental Company Share */}
+                        <div className="bg-green-50 rounded-lg p-4">
+                          <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+                            Part de l'Entreprise
+                          </p>
+                          <p className="text-xl sm:text-2xl font-bold" style={{ color: '#10b981' }}>
+                            {formatCurrency(managerProfit.total_rental_company_profit)} MRU
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Car Count Badge */}
@@ -192,6 +240,11 @@ export default function ManagerProfits() {
               {/* Expandable Cars Table */}
               {isExpanded && hasCars && (
                 <div className="border-t" style={{ borderColor: '#e2e8f0' }}>
+                  <div className="px-4 sm:px-6 py-4" style={{ backgroundColor: '#f8fafc' }}>
+                    <h4 className="font-semibold text-sm" style={{ color: '#1e293b' }}>
+                      Ventes de Véhicules
+                    </h4>
+                  </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead style={{ backgroundColor: '#f8fafc' }}>
@@ -289,6 +342,102 @@ export default function ManagerProfits() {
                               ) : (
                                 <span className="font-semibold" style={{ color: '#94a3b8' }}>--</span>
                               )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Expandable Rentals Table */}
+              {isExpanded && managerProfit.rentals && managerProfit.rentals.length > 0 && (
+                <div className="border-t" style={{ borderColor: '#e2e8f0' }}>
+                  <div className="px-4 sm:px-6 py-4" style={{ backgroundColor: '#faf5ff' }}>
+                    <h4 className="font-semibold text-sm" style={{ color: '#1e293b' }}>
+                      Locations de Véhicules
+                    </h4>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead style={{ backgroundColor: '#faf5ff' }}>
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#64748b' }}>
+                            Référence
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium hidden md:table-cell" style={{ color: '#64748b' }}>
+                            Locataire
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium hidden sm:table-cell" style={{ color: '#64748b' }}>
+                            Date
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
+                            Jours
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-medium hidden lg:table-cell" style={{ color: '#64748b' }}>
+                            Profit/Jour
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
+                            Revenu Total
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
+                            Part Manager
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-medium hidden xl:table-cell" style={{ color: '#64748b' }}>
+                            Part Entreprise
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y" style={{ borderColor: '#e2e8f0' }}>
+                        {managerProfit.rentals.map((rental) => (
+                          <tr
+                            key={rental.id}
+                            onClick={() => handleCarClick(rental.car_id)}
+                            className="cursor-pointer transition-colors"
+                            style={{ backgroundColor: 'white' }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#faf5ff'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                          >
+                            <td className="px-4 py-3">
+                              <span className="font-medium" style={{ color: '#1e293b' }}>
+                                {rental.car_ref || rental.car_vin}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 hidden md:table-cell">
+                              <span className="text-sm" style={{ color: '#64748b' }}>
+                                {rental.locataire}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 hidden sm:table-cell">
+                              <span className="text-sm" style={{ color: '#64748b' }}>
+                                {new Date(rental.rental_date).toLocaleDateString('fr-FR')}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <span className="font-medium" style={{ color: '#1e293b' }}>
+                                {rental.days}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right hidden lg:table-cell">
+                              <span className="text-sm font-medium" style={{ color: '#9333ea' }}>
+                                {formatCurrency(rental.profit_per_day)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <span className="font-semibold" style={{ color: '#9333ea' }}>
+                                {formatCurrency(rental.amount)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <span className="font-semibold" style={{ color: '#f59e0b' }}>
+                                {formatCurrency(rental.user_profit_amount)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right hidden xl:table-cell">
+                              <span className="font-semibold" style={{ color: '#10b981' }}>
+                                {formatCurrency(rental.company_net_profit)}
+                              </span>
                             </td>
                           </tr>
                         ))}
