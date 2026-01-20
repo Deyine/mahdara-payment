@@ -1,5 +1,6 @@
 class User < ApplicationRecord
   belongs_to :tenant
+  has_many :debts, dependent: :nullify
 
   has_secure_password
 

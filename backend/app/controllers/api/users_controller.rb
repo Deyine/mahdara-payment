@@ -117,11 +117,35 @@ class Api::UsersController < ApplicationController
         }
       end
 
+      # Get all debts for this manager (where user_id matches)
+      debts = tenant_scope(Debt)
+               .where(user_id: manager.id)
+               .order(debt_date: :desc)
+
+      # Calculate debt totals
+      total_owed_to_company = debts.where(direction: 'we_lent').sum { |debt| debt.amount.to_f }
+      total_company_owes = debts.where(direction: 'we_borrowed').sum { |debt| debt.amount.to_f }
+      net_debt = total_owed_to_company - total_company_owes
+
+      # Build debts data
+      debts_data = debts.map do |debt|
+        {
+          id: debt.id,
+          debtor_name: debt.debtor_name,
+          direction: debt.direction,
+          amount: debt.amount.to_f,
+          debt_date: debt.debt_date,
+          notes: debt.notes,
+          created_at: debt.created_at
+        }
+      end
+
       # Calculate total manager profit (from car sales + rentals)
       total_manager_profit = total_user_profit + total_rental_user_profit
 
-      # Calculate available balance (total profit - total cashouts)
-      available_balance = total_manager_profit - total_cashouts
+      # Calculate available balance (total profit - total cashouts - net debt)
+      # net_debt is positive if they owe us, so we subtract it
+      available_balance = total_manager_profit - total_cashouts - total_owed_to_company
 
       {
         user: {
@@ -137,10 +161,14 @@ class Api::UsersController < ApplicationController
         total_rental_amount: total_rental_amount.round(2),
         total_manager_profit: total_manager_profit.round(2),
         total_cashouts: total_cashouts.round(2),
+        total_owed_to_company: total_owed_to_company.round(2),
+        total_company_owes: total_company_owes.round(2),
+        net_debt: net_debt.round(2),
         available_balance: available_balance.round(2),
         cars: cars_data,
         rentals: rentals_data,
-        cashouts: cashouts_data
+        cashouts: cashouts_data,
+        debts: debts_data
       }
     end
 

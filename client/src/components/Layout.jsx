@@ -23,6 +23,7 @@ export default function Layout({ children }) {
     { path: '/', label: 'Tableau de Bord', icon: '📊', adminOnly: false },
     { path: '/cars', label: 'Véhicules', icon: '🚗', adminOnly: false },
     { path: '/profits', label: 'Profits', icon: '💰', adminOnly: false, requireManagerOrAdmin: true },
+    { path: '/debts', label: 'Dettes', icon: '💳', adminOnly: true },
     { path: '/settings', label: 'Paramètres', icon: '⚙️', adminOnly: true },
   ];
 

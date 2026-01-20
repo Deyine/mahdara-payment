@@ -80,5 +80,12 @@ Rails.application.routes.draw do
 
     # Cashouts
     resources :cashouts, only: [:index, :show, :create, :destroy]
+
+    # Debts
+    resources :debts do
+      collection do
+        get 'summary'
+      end
+    end
   end
 end

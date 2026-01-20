@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_20_091704) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_20_101903) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -107,6 +107,22 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_091704) do
     t.index ["cashout_date"], name: "index_cashouts_on_cashout_date"
     t.index ["tenant_id"], name: "index_cashouts_on_tenant_id"
     t.index ["user_id"], name: "index_cashouts_on_user_id"
+  end
+
+  create_table "debts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "tenant_id", null: false
+    t.string "debtor_name", null: false
+    t.bigint "user_id"
+    t.string "direction", null: false
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.date "debt_date", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["debt_date"], name: "index_debts_on_debt_date"
+    t.index ["direction"], name: "index_debts_on_direction"
+    t.index ["tenant_id"], name: "index_debts_on_tenant_id"
+    t.index ["user_id"], name: "index_debts_on_user_id"
   end
 
   create_table "expense_categories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -240,6 +256,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_091704) do
   add_foreign_key "cars", "users", column: "profit_share_user_id"
   add_foreign_key "cashouts", "tenants"
   add_foreign_key "cashouts", "users"
+  add_foreign_key "debts", "tenants"
+  add_foreign_key "debts", "users"
   add_foreign_key "expense_categories", "tenants"
   add_foreign_key "expenses", "cars"
   add_foreign_key "expenses", "expense_categories"

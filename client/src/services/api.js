@@ -218,6 +218,22 @@ export const cashoutsAPI = {
   delete: (id) => api.delete(`/cashouts/${id}`),
 };
 
+// Debts
+export const debtsAPI = {
+  getAll: (userId = null, direction = null) => {
+    const params = new URLSearchParams();
+    if (userId) params.append('user_id', userId);
+    if (direction) params.append('direction', direction);
+    const queryString = params.toString();
+    return api.get(`/debts${queryString ? `?${queryString}` : ''}`);
+  },
+  getSummary: () => api.get('/debts/summary'),
+  getOne: (id) => api.get(`/debts/${id}`),
+  create: (data) => api.post('/debts', { debt: data }),
+  update: (id, data) => api.put(`/debts/${id}`, { debt: data }),
+  delete: (id) => api.delete(`/debts/${id}`),
+};
+
 // Tags
 export const tagsAPI = {
   getAll: () => api.get('/tags'),

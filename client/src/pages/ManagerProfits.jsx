@@ -314,7 +314,7 @@ export default function ManagerProfits() {
                         </button>
                       )}
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       {/* Total Manager Profit */}
                       <div className="bg-blue-50 rounded-lg p-4">
                         <p className="text-sm mb-1" style={{ color: '#64748b' }}>
@@ -332,6 +332,16 @@ export default function ManagerProfits() {
                         </p>
                         <p className="text-xl sm:text-2xl font-bold" style={{ color: '#dc2626' }}>
                           {formatCurrency(managerProfit.total_cashouts)} MRU
+                        </p>
+                      </div>
+
+                      {/* Total Debt Owed to Company */}
+                      <div className="bg-orange-50 rounded-lg p-4">
+                        <p className="text-sm mb-1" style={{ color: '#64748b' }}>
+                          Dettes (vous devez)
+                        </p>
+                        <p className="text-xl sm:text-2xl font-bold" style={{ color: '#ea580c' }}>
+                          {formatCurrency(managerProfit.total_owed_to_company || 0)} MRU
                         </p>
                       </div>
 
@@ -627,6 +637,75 @@ export default function ManagerProfits() {
                                 </button>
                               </td>
                             )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Expandable Debts Table */}
+              {isExpanded && managerProfit.debts && managerProfit.debts.length > 0 && (
+                <div className="border-t" style={{ borderColor: '#e2e8f0' }}>
+                  <div className="px-4 sm:px-6 py-4" style={{ backgroundColor: '#fff7ed' }}>
+                    <h4 className="font-semibold text-sm" style={{ color: '#1e293b' }}>
+                      Historique des Dettes
+                    </h4>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead style={{ backgroundColor: '#fff7ed' }}>
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#64748b' }}>
+                            Date
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium hidden sm:table-cell" style={{ color: '#64748b' }}>
+                            Direction
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-medium" style={{ color: '#64748b' }}>
+                            Montant
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium hidden md:table-cell" style={{ color: '#64748b' }}>
+                            Notes
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y" style={{ borderColor: '#e2e8f0' }}>
+                        {managerProfit.debts.map((debt) => (
+                          <tr
+                            key={debt.id}
+                            style={{ backgroundColor: 'white' }}
+                          >
+                            <td className="px-4 py-3">
+                              <span className="font-medium" style={{ color: '#1e293b' }}>
+                                {new Date(debt.debt_date).toLocaleDateString('fr-FR')}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 hidden sm:table-cell">
+                              <span
+                                className="px-2 py-1 rounded text-xs font-medium"
+                                style={{
+                                  backgroundColor: debt.direction === 'we_lent' ? '#fee2e2' : '#d1fae5',
+                                  color: debt.direction === 'we_lent' ? '#dc2626' : '#10b981'
+                                }}
+                              >
+                                {debt.direction === 'we_lent' ? 'Vous devez' : 'On vous doit'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <span
+                                className="font-semibold"
+                                style={{ color: debt.direction === 'we_lent' ? '#ea580c' : '#10b981' }}
+                              >
+                                {formatCurrency(debt.amount)} MRU
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 hidden md:table-cell">
+                              <span className="text-sm" style={{ color: '#64748b' }}>
+                                {debt.notes || '--'}
+                              </span>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
