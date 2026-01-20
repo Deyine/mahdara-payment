@@ -9,11 +9,18 @@ export default function Debts() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editingDebt, setEditingDebt] = useState(null);
   const [summary, setSummary] = useState({
     total_we_lent: 0,
     total_we_borrowed: 0,
     net_balance: 0
+  });
+  const [importForm, setImportForm] = useState({
+    file: null,
+    debtor_type: 'user',
+    user_id: '',
+    debtor_name: ''
   });
 
   const [formData, setFormData] = useState({
@@ -165,6 +172,75 @@ export default function Debts() {
     }
   };
 
+  const handleOpenImportModal = () => {
+    setImportForm({
+      file: null,
+      debtor_type: 'user',
+      user_id: '',
+      debtor_name: ''
+    });
+    setShowImportModal(true);
+  };
+
+  const handleCloseImportModal = () => {
+    setShowImportModal(false);
+    setImportForm({
+      file: null,
+      debtor_type: 'user',
+      user_id: '',
+      debtor_name: ''
+    });
+  };
+
+  const handleImportSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!importForm.file) {
+      await showAlert('Veuillez sélectionner un fichier CSV', 'error');
+      return;
+    }
+
+    // Determine debtor name
+    let debtorName;
+    if (importForm.debtor_type === 'user' && importForm.user_id) {
+      const selectedUser = users.find(u => u.id === parseInt(importForm.user_id));
+      debtorName = selectedUser ? selectedUser.name : '';
+    } else {
+      debtorName = importForm.debtor_name;
+    }
+
+    if (!debtorName) {
+      await showAlert('Veuillez sélectionner un utilisateur ou saisir un nom', 'error');
+      return;
+    }
+
+    try {
+      const userId = importForm.debtor_type === 'user' ? importForm.user_id : null;
+      const response = await debtsAPI.import(importForm.file, debtorName, userId);
+
+      const { imported_count, errors } = response.data;
+
+      if (errors && errors.length > 0) {
+        await showAlert(
+          `Import terminé: ${imported_count} dettes importées avec ${errors.length} erreur(s)`,
+          'warning'
+        );
+      } else {
+        await showAlert(`${imported_count} dettes importées avec succès`, 'success');
+      }
+
+      handleCloseImportModal();
+      fetchDebts();
+      fetchSummary();
+    } catch (error) {
+      console.error('Error importing debts:', error);
+      await showAlert(
+        error.response?.data?.errors?.[0] || 'Erreur lors de l\'importation',
+        'error'
+      );
+    }
+  };
+
   const filteredDebts = debts.filter(debt => {
     if (filter === 'all') return true;
     if (filter === 'we_lent') return debt.direction === 'we_lent';
@@ -199,15 +275,26 @@ export default function Debts() {
           Gestion des Dettes
         </h1>
         {canWrite && (
-          <button
-            onClick={() => handleOpenModal()}
-            className="px-4 py-2 rounded-lg text-white font-medium transition-colors"
-            style={{ backgroundColor: '#167bff' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0d5fd9'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#167bff'}
-          >
-            + Nouvelle Entrée
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleOpenImportModal}
+              className="px-4 py-2 rounded-lg font-medium transition-colors"
+              style={{ backgroundColor: '#f1f5f9', color: '#1e293b' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+            >
+              📤 Importer CSV
+            </button>
+            <button
+              onClick={() => handleOpenModal()}
+              className="px-4 py-2 rounded-lg text-white font-medium transition-colors"
+              style={{ backgroundColor: '#167bff' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0d5fd9'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#167bff'}
+            >
+              + Nouvelle Entrée
+            </button>
+          </div>
         )}
       </div>
 
@@ -557,6 +644,134 @@ export default function Debts() {
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#167bff'}
                   >
                     {editingDebt ? 'Modifier' : 'Créer'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <h2 className="text-xl font-bold mb-4" style={{ color: '#1e293b' }}>
+                Importer des Dettes (CSV)
+              </h2>
+              <p className="text-sm mb-4" style={{ color: '#64748b' }}>
+                Format CSV attendu: Identifier, Amount, Paid, Currency, Creation date, Concept, Type, Is it settled
+              </p>
+              <p className="text-xs mb-4" style={{ color: '#64748b' }}>
+                • Montants en MRO (seront convertis en MRU)<br />
+                • Type: "I owe" (ils nous doivent) ou "Owes me" (nous leur devons)<br />
+                • Concept utilisé comme notes
+              </p>
+
+              <form onSubmit={handleImportSubmit}>
+                {/* File Selection */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1" style={{ color: '#1e293b' }}>
+                    Fichier CSV <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={(e) => setImportForm({ ...importForm, file: e.target.files[0] })}
+                    className="w-full px-3 py-2 rounded"
+                    style={{ border: '1px solid #cbd5e1' }}
+                    required
+                  />
+                </div>
+
+                {/* Debtor Type Selection */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2" style={{ color: '#1e293b' }}>
+                    Pour qui importer? <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="user"
+                        checked={importForm.debtor_type === 'user'}
+                        onChange={(e) => setImportForm({ ...importForm, debtor_type: e.target.value, debtor_name: '' })}
+                        className="mr-2"
+                      />
+                      <span className="text-sm" style={{ color: '#1e293b' }}>Utilisateur</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="custom"
+                        checked={importForm.debtor_type === 'custom'}
+                        onChange={(e) => setImportForm({ ...importForm, debtor_type: e.target.value, user_id: '' })}
+                        className="mr-2"
+                      />
+                      <span className="text-sm" style={{ color: '#1e293b' }}>Autre personne</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* User Selection or Custom Name */}
+                {importForm.debtor_type === 'user' ? (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1" style={{ color: '#1e293b' }}>
+                      Utilisateur <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={importForm.user_id}
+                      onChange={(e) => setImportForm({ ...importForm, user_id: e.target.value })}
+                      className="w-full px-3 py-2 rounded"
+                      style={{ border: '1px solid #cbd5e1' }}
+                      required
+                    >
+                      <option value="">-- Sélectionner --</option>
+                      {users.map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.name} (@{user.username})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium mb-1" style={{ color: '#1e293b' }}>
+                      Nom <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={importForm.debtor_name}
+                      onChange={(e) => setImportForm({ ...importForm, debtor_name: e.target.value })}
+                      className="w-full px-3 py-2 rounded"
+                      style={{ border: '1px solid #cbd5e1' }}
+                      placeholder="Ex: Ahmed Mohamed"
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCloseImportModal}
+                    className="flex-1 px-4 py-2 rounded-lg font-medium transition-colors"
+                    style={{ backgroundColor: '#f1f5f9', color: '#1e293b' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 rounded-lg font-medium text-white transition-colors"
+                    style={{ backgroundColor: '#167bff' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0d5fd9'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#167bff'}
+                  >
+                    Importer
                   </button>
                 </div>
               </form>

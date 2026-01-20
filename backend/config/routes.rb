@@ -85,6 +85,7 @@ Rails.application.routes.draw do
     resources :debts do
       collection do
         get 'summary'
+        post 'import'
       end
     end
   end

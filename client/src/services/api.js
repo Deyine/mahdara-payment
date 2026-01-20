@@ -232,6 +232,15 @@ export const debtsAPI = {
   create: (data) => api.post('/debts', { debt: data }),
   update: (id, data) => api.put(`/debts/${id}`, { debt: data }),
   delete: (id) => api.delete(`/debts/${id}`),
+  import: (file, debtorName, userId = null) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('debtor_name', debtorName);
+    if (userId) formData.append('user_id', userId);
+    return api.post('/debts/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
 };
 
 // Tags

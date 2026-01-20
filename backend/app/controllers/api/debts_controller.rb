@@ -64,6 +64,83 @@ class Api::DebtsController < ApplicationController
     }
   end
 
+  # POST /api/debts/import - Import debts from CSV
+  def import
+    require 'csv'
+
+    unless params[:file].present?
+      return render json: { errors: ['No file provided'] }, status: :unprocessable_entity
+    end
+
+    unless params[:debtor_name].present?
+      return render json: { errors: ['Debtor name is required'] }, status: :unprocessable_entity
+    end
+
+    debtor_name = params[:debtor_name]
+    user_id = params[:user_id].present? ? params[:user_id].to_i : nil
+
+    file = params[:file]
+    imported_count = 0
+    errors = []
+
+    begin
+      csv_text = file.read.force_encoding('UTF-8')
+      csv = CSV.parse(csv_text, headers: true)
+
+      csv.each_with_index do |row, index|
+        begin
+          # Parse amount (remove currency prefix and commas, convert from MRO to MRU)
+          amount_str = row['Amount'].to_s.gsub(/[A-Z]+/, '').gsub(',', '').strip
+          amount_mro = amount_str.to_f
+          amount_mru = amount_mro / 10.0
+
+          # Parse date
+          debt_date = Date.parse(row['Creation date'])
+
+          # Parse direction based on Type
+          type = row['Type'].to_s.strip
+          direction = case type
+                      when 'I owe'
+                        'we_lent'  # They owe us
+                      when 'Owes me'
+                        'we_borrowed'  # We owe them
+                      else
+                        next # Skip rows with unknown type
+                      end
+
+          # Create debt
+          debt = tenant_scope(Debt).new(
+            debtor_name: debtor_name,
+            user_id: user_id,
+            direction: direction,
+            amount: amount_mru,
+            debt_date: debt_date,
+            notes: row['Concept']
+          )
+          debt.tenant = current_tenant
+
+          if debt.save
+            imported_count += 1
+          else
+            errors << "Row #{index + 2}: #{debt.errors.full_messages.join(', ')}"
+          end
+        rescue => e
+          errors << "Row #{index + 2}: #{e.message}"
+        end
+      end
+
+      render json: {
+        message: "Import completed: #{imported_count} debts imported",
+        imported_count: imported_count,
+        errors: errors
+      }, status: :ok
+    rescue CSV::MalformedCSVError => e
+      render json: { errors: ["Invalid CSV format: #{e.message}"] }, status: :unprocessable_entity
+    rescue => e
+      render json: { errors: ["Import failed: #{e.message}"] }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def set_debt
