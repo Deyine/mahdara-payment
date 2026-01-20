@@ -503,7 +503,7 @@ export default function Debts() {
                       required
                     >
                       <option value="">-- Sélectionner --</option>
-                      {users.map(user => (
+                      {users.filter(u => u.active).map(user => (
                         <option key={user.id} value={user.id}>
                           {user.name} (@{user.username})
                         </option>
@@ -713,7 +713,7 @@ export default function Debts() {
                       required
                     >
                       <option value="">-- Sélectionner --</option>
-                      {users.map(user => (
+                      {users.filter(u => u.active).map(user => (
                         <option key={user.id} value={user.id}>
                           {user.name} (@{user.username})
                         </option>

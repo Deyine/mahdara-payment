@@ -178,14 +178,24 @@ export default function ManagerProfits() {
                     <div className="flex items-center gap-3 mb-2">
                       <div
                         className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold text-white"
-                        style={{ backgroundColor: '#167bff' }}
+                        style={{ backgroundColor: managerProfit.user.active ? '#167bff' : '#94a3b8' }}
                       >
                         {managerProfit.user.name.charAt(0)}
                       </div>
                       <div>
-                        <h2 className="text-lg font-semibold" style={{ color: '#1e293b' }}>
-                          {managerProfit.user.name}
-                        </h2>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-lg font-semibold" style={{ color: '#1e293b' }}>
+                            {managerProfit.user.name}
+                          </h2>
+                          {!managerProfit.user.active && (
+                            <span
+                              className="px-2 py-0.5 rounded text-xs font-medium"
+                              style={{ backgroundColor: '#fee2e2', color: '#dc2626' }}
+                            >
+                              Inactif
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm" style={{ color: '#64748b' }}>
                           @{managerProfit.user.username}
                         </p>
@@ -302,7 +312,7 @@ export default function ManagerProfits() {
                       <h3 className="text-sm font-semibold" style={{ color: '#1e293b' }}>
                         Solde et Retraits
                       </h3>
-                      {canWrite && (
+                      {canWrite && managerProfit.user.active && (
                         <button
                           onClick={() => handleOpenCashoutModal(managerProfit)}
                           className="px-3 py-1.5 rounded-lg text-sm font-medium text-white transition-colors"

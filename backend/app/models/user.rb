@@ -14,6 +14,8 @@ class User < ApplicationRecord
   scope :admins, -> { where(role: 'admin') }
   scope :super_admins, -> { where(role: 'super_admin') }
   scope :managers, -> { where(role: 'manager') }
+  scope :active, -> { where(active: true) }
+  scope :inactive, -> { where(active: false) }
 
   def super_admin?
     role == 'super_admin'

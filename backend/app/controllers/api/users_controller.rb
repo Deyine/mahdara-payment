@@ -151,7 +151,8 @@ class Api::UsersController < ApplicationController
         user: {
           id: manager.id,
           name: manager.name,
-          username: manager.username
+          username: manager.username,
+          active: manager.active
         },
         total_profit: total_profit.round(2),
         total_user_profit: total_user_profit.round(2),
@@ -246,7 +247,7 @@ class Api::UsersController < ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:name, :username, :password, :role)
+    params.require(:user).permit(:name, :username, :password, :role, :active)
   end
 
   def user_json(user)
@@ -255,6 +256,7 @@ class Api::UsersController < ApplicationController
       name: user.name,
       username: user.username,
       role: user.role,
+      active: user.active,
       created_at: user.created_at,
       updated_at: user.updated_at
     }

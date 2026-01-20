@@ -116,6 +116,27 @@ export default function Users() {
     }
   };
 
+  const handleToggleActive = async (user) => {
+    const action = user.active ? 'désactiver' : 'activer';
+    const confirmed = await showConfirm(
+      `Êtes-vous sûr de vouloir ${action} l'utilisateur "${user.name}" ?`,
+      `${action.charAt(0).toUpperCase()}${action.slice(1)} l'utilisateur`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await usersAPI.update(user.id, { active: !user.active });
+      await showAlert(`Utilisateur ${action === 'désactiver' ? 'désactivé' : 'activé'} avec succès`, 'success');
+      fetchUsers();
+    } catch (error) {
+      await showAlert(
+        error.response?.data?.errors?.join(', ') || 'Erreur lors de la modification',
+        'error'
+      );
+    }
+  };
+
   const resetForm = () => {
     setShowForm(false);
     setEditingUser(null);
@@ -190,6 +211,9 @@ export default function Users() {
                 <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
                   Rôle
                 </th>
+                <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
+                  Statut
+                </th>
                 {canWrite && (
                   <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
                     Actions
@@ -237,6 +261,19 @@ export default function Users() {
                         {badge.label}
                       </span>
                     </td>
+                    <td style={{ padding: '12px' }}>
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '4px 10px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        backgroundColor: user.active ? '#dcfce7' : '#fee2e2',
+                        color: user.active ? '#166534' : '#dc2626'
+                      }}>
+                        {user.active ? 'Actif' : 'Inactif'}
+                      </span>
+                    </td>
                     {canWrite && (
                       <td style={{ padding: '12px', textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
@@ -254,6 +291,22 @@ export default function Users() {
                               }}
                             >
                               Modifier
+                            </button>
+                          )}
+                          {canEditUser && !isCurrentUser && (
+                            <button
+                              onClick={() => handleToggleActive(user)}
+                              style={{
+                                padding: '6px 12px',
+                                fontSize: '13px',
+                                backgroundColor: 'white',
+                                border: `1px solid ${user.active ? '#f59e0b' : '#10b981'}`,
+                                color: user.active ? '#f59e0b' : '#10b981',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {user.active ? 'Désactiver' : 'Activer'}
                             </button>
                           )}
                           {canDeleteUser && (
