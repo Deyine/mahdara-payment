@@ -302,7 +302,7 @@ export default function ManagerProfits() {
                       <h3 className="text-sm font-semibold" style={{ color: '#1e293b' }}>
                         Solde et Retraits
                       </h3>
-                      {canWrite && managerProfit.available_balance > 0 && (
+                      {canWrite && (
                         <button
                           onClick={() => handleOpenCashoutModal(managerProfit)}
                           className="px-3 py-1.5 rounded-lg text-sm font-medium text-white transition-colors"
