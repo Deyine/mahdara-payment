@@ -6,6 +6,11 @@ module Api
       user = User.find_by(username: params[:username])
 
       if user&.authenticate(params[:password])
+        # Check if user is active
+        unless user.active
+          return render json: { error: 'Account is inactive. Please contact an administrator.' }, status: :forbidden
+        end
+
         token = JsonWebToken.encode(user_id: user.id)
         render json: {
           token: token,
