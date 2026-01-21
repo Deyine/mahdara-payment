@@ -462,17 +462,15 @@ export default function CarDetail() {
                 ↶ Annuler<span className="hidden sm:inline"> la Vente</span>
               </button>
             )}
-            {canWrite && (
-              <button
-                onClick={() => setShowShareModal(true)}
-                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors"
-                style={{ backgroundColor: '#fafbfc', border: '1px solid #e2e8f0', color: '#475569' }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#f1f5f9'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#fafbfc'}
-              >
-                🔗 <span className="hidden sm:inline">Partager</span>
-              </button>
-            )}
+            <button
+              onClick={() => setShowShareModal(true)}
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors"
+              style={{ backgroundColor: '#fafbfc', border: '1px solid #e2e8f0', color: '#475569' }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#f1f5f9'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#fafbfc'}
+            >
+              🔗 <span className="hidden sm:inline">Partager</span>
+            </button>
             {canWrite && (
               <button
                 onClick={handleEdit}

@@ -1780,6 +1780,204 @@ All errors return JSON with `error` key:
 
 ---
 
+## Car Shares
+
+### List Car Shares
+
+**Endpoint**: `GET /api/car_shares`
+**Access**: Authenticated (admin, super_admin, manager)
+**Description**: Returns all car shares for the current tenant
+
+**Query Parameters**:
+- `car_id=uuid` - Filter shares for a specific car
+
+**Response**:
+```json
+[
+  {
+    "id": "uuid",
+    "token": "abc123xyz789token",
+    "car_id": "uuid",
+    "car_display_name": "#REF-001 Honda Accord 2020",
+    "show_costs": true,
+    "show_expenses": false,
+    "expires_at": "2026-02-01T12:00:00.000Z",
+    "expired": false,
+    "view_count": 15,
+    "share_url": "/share/abc123xyz789token",
+    "created_at": "2026-01-21T10:00:00.000Z",
+    "created_by": {
+      "id": 1,
+      "name": "John Doe"
+    }
+  }
+]
+```
+
+**Notes**:
+- Shares are ordered by created_at DESC (most recent first)
+- Scoped to current user's tenant
+- `expired` is computed based on current time vs expires_at
+
+### Get Single Car Share
+
+**Endpoint**: `GET /api/car_shares/:id`
+**Access**: Authenticated (admin, super_admin, manager)
+
+**Response**: Same as single car share object above
+
+### Create Car Share
+
+**Endpoint**: `POST /api/car_shares`
+**Access**: Authenticated (admin, super_admin, manager)
+**Description**: Create a shareable link for a car
+
+**Request**:
+```json
+{
+  "car_share": {
+    "car_id": "uuid",
+    "show_costs": true,
+    "show_expenses": false,
+    "expires_at": "2026-02-01T12:00:00.000Z"
+  }
+}
+```
+
+**Response** (Success):
+```json
+{
+  "id": "uuid",
+  "token": "abc123xyz789token",
+  "car_id": "uuid",
+  "car_display_name": "#REF-001 Honda Accord 2020",
+  "show_costs": true,
+  "show_expenses": false,
+  "expires_at": "2026-02-01T12:00:00.000Z",
+  "expired": false,
+  "view_count": 0,
+  "share_url": "/share/abc123xyz789token",
+  "created_at": "2026-01-21T10:00:00.000Z",
+  "created_by": {
+    "id": 1,
+    "name": "John Doe"
+  }
+}
+```
+
+**Validation Rules**:
+- `car_id`: required, must exist in tenant
+- `show_costs`: optional, defaults to false
+- `show_expenses`: optional, defaults to false
+- `expires_at`: optional, datetime for expiration
+- `token`: automatically generated (SecureRandom.urlsafe_base64(16))
+- `created_by`: automatically set to current_user
+- `tenant_id`: automatically set from current_user
+
+**Status Codes**:
+- `201 Created` - Success
+- `422 Unprocessable Entity` - Validation error
+
+### Update Car Share
+
+**Endpoint**: `PUT /api/car_shares/:id`
+**Access**: Authenticated (admin, super_admin, manager)
+
+**Request**: Same structure as Create (excluding car_id and token)
+
+**Response**: Updated car share object
+
+### Delete Car Share
+
+**Endpoint**: `DELETE /api/car_shares/:id`
+**Access**: Authenticated (admin, super_admin, manager)
+
+**Response**:
+```json
+{
+  "message": "Lien de partage supprimé"
+}
+```
+
+**Status Codes**:
+- `200 OK` - Success
+- `404 Not Found` - Share not found
+
+### Get Shared Car (Public)
+
+**Endpoint**: `GET /api/public/cars/:token`
+**Access**: Public (no authentication required)
+**Description**: View a publicly shared car via token
+
+**Response**:
+```json
+{
+  "id": "uuid",
+  "vin": "1HGCM82633A123456",
+  "ref": "REF-001",
+  "display_name": "#REF-001 Honda Accord 2020",
+  "year": 2020,
+  "color": "Black",
+  "mileage": 45000,
+  "purchase_date": "2025-12-01",
+  "car_model": {
+    "name": "Honda Accord"
+  },
+  "seller": {
+    "name": "Copart Auto Auction"
+  },
+  "salvage_photos": [
+    {
+      "id": "photo_uuid",
+      "url": "/rails/active_storage/blobs/.../photo.jpg",
+      "filename": "front_damage.jpg"
+    }
+  ],
+  "after_repair_photos": [
+    {
+      "id": "photo_uuid",
+      "url": "/rails/active_storage/blobs/.../repaired.jpg",
+      "filename": "repaired_front.jpg"
+    }
+  ],
+  "share_settings": {
+    "show_costs": true,
+    "show_expenses": false
+  },
+  "costs": {
+    "purchase_price": 8500.0,
+    "clearance_cost": 450.0,
+    "towing_cost": 200.0,
+    "total_expenses": 1050.0,
+    "total_cost": 10200.0
+  }
+}
+```
+
+**Conditional Fields**:
+- `costs`: Only included if `show_costs: true`
+- `expenses`: Only included if `show_expenses: true`
+
+**Response** (Error - invalid/expired token):
+```json
+{
+  "error": "Ce lien de partage n'existe pas ou a expiré"
+}
+```
+
+**Status Codes**:
+- `200 OK` - Success
+- `404 Not Found` - Invalid or expired token
+
+**Notes**:
+- No authentication required
+- Increments view_count on each access
+- Returns 404 if token doesn't exist or share is expired
+- Always visible: vehicle info, salvage_photos, after_repair_photos
+- Optional: costs, expenses (based on share settings)
+
+---
+
 ## Route Summary
 
 | Method | Endpoint | Access | Description |
@@ -1816,6 +2014,8 @@ All errors return JSON with `error` key:
 | GET/POST/PUT/DELETE | `/api/payments` | Auth/Admin | Payment CRUD |
 | GET/POST/PUT/DELETE | `/api/rental_transactions` | Auth/Admin | Rental transaction CRUD |
 | POST | `/api/rental_transactions/:id/complete` | Admin | Complete rental transaction |
+| GET/POST/PUT/DELETE | `/api/car_shares` | Auth | Car share CRUD |
+| GET | `/api/public/cars/:token` | Public | View shared car (no auth) |
 
 **Legend**:
 

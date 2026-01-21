@@ -2,7 +2,6 @@ class Api::CarSharesController < ApplicationController
   include MultiTenantable
 
   before_action :authenticate_user!
-  before_action :require_admin
   before_action :set_car_share, only: [:show, :update, :destroy]
 
   # GET /api/car_shares
