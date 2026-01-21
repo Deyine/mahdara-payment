@@ -282,6 +282,14 @@ export const projectExpensesAPI = {
   create: (data) => api.post('/project_expenses', { project_expense: data }),
   update: (id, data) => api.put(`/project_expenses/${id}`, { project_expense: data }),
   delete: (id) => api.delete(`/project_expenses/${id}`),
+  import: (file, projectId) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('project_id', projectId);
+    return api.post('/project_expenses/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
 };
 
 export default api;

@@ -10,11 +10,14 @@ export default function Projects() {
   const [loading, setLoading] = useState(true);
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [editingExpense, setEditingExpense] = useState(null);
   const [currentProject, setCurrentProject] = useState(null);
   const [expandedProjects, setExpandedProjects] = useState({});
   const [projectExpenses, setProjectExpenses] = useState({});
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [importing, setImporting] = useState(false);
 
   const [projectFormData, setProjectFormData] = useState({
     name: '',
@@ -228,6 +231,57 @@ export default function Projects() {
     });
   };
 
+  const handleImportClick = (project) => {
+    setCurrentProject(project);
+    setSelectedFile(null);
+    setShowImportModal(true);
+  };
+
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.files[0]);
+  };
+
+  const handleImportSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedFile) {
+      await showAlert('Veuillez sélectionner un fichier CSV', 'error');
+      return;
+    }
+
+    try {
+      setImporting(true);
+      const response = await projectExpensesAPI.import(selectedFile, currentProject.id);
+
+      // Show success message with details
+      const message = response.data.errors && response.data.errors.length > 0
+        ? `${response.data.message}\n\nErreurs:\n${response.data.errors.join('\n')}`
+        : response.data.message;
+
+      await showAlert(message, 'success');
+
+      // Refresh data
+      fetchProjects();
+      await fetchProjectExpenses(currentProject.id);
+
+      // Reset and close
+      resetImportForm();
+    } catch (error) {
+      await showAlert(
+        error.response?.data?.error || 'Erreur lors de l\'import',
+        'error'
+      );
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const resetImportForm = () => {
+    setShowImportModal(false);
+    setCurrentProject(null);
+    setSelectedFile(null);
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <div style={{
@@ -372,21 +426,38 @@ export default function Projects() {
                               <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>
                                 Dépenses du projet
                               </h4>
-                              <button
-                                onClick={() => handleCreateExpense(project)}
-                                style={{
-                                  backgroundColor: '#10b981',
-                                  color: 'white',
-                                  padding: '6px 12px',
-                                  borderRadius: '4px',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  fontSize: '13px',
-                                  fontWeight: '500'
-                                }}
-                              >
-                                + Ajouter Dépense
-                              </button>
+                              <div style={{ display: 'flex', gap: '10px' }}>
+                                <button
+                                  onClick={() => handleImportClick(project)}
+                                  style={{
+                                    backgroundColor: '#f59e0b',
+                                    color: 'white',
+                                    padding: '6px 12px',
+                                    borderRadius: '4px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '13px',
+                                    fontWeight: '500'
+                                  }}
+                                >
+                                  📁 Importer CSV
+                                </button>
+                                <button
+                                  onClick={() => handleCreateExpense(project)}
+                                  style={{
+                                    backgroundColor: '#10b981',
+                                    color: 'white',
+                                    padding: '6px 12px',
+                                    borderRadius: '4px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '13px',
+                                    fontWeight: '500'
+                                  }}
+                                >
+                                  + Ajouter Dépense
+                                </button>
+                              </div>
                             </div>
 
                             {!projectExpenses[project.id] || projectExpenses[project.id].length === 0 ? (
@@ -804,6 +875,120 @@ export default function Projects() {
                   }}
                 >
                   {editingExpense ? 'Modifier' : 'Ajouter'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Import CSV Modal */}
+      {showImportModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1001
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '30px',
+            maxWidth: '500px',
+            width: '100%'
+          }}>
+            <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '18px', fontWeight: 'bold' }}>
+              Importer des dépenses (CSV)
+            </h3>
+
+            <div style={{
+              marginBottom: '20px',
+              padding: '15px',
+              backgroundColor: '#f0f9ff',
+              borderRadius: '6px',
+              fontSize: '13px',
+              color: '#1e293b'
+            }}>
+              <p style={{ margin: '0 0 10px 0', fontWeight: '600' }}>Format du fichier CSV:</p>
+              <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                <li>Colonne 1: <strong>date</strong> (YYYY-MM-DD)</li>
+                <li>Colonne 2: <strong>description</strong> (texte)</li>
+                <li>Colonne 3: <strong>amount</strong> (nombre)</li>
+              </ul>
+              <p style={{ margin: '10px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                Les dépenses seront automatiquement assignées à la catégorie "Import"
+              </p>
+            </div>
+
+            <form onSubmit={handleImportSubmit}>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '5px',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}>
+                  Fichier CSV *
+                </label>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    border: '1px solid #ddd',
+                    fontSize: '14px'
+                  }}
+                />
+                {selectedFile && (
+                  <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#10b981' }}>
+                    ✓ {selectedFile.name}
+                  </p>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={resetImportForm}
+                  disabled={importing}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    border: '1px solid #ddd',
+                    backgroundColor: 'white',
+                    cursor: importing ? 'not-allowed' : 'pointer',
+                    fontSize: '14px',
+                    opacity: importing ? 0.5 : 1
+                  }}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={importing}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: '#f59e0b',
+                    color: 'white',
+                    cursor: importing ? 'not-allowed' : 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    opacity: importing ? 0.5 : 1
+                  }}
+                >
+                  {importing ? 'Import en cours...' : 'Importer'}
                 </button>
               </div>
             </form>

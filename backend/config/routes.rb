@@ -104,6 +104,10 @@ Rails.application.routes.draw do
     end
 
     # Project Expenses
-    resources :project_expenses
+    resources :project_expenses do
+      collection do
+        post 'import'
+      end
+    end
   end
 end
