@@ -292,4 +292,27 @@ export const projectExpensesAPI = {
   },
 };
 
+// Car Shares (authenticated)
+export const carSharesAPI = {
+  getAll: (carId = null) => {
+    const params = carId ? `?car_id=${carId}` : '';
+    return api.get(`/car_shares${params}`);
+  },
+  getOne: (id) => api.get(`/car_shares/${id}`),
+  create: (data) => api.post('/car_shares', { car_share: data }),
+  update: (id, data) => api.put(`/car_shares/${id}`, { car_share: data }),
+  delete: (id) => api.delete(`/car_shares/${id}`),
+};
+
+// Public API (no authentication required)
+export const publicAPI = {
+  getSharedCar: (token) => {
+    // Create a new axios instance without auth interceptor for public access
+    const publicAxios = axios.create({
+      baseURL: API_URL,
+    });
+    return publicAxios.get(`/public/cars/${token}`);
+  },
+};
+
 export default api;

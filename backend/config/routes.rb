@@ -109,5 +109,13 @@ Rails.application.routes.draw do
         post 'import'
       end
     end
+
+    # Car Shares (authenticated CRUD)
+    resources :car_shares, only: [:index, :show, :create, :update, :destroy]
+
+    # Public endpoints (no authentication required)
+    namespace :public do
+      get 'cars/:token', to: 'public#show_car', as: :shared_car
+    end
   end
 end

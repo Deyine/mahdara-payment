@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_20_223142) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_21_102508) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -52,6 +52,25 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_223142) do
     t.index ["active"], name: "index_car_models_on_active"
     t.index ["tenant_id", "name"], name: "index_car_models_on_tenant_id_and_name", unique: true
     t.index ["tenant_id"], name: "index_car_models_on_tenant_id"
+  end
+
+  create_table "car_shares", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "tenant_id", null: false
+    t.uuid "car_id", null: false
+    t.bigint "created_by_id", null: false
+    t.string "token", null: false
+    t.boolean "show_costs", default: false, null: false
+    t.boolean "show_expenses", default: false, null: false
+    t.datetime "expires_at"
+    t.integer "view_count", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["car_id", "tenant_id"], name: "index_car_shares_on_car_id_and_tenant_id"
+    t.index ["car_id"], name: "index_car_shares_on_car_id"
+    t.index ["created_by_id"], name: "index_car_shares_on_created_by_id"
+    t.index ["expires_at"], name: "index_car_shares_on_expires_at"
+    t.index ["tenant_id"], name: "index_car_shares_on_tenant_id"
+    t.index ["token"], name: "index_car_shares_on_token", unique: true
   end
 
   create_table "car_tags", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -288,6 +307,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_223142) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "car_models", "tenants"
+  add_foreign_key "car_shares", "cars"
+  add_foreign_key "car_shares", "tenants"
+  add_foreign_key "car_shares", "users", column: "created_by_id"
   add_foreign_key "car_tags", "cars"
   add_foreign_key "car_tags", "tags"
   add_foreign_key "cars", "car_models"
