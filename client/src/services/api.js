@@ -252,4 +252,36 @@ export const tagsAPI = {
   delete: (id) => api.delete(`/tags/${id}`),
 };
 
+// Project Expense Categories
+export const projectExpenseCategoriesAPI = {
+  getAll: () => api.get('/project_expense_categories'),
+  getActive: () => api.get('/project_expense_categories/active'),
+  getOne: (id) => api.get(`/project_expense_categories/${id}`),
+  create: (data) => api.post('/project_expense_categories', { project_expense_category: data }),
+  update: (id, data) => api.put(`/project_expense_categories/${id}`, { project_expense_category: data }),
+  delete: (id) => api.delete(`/project_expense_categories/${id}`),
+};
+
+// Projects
+export const projectsAPI = {
+  getAll: () => api.get('/projects'),
+  getActive: () => api.get('/projects/active'),
+  getOne: (id) => api.get(`/projects/${id}`),
+  create: (data) => api.post('/projects', { project: data }),
+  update: (id, data) => api.put(`/projects/${id}`, { project: data }),
+  delete: (id) => api.delete(`/projects/${id}`),
+};
+
+// Project Expenses
+export const projectExpensesAPI = {
+  getAll: (projectId = null) => {
+    const params = projectId ? { project_id: projectId } : {};
+    return api.get('/project_expenses', { params });
+  },
+  getOne: (id) => api.get(`/project_expenses/${id}`),
+  create: (data) => api.post('/project_expenses', { project_expense: data }),
+  update: (id, data) => api.put(`/project_expenses/${id}`, { project_expense: data }),
+  delete: (id) => api.delete(`/project_expenses/${id}`),
+};
+
 export default api;

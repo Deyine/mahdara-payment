@@ -88,5 +88,22 @@ Rails.application.routes.draw do
         post 'import'
       end
     end
+
+    # Projects
+    resources :projects do
+      collection do
+        get 'active'
+      end
+    end
+
+    # Project Expense Categories
+    resources :project_expense_categories do
+      collection do
+        get 'active'
+      end
+    end
+
+    # Project Expenses
+    resources :project_expenses
   end
 end

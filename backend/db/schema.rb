@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_20_165920) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_20_223142) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -181,6 +181,45 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_165920) do
     t.index ["tenant_id"], name: "index_payments_on_tenant_id"
   end
 
+  create_table "project_expense_categories", force: :cascade do |t|
+    t.uuid "tenant_id", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_project_expense_categories_on_active"
+    t.index ["tenant_id", "name"], name: "index_project_expense_categories_on_tenant_id_and_name", unique: true
+    t.index ["tenant_id"], name: "index_project_expense_categories_on_tenant_id"
+  end
+
+  create_table "project_expenses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "tenant_id", null: false
+    t.uuid "project_id", null: false
+    t.integer "project_expense_category_id", null: false
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.date "expense_date", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expense_date"], name: "index_project_expenses_on_expense_date"
+    t.index ["project_expense_category_id"], name: "index_project_expenses_on_project_expense_category_id"
+    t.index ["project_id", "expense_date"], name: "index_project_expenses_on_project_id_and_expense_date"
+    t.index ["project_id"], name: "index_project_expenses_on_project_id"
+    t.index ["tenant_id"], name: "index_project_expenses_on_tenant_id"
+  end
+
+  create_table "projects", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "tenant_id", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "name"], name: "index_projects_on_tenant_id_and_name", unique: true
+    t.index ["tenant_id"], name: "index_projects_on_tenant_id"
+  end
+
   create_table "rental_transactions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "tenant_id", null: false
     t.uuid "car_id", null: false
@@ -267,6 +306,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_165920) do
   add_foreign_key "payments", "cars"
   add_foreign_key "payments", "payment_methods"
   add_foreign_key "payments", "tenants"
+  add_foreign_key "project_expense_categories", "tenants"
+  add_foreign_key "project_expenses", "project_expense_categories"
+  add_foreign_key "project_expenses", "projects"
+  add_foreign_key "project_expenses", "tenants"
+  add_foreign_key "projects", "tenants"
   add_foreign_key "rental_transactions", "cars"
   add_foreign_key "rental_transactions", "tenants"
   add_foreign_key "rental_transactions", "users", column: "profit_share_user_id"

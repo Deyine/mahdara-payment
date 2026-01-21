@@ -16,6 +16,8 @@ import PaymentMethods from './pages/PaymentMethods';
 import Tags from './pages/Tags';
 import Users from './pages/Users';
 import Debts from './pages/Debts';
+import Projects from './pages/Projects';
+import ProjectExpenseCategories from './pages/ProjectExpenseCategories';
 
 function PrivateRoute({ children, requireAdmin = false }) {
   const { user, loading } = useAuth();
@@ -89,6 +91,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/projects"
+        element={
+          <PrivateRoute requireAdmin>
+            <Projects />
+          </PrivateRoute>
+        }
+      />
+      <Route
         path="/debts"
         element={
           <PrivateRoute requireAdmin>
@@ -111,6 +121,7 @@ function AppRoutes() {
         <Route path="payment-methods" element={<PaymentMethods />} />
         <Route path="tags" element={<Tags />} />
         <Route path="users" element={<Users />} />
+        <Route path="project-expense-categories" element={<ProjectExpenseCategories />} />
       </Route>
     </Routes>
   );
