@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDialog } from '../context/DialogContext';
 import { useAuth } from '../context/AuthContext';
+import FullscreenPhotoViewer from './FullscreenPhotoViewer';
 
 /**
  * PhotoGallery Component
@@ -22,7 +23,7 @@ export default function PhotoGallery({
 }) {
   const { canWrite } = useAuth();
   const { showAlert, showConfirm } = useDialog();
-  const [fullscreenImage, setFullscreenImage] = useState(null);
+  const [fullscreenIndex, setFullscreenIndex] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [previews, setPreviews] = useState([]);
   const swiperRef = useRef(null);
@@ -49,7 +50,7 @@ export default function PhotoGallery({
   // Keyboard navigation for swiper
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (!fullscreenImage && swiperRef.current) {
+      if (fullscreenIndex === null && swiperRef.current) {
         if (e.key === 'ArrowLeft' && canScrollLeft) {
           scroll('left');
         } else if (e.key === 'ArrowRight' && canScrollRight) {
@@ -59,7 +60,7 @@ export default function PhotoGallery({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [canScrollLeft, canScrollRight, fullscreenImage]);
+  }, [canScrollLeft, canScrollRight, fullscreenIndex]);
 
   // Scroll swiper left or right
   const scroll = (direction) => {
@@ -211,17 +212,6 @@ export default function PhotoGallery({
       );
     }
   };
-
-  // ESC key handler for fullscreen viewer
-  useEffect(() => {
-    const handleEscKey = (e) => {
-      if (e.key === 'Escape' && fullscreenImage) {
-        setFullscreenImage(null);
-      }
-    };
-    window.addEventListener('keydown', handleEscKey);
-    return () => window.removeEventListener('keydown', handleEscKey);
-  }, [fullscreenImage]);
 
   return (
     <div>
@@ -421,7 +411,7 @@ export default function PhotoGallery({
                     height: '150px',
                     objectFit: 'cover'
                   }}
-                  onClick={() => setFullscreenImage(photo)}
+                  onClick={() => setFullscreenIndex(photos.findIndex(p => p.id === photo.id))}
                   title="Cliquez pour voir en plein écran"
                 />
 
@@ -457,33 +447,13 @@ export default function PhotoGallery({
         </div>
       )}
 
-      {/* Fullscreen Image Viewer */}
-      {fullscreenImage && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-          onClick={() => setFullscreenImage(null)}
-        >
-          <button
-            onClick={() => setFullscreenImage(null)}
-            className="absolute top-4 right-4 p-2 rounded-full transition-colors"
-            style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'white' }}
-          >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          <div className="max-w-7xl max-h-full" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={fullscreenImage.url}
-              alt={fullscreenImage.filename}
-              className="max-w-full max-h-[90vh] object-contain rounded-lg"
-            />
-            <p className="text-center mt-4 text-white font-medium">
-              {fullscreenImage.filename}
-            </p>
-          </div>
-        </div>
+      {/* Fullscreen Photo Viewer */}
+      {fullscreenIndex !== null && (
+        <FullscreenPhotoViewer
+          photos={photos}
+          initialIndex={fullscreenIndex}
+          onClose={() => setFullscreenIndex(null)}
+        />
       )}
     </div>
   );

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { publicAPI } from '../services/api';
+import FullscreenPhotoViewer from '../components/FullscreenPhotoViewer';
 
 // Simple number formatter for public page (self-contained)
 const formatNumber = (value, decimals = 2) => {
@@ -20,7 +21,31 @@ export default function SharedCar() {
   const [car, setCar] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [fullscreenIndex, setFullscreenIndex] = useState(null);
+
+  // Combine all photos (salvage + after repair) into a single array
+  const allPhotos = useMemo(() => {
+    if (!car) return [];
+    const photos = [];
+
+    // Add salvage photos with a type marker
+    if (car.salvage_photos) {
+      photos.push(...car.salvage_photos.map(photo => ({
+        ...photo,
+        type: 'salvage'
+      })));
+    }
+
+    // Add after repair photos with a type marker
+    if (car.after_repair_photos) {
+      photos.push(...car.after_repair_photos.map(photo => ({
+        ...photo,
+        type: 'after_repair'
+      })));
+    }
+
+    return photos;
+  }, [car]);
 
   useEffect(() => {
     fetchSharedCar();
@@ -70,31 +95,20 @@ export default function SharedCar() {
     );
   }
 
+  // Helper function to get photo index in the combined array
+  const getPhotoIndex = (photo, type) => {
+    return allPhotos.findIndex(p => p.id === photo.id && p.type === type);
+  };
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#fafbfc' }}>
-      {/* Fullscreen photo viewer */}
-      {selectedPhoto && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
-          onClick={() => setSelectedPhoto(null)}
-        >
-          <button
-            onClick={() => setSelectedPhoto(null)}
-            className="absolute top-4 right-4 text-white p-2 rounded-full"
-            style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-          >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          <img
-            src={selectedPhoto}
-            alt="Photo"
-            className="max-h-[90vh] max-w-[90vw] object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+      {/* Fullscreen Photo Viewer */}
+      {fullscreenIndex !== null && (
+        <FullscreenPhotoViewer
+          photos={allPhotos}
+          initialIndex={fullscreenIndex}
+          onClose={() => setFullscreenIndex(null)}
+        />
       )}
 
       <div className="max-w-5xl mx-auto px-4 py-8">
@@ -201,7 +215,8 @@ export default function SharedCar() {
                   key={photo.id}
                   className="relative cursor-pointer overflow-hidden rounded-lg"
                   style={{ aspectRatio: '4/3' }}
-                  onClick={() => setSelectedPhoto(photo.url)}
+                  onClick={() => setFullscreenIndex(getPhotoIndex(photo, 'salvage'))}
+                  title="Cliquez pour voir en plein écran"
                 >
                   <img
                     src={photo.url}
@@ -229,7 +244,8 @@ export default function SharedCar() {
                   key={photo.id}
                   className="relative cursor-pointer overflow-hidden rounded-lg"
                   style={{ aspectRatio: '4/3' }}
-                  onClick={() => setSelectedPhoto(photo.url)}
+                  onClick={() => setFullscreenIndex(getPhotoIndex(photo, 'after_repair'))}
+                  title="Cliquez pour voir en plein écran"
                 >
                   <img
                     src={photo.url}
