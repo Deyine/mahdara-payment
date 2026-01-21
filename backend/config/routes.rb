@@ -114,8 +114,6 @@ Rails.application.routes.draw do
     resources :car_shares, only: [:index, :show, :create, :update, :destroy]
 
     # Public endpoints (no authentication required)
-    namespace :public do
-      get 'cars/:token', to: 'public#show_car', as: :shared_car
-    end
+    get 'public/cars/:token', to: 'public#show_car', as: :public_shared_car
   end
 end
