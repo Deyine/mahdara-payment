@@ -287,7 +287,7 @@ export default function SharedCar() {
 
         {/* Footer */}
         <div className="text-center py-8" style={{ color: '#94a3b8' }}>
-          <p className="text-sm">Partage via Glamova</p>
+          <p className="text-sm">Partage via BestCar</p>
         </div>
       </div>
     </div>
