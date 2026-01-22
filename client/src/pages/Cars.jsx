@@ -217,7 +217,8 @@ export default function Cars() {
     const matchesSearch = car.vin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       car.car_model?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       car.color?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      car.seller?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      car.seller?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      car.year?.toString().includes(searchTerm);
 
     if (!matchesSearch) return false;
 
@@ -313,7 +314,7 @@ export default function Cars() {
       <div style={{ marginBottom: '20px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
         <input
           type="text"
-          placeholder="Rechercher par VIN, modèle, couleur, vendeur..."
+          placeholder="Rechercher par VIN, modèle, année, couleur, vendeur..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{
