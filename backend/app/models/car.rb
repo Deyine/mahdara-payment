@@ -130,9 +130,9 @@ class Car < ApplicationRecord
       return false
     end
 
-    # Close any active rentals before reverting to active
-    if active_rental
-      errors.add(:base, 'Cannot mark as available: car has an active rental')
+    # Can only unsell a sold car (not a rental)
+    unless status == 'sold'
+      errors.add(:base, 'Can only mark sold cars as available')
       return false
     end
 
