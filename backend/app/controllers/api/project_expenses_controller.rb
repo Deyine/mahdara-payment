@@ -73,16 +73,26 @@ class Api::ProjectExpensesController < ApplicationController
 
     begin
       csv_content = params[:file].read.force_encoding('UTF-8')
-      CSV.parse(csv_content, headers: true) do |row|
+
+      # Auto-detect separator by counting occurrences in first line
+      first_line = csv_content.lines.first || ''
+      comma_count = first_line.count(',')
+      semicolon_count = first_line.count(';')
+      separator = semicolon_count > comma_count ? ';' : ','
+
+      CSV.parse(csv_content, headers: true, col_sep: separator) do |row|
         # Expected columns: date, description, amount
         expense_date = row['date'] || row['Date']
         description = row['description'] || row['Description']
-        amount = row['amount'] || row['Amount'] || row['Montant']
+        raw_amount = row['amount'] || row['Amount'] || row['Montant']
 
-        if expense_date.blank? || amount.blank?
+        if expense_date.blank? || raw_amount.blank?
           errors << "Ligne ignorée: date ou montant manquant"
           next
         end
+
+        # Clean amount: remove spaces (thousand separators) and handle comma as decimal
+        cleaned_amount = raw_amount.to_s.gsub(/\s/, '').gsub(',', '.')
 
         expense = tenant_scope(ProjectExpense).new(
           tenant: current_tenant,
@@ -90,15 +100,19 @@ class Api::ProjectExpensesController < ApplicationController
           project_expense_category: import_category,
           expense_date: expense_date,
           description: description,
-          amount: amount
+          amount: cleaned_amount
         )
 
         if expense.save
           imported_count += 1
         else
-          errors << "Erreur ligne: #{expense.errors.full_messages.join(', ')}"
+          error_msg = "Erreur ligne: #{expense.errors.full_messages.join(', ')}"
+          errors << error_msg
+          Rails.logger.warn "[ProjectExpenses Import] #{error_msg}"
         end
       end
+
+      Rails.logger.info "[ProjectExpenses Import] Completed: #{imported_count} imported, #{errors.size} errors"
 
       render json: {
         message: "#{imported_count} dépense(s) importée(s) avec succès",
@@ -107,8 +121,10 @@ class Api::ProjectExpensesController < ApplicationController
       }, status: :ok
 
     rescue CSV::MalformedCSVError => e
+      Rails.logger.error "[ProjectExpenses Import] CSV Malformed: #{e.message}"
       render json: { error: "Fichier CSV invalide: #{e.message}" }, status: :unprocessable_entity
     rescue => e
+      Rails.logger.error "[ProjectExpenses Import] Exception: #{e.class} - #{e.message}\n#{e.backtrace.first(5).join("\n")}"
       render json: { error: "Erreur lors de l'import: #{e.message}" }, status: :unprocessable_entity
     end
   end
