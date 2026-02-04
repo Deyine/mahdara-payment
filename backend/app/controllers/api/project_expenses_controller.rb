@@ -91,8 +91,13 @@ class Api::ProjectExpensesController < ApplicationController
           next
         end
 
-        # Clean amount: remove spaces (thousand separators) and handle comma as decimal
-        cleaned_amount = raw_amount.to_s.gsub(/\s/, '').gsub(',', '.')
+        # Clean amount: remove all whitespace including non-breaking spaces, and handle comma as decimal
+        cleaned_amount = raw_amount.to_s
+          .gsub(/[[:space:]]/, '')  # Remove all Unicode whitespace (including non-breaking spaces)
+          .gsub(/[^\d.,\-]/, '')    # Keep only digits, dots, commas, minus
+          .gsub(',', '.')           # Replace comma with dot for decimal
+
+        Rails.logger.debug "[ProjectExpenses Import] Amount: '#{raw_amount}' -> '#{cleaned_amount}'"
 
         expense = tenant_scope(ProjectExpense).new(
           tenant: current_tenant,
