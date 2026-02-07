@@ -1,0 +1,43 @@
+{
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "retry": "إعادة المحاولة",
+    "noPhoto": "لا توجد صورة",
+    "price": "السعر",
+    "mileage": "المسافة المقطوعة",
+    "year": "السنة",
+    "color": "اللون",
+    "model": "الموديل"
+  },
+  "catalog": {
+    "title": "الكتالوج",
+    "filterAll": "الكل",
+    "filterAvailable": "متاح",
+    "filterSold": "مباع",
+    "noCars": "لا توجد سيارات متاحة",
+    "pullToRefresh": "اسحب للتحديث",
+    "loadingMore": "جاري التحميل..."
+  },
+  "carDetail": {
+    "title": "تفاصيل السيارة",
+    "details": "التفاصيل",
+    "color": "اللون",
+    "mileage": "المسافة المقطوعة",
+    "year": "السنة",
+    "model": "الموديل",
+    "salvagePhotos": "الصور الأصلية",
+    "afterRepairPhotos": "الصور بعد الإصلاح",
+    "noPhotos": "لا توجد صور",
+    "sold": "مباع"
+  },
+  "status": {
+    "available": "متاح",
+    "sold": "مباع"
+  },
+  "settings": {
+    "language": "اللغة",
+    "french": "Français",
+    "arabic": "العربية"
+  }
+}

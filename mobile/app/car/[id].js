@@ -11,6 +11,7 @@ import {
   FlatList,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { getCar } from '../../services/api';
 import { colors } from '../../constants/theme';
 import { formatPrice, formatMileage } from '../../utils/formatters';
@@ -21,6 +22,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function CarDetailScreen() {
   const { id } = useLocalSearchParams();
+  const { t } = useTranslation();
   const [car, setCar] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,12 +36,12 @@ export default function CarDetailScreen() {
         const data = await getCar(id);
         setCar(data);
       } catch {
-        setError('Impossible de charger ce véhicule');
+        setError(t('common.error'));
       } finally {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, t]);
 
   if (loading) {
     return (
@@ -52,7 +54,7 @@ export default function CarDetailScreen() {
   if (error || !car) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>{error || 'Véhicule non trouvé'}</Text>
+        <Text style={styles.errorText}>{error || t('common.error')}</Text>
       </View>
     );
   }
@@ -99,7 +101,7 @@ export default function CarDetailScreen() {
           </View>
         ) : (
           <View style={[styles.heroImage, styles.placeholder]}>
-            <Text style={styles.placeholderText}>Pas de photo</Text>
+            <Text style={styles.placeholderText}>{t('common.noPhoto')}</Text>
           </View>
         )}
 
@@ -118,17 +120,17 @@ export default function CarDetailScreen() {
 
           {/* Details grid */}
           <View style={styles.detailsGrid}>
-            <DetailItem label="Couleur" value={car.color || '—'} />
-            <DetailItem label="Kilométrage" value={formatMileage(car.mileage)} />
-            <DetailItem label="Année" value={car.year?.toString() || '—'} />
-            <DetailItem label="Modèle" value={car.car_model?.name || '—'} />
+            <DetailItem label={t('carDetail.color')} value={car.color || '—'} />
+            <DetailItem label={t('carDetail.mileage')} value={formatMileage(car.mileage)} />
+            <DetailItem label={t('carDetail.year')} value={car.year?.toString() || '—'} />
+            <DetailItem label={t('carDetail.model')} value={car.car_model?.name || '—'} />
           </View>
         </View>
 
         {/* After repair photos */}
         {car.after_repair_photos?.length > 0 && (
           <PhotoSection
-            title="Photos après réparation"
+            title={t('carDetail.afterRepairPhotos')}
             photos={car.after_repair_photos}
             onPhotoPress={(index) => openViewer(car.after_repair_photos, index)}
           />
@@ -137,7 +139,7 @@ export default function CarDetailScreen() {
         {/* Salvage photos */}
         {car.salvage_photos?.length > 0 && (
           <PhotoSection
-            title="Photos avant réparation"
+            title={t('carDetail.salvagePhotos')}
             photos={car.salvage_photos}
             onPhotoPress={(index) => openViewer(car.salvage_photos, index)}
           />

@@ -13,5 +13,7 @@ export function formatNumber(num) {
 
 export function formatMileage(km) {
   if (km == null) return '—';
-  return `${formatNumber(km)} km`;
+  // Convert km to miles (1 km = 0.621371 mi)
+  const miles = Math.round(km * 0.621371);
+  return `${formatNumber(miles)} mi`;
 }

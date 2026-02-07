@@ -8,17 +8,13 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { getCatalog } from '../services/api';
 import { colors } from '../constants/theme';
 import CarCard from '../components/CarCard';
 
-const FILTERS = [
-  { key: 'all', label: 'Tous' },
-  { key: 'active', label: 'Disponible' },
-  { key: 'sold', label: 'Vendu' },
-];
-
 export default function CatalogScreen() {
+  const { t } = useTranslation();
   const [cars, setCars] = useState([]);
   const [filter, setFilter] = useState('all');
   const [page, setPage] = useState(1);
@@ -27,6 +23,12 @@ export default function CatalogScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
+
+  const FILTERS = [
+    { key: 'all', label: t('catalog.filterAll') },
+    { key: 'active', label: t('catalog.filterAvailable') },
+    { key: 'sold', label: t('catalog.filterSold') },
+  ];
 
   const fetchCars = useCallback(async (pageNum = 1, isRefresh = false) => {
     try {
@@ -42,13 +44,13 @@ export default function CatalogScreen() {
       setTotalPages(data.meta.total_pages);
       setPage(pageNum);
     } catch (err) {
-      setError('Impossible de charger le catalogue');
+      setError(t('common.error'));
     } finally {
       setLoading(false);
       setRefreshing(false);
       setLoadingMore(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchCars(1);
@@ -82,7 +84,7 @@ export default function CatalogScreen() {
       <View style={styles.center}>
         <Text style={styles.errorText}>{error}</Text>
         <Pressable style={styles.retryButton} onPress={() => { setLoading(true); fetchCars(1); }}>
-          <Text style={styles.retryText}>Réessayer</Text>
+          <Text style={styles.retryText}>{t('common.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -123,7 +125,7 @@ export default function CatalogScreen() {
         }
         ListEmptyComponent={
           <View style={styles.center}>
-            <Text style={styles.emptyText}>Aucun véhicule trouvé</Text>
+            <Text style={styles.emptyText}>{t('catalog.noCars')}</Text>
           </View>
         }
       />
