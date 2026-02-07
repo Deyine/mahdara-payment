@@ -29,6 +29,10 @@ class CarSerializer
       sale_price: @car.sale_price&.to_f,
       sale_date: @car.sale_date,
 
+      # Catalog fields
+      published: @car.published,
+      listing_price: @car.listing_price&.to_f,
+
       # Calculated fields
       total_expenses: @car.total_expenses,
       total_cost: @car.total_cost,

@@ -43,7 +43,9 @@ export default function CarDetail() {
     location: '',
     clearance_cost: '',
     towing_cost: '',
-    tag_ids: []
+    tag_ids: [],
+    published: false,
+    listing_price: ''
   });
 
   useEffect(() => {
@@ -276,7 +278,9 @@ export default function CarDetail() {
       location: car.location || '',
       clearance_cost: car.clearance_cost || '',
       towing_cost: car.towing_cost || '',
-      tag_ids: car.tags ? car.tags.map(tag => tag.id) : []
+      tag_ids: car.tags ? car.tags.map(tag => tag.id) : [],
+      published: car.published || false,
+      listing_price: car.listing_price || ''
     });
     setShowEditForm(true);
   };
@@ -312,7 +316,9 @@ export default function CarDetail() {
       location: '',
       clearance_cost: '',
       towing_cost: '',
-      tag_ids: []
+      tag_ids: [],
+      published: false,
+      listing_price: ''
     });
   };
 
@@ -1020,6 +1026,44 @@ export default function CarDetail() {
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Catalogue Public */}
+              <div className="border-t pt-4 mt-4" style={{ borderColor: '#e2e8f0' }}>
+                <h4 className="font-medium mb-3" style={{ color: '#1e293b', fontSize: '14px' }}>
+                  Catalogue Public
+                </h4>
+
+                <label className="flex items-center gap-3 cursor-pointer mb-3">
+                  <input
+                    type="checkbox"
+                    checked={formData.published}
+                    onChange={(e) => setFormData({...formData, published: e.target.checked})}
+                    className="w-5 h-5"
+                    style={{ accentColor: '#167bff' }}
+                  />
+                  <span style={{ color: '#475569', fontSize: '14px' }}>Publier dans le catalogue</span>
+                </label>
+
+                {car.status === 'active' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1" style={{ color: '#475569' }}>
+                      Prix catalogue (MRU)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.listing_price}
+                      onChange={(e) => setFormData({...formData, listing_price: e.target.value})}
+                      className="w-full px-4 py-3 rounded-lg transition-colors"
+                      style={{ border: '1px solid #e2e8f0', color: '#1e293b' }}
+                      onFocus={(e) => e.target.style.borderColor = '#167bff'}
+                      onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                      placeholder="Prix affiché dans le catalogue"
+                      step="0.01"
+                      min="0"
+                    />
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>

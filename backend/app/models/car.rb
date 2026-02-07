@@ -37,6 +37,9 @@ class Car < ApplicationRecord
   validates :profit_share_percentage, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
   validate :profit_share_user_belongs_to_tenant
 
+  # Listing price validation
+  validates :listing_price, numericality: { greater_than: 0 }, allow_nil: true
+
   # Photo validations (max 5MB per photo)
   validate :salvage_photos_size_validation
   validate :after_repair_photos_size_validation
@@ -59,6 +62,10 @@ class Car < ApplicationRecord
   # Rental scopes
   scope :rented, -> { where(status: 'rental') }
   scope :available_for_rental, -> { where(status: 'active') }
+
+  # Catalog scopes
+  scope :published, -> { where(published: true) }
+  scope :catalog, -> { published.active.where(status: %w[active sold]) }
 
   def total_cost
     base = purchase_price.to_f

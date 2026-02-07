@@ -115,5 +115,7 @@ Rails.application.routes.draw do
 
     # Public endpoints (no authentication required)
     get 'public/cars/:token', to: 'public#show_car', as: :public_shared_car
+    get 'public/catalog', to: 'catalog#index', as: :public_catalog
+    get 'public/catalog/:id', to: 'catalog#show', as: :public_catalog_car
   end
 end

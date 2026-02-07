@@ -16,4 +16,14 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
       expose: ["Authorization"],
       max_age: 600
   end
+
+  # Public catalog: allow from any origin (mobile app, future web catalog)
+  allow do
+    origins "*"
+
+    resource "/api/public/*",
+      headers: :any,
+      methods: [:get, :options, :head],
+      max_age: 600
+  end
 end

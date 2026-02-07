@@ -1148,19 +1148,67 @@ end
 CSV files can use either comma (`,`) or semicolon (`;`) as separator. The backend auto-detects:
 
 ```ruby
-# In candidates_controller.rb
-csv_text = params[:file].read.force_encoding('UTF-8')
+csv_content = params[:file].read.force_encoding('UTF-8')
 
 # Detect separator by counting occurrences in first line
-first_line = csv_text.lines.first || ''
+first_line = csv_content.lines.first || ''
 comma_count = first_line.count(',')
 semicolon_count = first_line.count(';')
 separator = semicolon_count > comma_count ? ';' : ','
 
-csv = CSV.parse(csv_text, headers: false, col_sep: separator)
+CSV.parse(csv_content, headers: true, col_sep: separator) do |row|
+  # Process row...
+end
 ```
 
 **Why**: European Excel exports use semicolon separators by default.
+
+### Amount Cleaning Pattern
+
+Amounts from CSV/Excel may contain spaces (thousand separators) or non-breaking spaces. Clean them before saving:
+
+```ruby
+# Clean amount: remove all whitespace including non-breaking spaces
+cleaned_amount = raw_amount.to_s
+  .gsub(/[[:space:]]/, '')  # Remove all Unicode whitespace (including non-breaking spaces)
+  .gsub(/[^\d.,\-]/, '')    # Keep only digits, dots, commas, minus
+  .gsub(',', '.')           # Replace comma with dot for decimal
+
+Rails.logger.debug "[Import] Amount: '#{raw_amount}' -> '#{cleaned_amount}'"
+```
+
+**Handles**:
+- Regular spaces: `100 000` → `100000`
+- Non-breaking spaces (Excel): `100 000` → `100000`
+- Comma decimals: `1 234,56` → `1234.56`
+- Currency symbols: `€100` → `100`
+
+### Import Logging Pattern
+
+Always log import operations for debugging:
+
+```ruby
+begin
+  # ... import logic ...
+
+  if record.save
+    imported_count += 1
+  else
+    error_msg = "Erreur ligne: #{record.errors.full_messages.join(', ')}"
+    errors << error_msg
+    Rails.logger.warn "[Import] #{error_msg}"
+  end
+
+  Rails.logger.info "[Import] Completed: #{imported_count} imported, #{errors.size} errors"
+
+rescue CSV::MalformedCSVError => e
+  Rails.logger.error "[Import] CSV Malformed: #{e.message}"
+  render json: { error: "Fichier CSV invalide: #{e.message}" }, status: :unprocessable_entity
+rescue => e
+  Rails.logger.error "[Import] Exception: #{e.class} - #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+  render json: { error: "Erreur lors de l'import: #{e.message}" }, status: :unprocessable_entity
+end
+```
 
 ## Performance Best Practices
 

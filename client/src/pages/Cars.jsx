@@ -711,6 +711,18 @@ export default function Cars() {
                               EN STOCK
                             </span>
                           )}
+                          {car.published && !car.deleted && (
+                            <span style={{
+                              backgroundColor: '#dbeafe',
+                              color: '#1d4ed8',
+                              padding: '1px 5px',
+                              borderRadius: '3px',
+                              fontSize: '9px',
+                              fontWeight: '600'
+                            }}>
+                              PUBLIÉ
+                            </span>
+                          )}
                           {/* Tags */}
                           {car.tags && car.tags.length > 0 && car.tags.map((tag) => (
                             <span
@@ -1004,6 +1016,19 @@ export default function Cars() {
                     display: 'inline-block'
                   }}>
                     ⚠️ TROP-PERÇU
+                  </div>
+                )}
+                {car.published && !car.deleted && (
+                  <div style={{
+                    backgroundColor: '#dbeafe',
+                    color: '#1d4ed8',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    display: 'inline-block'
+                  }}>
+                    PUBLIÉ
                   </div>
                 )}
               </div>

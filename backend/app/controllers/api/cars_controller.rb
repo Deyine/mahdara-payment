@@ -215,6 +215,7 @@ class Api::CarsController < ApplicationController
       :purchase_date, :purchase_price, :seller_id,
       :clearance_cost, :towing_cost,
       :profit_share_user_id, :profit_share_percentage,
+      :published, :listing_price,
       salvage_photos: [],
       after_repair_photos: [],
       invoices: [],
