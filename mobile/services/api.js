@@ -1,7 +1,8 @@
 const DEV_URL = 'http://localhost:3061/api';
 const PROD_URL = 'https://api.bestcar-mr.com/api';
 
-const BASE_URL = __DEV__ ? DEV_URL : PROD_URL;
+// Force production URL (change to __DEV__ ? DEV_URL : PROD_URL to auto-detect)
+const BASE_URL = PROD_URL;
 
 async function request(path, params = {}) {
   const url = new URL(`${BASE_URL}${path}`);

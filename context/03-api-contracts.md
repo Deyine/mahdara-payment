@@ -1978,6 +1978,109 @@ All errors return JSON with `error` key:
 
 ---
 
+## Public Catalog API
+
+Public endpoints for the mobile app. No authentication required. CORS configured to allow any origin.
+
+### List Catalog
+
+**Endpoint**: `GET /api/public/catalog`
+**Access**: Public (no auth)
+**Description**: Returns paginated list of published cars
+
+**Query Parameters**:
+
+- `page` (optional): Page number, default 1
+- `per_page` (optional): Items per page, default 20, max 50
+
+**Request**: None (GET request)
+
+**Response**:
+
+```json
+{
+  "cars": [
+    {
+      "id": "uuid",
+      "display_name": "Honda Accord 2019",
+      "year": 2019,
+      "color": "Silver",
+      "mileage": 85000,
+      "status": "active",
+      "price": 5000.0,
+      "car_model": {
+        "name": "Honda Accord"
+      },
+      "tenant_name": "BestCar Nouakchott",
+      "salvage_photos": [
+        {
+          "id": "photo_uuid",
+          "url": "https://api.bestcar-mr.com/rails/active_storage/blobs/.../photo.jpg",
+          "filename": "salvage_front.jpg"
+        }
+      ],
+      "after_repair_photos": [
+        {
+          "id": "photo_uuid",
+          "url": "https://api.bestcar-mr.com/rails/active_storage/blobs/.../repaired.jpg",
+          "filename": "repaired_front.jpg"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total_count": 42,
+    "total_pages": 3
+  }
+}
+```
+
+**Status Codes**:
+
+- `200 OK` - Success
+
+**Notes**:
+
+- Only returns cars where `published: true` and `deleted_at: null`
+- Only returns cars with status "active" or "sold"
+- Shows all published cars across ALL tenants (no tenant filtering)
+- `price` field shows `listing_price` for active cars, `sale_price` for sold cars
+- Photo URLs are absolute (full URLs with domain)
+- VIN, costs, expenses, and invoices are NOT included (public-safe)
+- Ordered by `updated_at DESC`
+
+### Get Catalog Car
+
+**Endpoint**: `GET /api/public/catalog/:id`
+**Access**: Public (no auth)
+**Description**: Returns single car details from catalog
+
+**Request**: None (GET request with car ID in URL)
+
+**Response**: Single car object (same format as list endpoint)
+
+**Response** (Error - not found):
+
+```json
+{
+  "error": "Véhicule non trouvé"
+}
+```
+
+**Status Codes**:
+
+- `200 OK` - Success
+- `404 Not Found` - Car not found or not published
+
+**Notes**:
+
+- Returns 404 if car is not published, deleted, or has wrong status
+- Same data restrictions as list endpoint (no VIN, costs, etc.)
+
+---
+
 ## Route Summary
 
 | Method | Endpoint | Access | Description |
@@ -2016,6 +2119,8 @@ All errors return JSON with `error` key:
 | POST | `/api/rental_transactions/:id/complete` | Admin | Complete rental transaction |
 | GET/POST/PUT/DELETE | `/api/car_shares` | Auth | Car share CRUD |
 | GET | `/api/public/cars/:token` | Public | View shared car (no auth) |
+| GET | `/api/public/catalog` | Public | List published cars (catalog) |
+| GET | `/api/public/catalog/:id` | Public | View single catalog car |
 
 **Legend**:
 

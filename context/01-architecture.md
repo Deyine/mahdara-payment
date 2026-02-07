@@ -12,7 +12,7 @@
 - **HTTP Client**: httparty ~> 0.21 for fetching images from URLs
 - **Image Processing**: image_processing ~> 1.2 with Active Storage
 
-### Frontend
+### Frontend (Admin Dashboard)
 - **Library**: React 19
 - **Build Tool**: Vite 7
 - **Router**: React Router DOM v6
@@ -22,6 +22,18 @@
 - **Language**: French UI with LTR layout
 - **Localization**: French dates (`fr-FR`)
 - **Dialogs**: Custom DialogContext (no native alert/confirm)
+
+### Mobile (Public Catalog)
+
+- **Framework**: React Native 0.81.5
+- **Platform**: Expo SDK 54
+- **Node Version**: 22.16.0
+- **Router**: expo-router ~6.0.23 (file-based navigation)
+- **HTTP Client**: Native fetch API
+- **Styling**: StyleSheet.create with inline styles
+- **Design System**: Custom theme (colors, fonts)
+- **Language**: French UI
+- **Target**: iOS & Android (via Expo Go)
 
 ## Project Structure
 
@@ -37,6 +49,7 @@ bestcar/
 │   │   │       ├── auth_controller.rb
 │   │   │       ├── dashboard_controller.rb
 │   │   │       ├── cars_controller.rb
+│   │   │       ├── catalog_controller.rb   # Public catalog API
 │   │   │       ├── car_models_controller.rb
 │   │   │       ├── expense_categories_controller.rb
 │   │   │       └── expenses_controller.rb
@@ -89,13 +102,35 @@ bestcar/
 │   ├── package.json
 │   └── vite.config.js
 │
+├── mobile/                      # React Native mobile app (Expo)
+│   ├── app/                     # expo-router screens
+│   │   ├── _layout.js          # Root navigation layout
+│   │   ├── index.js            # Catalog list screen
+│   │   └── car/
+│   │       └── [id].js         # Car detail screen
+│   ├── components/
+│   │   ├── CarCard.js          # Catalog card component
+│   │   ├── StatusBadge.js      # Status badge
+│   │   └── PhotoViewer.js      # Fullscreen photo viewer
+│   ├── services/
+│   │   └── api.js              # Fetch-based API client
+│   ├── constants/
+│   │   └── theme.js            # Design tokens
+│   ├── utils/
+│   │   └── formatters.js       # Price & mileage formatters
+│   ├── assets/                 # Images & icons
+│   ├── app.json                # Expo configuration
+│   ├── package.json
+│   └── .nvmrc                  # Node 22.16.0
+│
 └── context/                     # Agent documentation
     ├── 00-project-identity.md
     ├── 01-architecture.md       # This file
     ├── 02-conventions.md
     ├── 03-api-contracts.md
     ├── 04-boundaries.md
-    └── 05-operating-rules.md
+    ├── 05-operating-rules.md
+    └── 06-mobile-app.md         # Mobile app documentation
 ```
 
 ## Database Schema
