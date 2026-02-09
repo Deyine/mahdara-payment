@@ -1525,6 +1525,318 @@ try {
 
 ---
 
+---
+
+## Time Tracking Management
+
+### Rule 19: Time Tracking Namespace Isolation
+
+**CRITICAL**: Time tracking is completely isolated from car management via `TimeTracking::` namespace.
+
+**Implementation**:
+- All models use `TimeTracking::` module prefix
+- Separate database tables with `time_tracking_` prefix
+- Only shares `Tenant` and `User` concepts with main application
+- No cross-domain relationships or dependencies
+
+**Models**:
+```ruby
+module TimeTracking
+  class Project < ApplicationRecord
+    self.table_name = 'time_tracking_projects'
+  end
+
+  class Task < ApplicationRecord
+    self.table_name = 'time_tracking_tasks'
+  end
+
+  class TimeEntry < ApplicationRecord
+    self.table_name = 'time_tracking_time_entries'
+  end
+end
+```
+
+**Why This Matters**:
+- Clear separation of concerns
+- Can evolve independently
+- No naming conflicts
+- Easy to extract as separate service if needed
+
+---
+
+### Rule 20: Time Tracking Multi-Tenant Scoping
+
+**CRITICAL**: All time tracking data is tenant-scoped, following same patterns as car management.
+
+**Implementation**:
+```ruby
+# All models include tenant scoping
+belongs_to :tenant
+scope :for_tenant, ->(tenant_id) { where(tenant_id: tenant_id) }
+
+# Controllers use tenant_scope
+def index
+  @projects = tenant_scope(::TimeTracking::Project).includes(:user, :tasks)
+end
+```
+
+**Validation**:
+```ruby
+# Project label unique per tenant
+validates :label, uniqueness: {
+  scope: [:tenant_id],
+  conditions: -> { where(deleted_at: nil) }
+}
+```
+
+---
+
+### Rule 21: Time Tracking Soft Deletion
+
+**CRITICAL**: All time tracking entities use soft deletion, same as car management.
+
+**Implementation**:
+```ruby
+# All models include soft delete
+scope :active, -> { where(deleted_at: nil) }
+scope :deleted, -> { where.not(deleted_at: nil) }
+
+def soft_delete!
+  update(deleted_at: Time.current)
+end
+
+def restore!
+  update(deleted_at: nil)
+end
+```
+
+**Soft Delete Behavior**:
+- Projects can be soft-deleted even with tasks
+- Tasks can be soft-deleted even with time entries
+- Time entries can be soft-deleted
+- Deleted items excluded from default queries
+- Can be restored via restore! method
+
+---
+
+### Rule 22: Timer Functionality Rules
+
+**CRITICAL**: Timer functionality enforces single running entry per user.
+
+**One Running Entry Rule**:
+```ruby
+# Validation in TimeEntry model
+validate :no_other_running_entries_for_user, on: :create
+
+def no_other_running_entries_for_user
+  if end_time.nil? && user_id.present?
+    running = TimeEntry.active
+      .where(user_id: user_id, end_time: nil)
+      .where.not(id: id)
+      .exists?
+
+    if running
+      errors.add(:base, 'A time entry is already running for this user')
+    end
+  end
+end
+```
+
+**Timer Lifecycle**:
+```
+1. User starts timer (POST /api/time_tracking/time_entries)
+   - Creates entry with start_time, no end_time
+   - running = true (end_time is nil)
+   - Only one running entry allowed per user
+
+2. Timer runs (tracked client-side)
+   - Frontend calculates elapsed time in real-time
+   - No server polling required
+
+3. User stops timer (POST /api/time_tracking/time_entries/:id/stop)
+   - Sets end_time (current time or provided)
+   - Calculates duration_seconds
+   - running = false
+
+4. Duration persisted
+   - duration_seconds = (end_time - start_time).to_i
+   - duration_formatted = "Xh Ym"
+```
+
+**Duration Calculation**:
+```ruby
+# Before save callback
+before_save :calculate_duration
+
+def calculate_duration
+  if end_time && start_time
+    self.duration_seconds = (end_time - start_time).to_i
+  end
+end
+
+# Helper method
+def duration_formatted
+  return "0h 0m" unless duration_seconds.present? && duration_seconds > 0
+
+  hours = duration_seconds / 3600
+  minutes = (duration_seconds % 3600) / 60
+  "#{hours}h #{minutes}m"
+end
+```
+
+---
+
+### Rule 23: Time Tracking Access Control
+
+**CRITICAL**: Different permission model than car management.
+
+**Project & Task Permissions**:
+- **Read**: All authenticated users (admin, super_admin, manager)
+- **Write** (create, update, delete): Admin only
+- **Restore**: Admin only
+
+**Time Entry Permissions**:
+- **Read**: All authenticated users see their own entries (managers), admin sees all
+- **Create** (start timer): All authenticated users
+- **Update**: Entry owner or admin
+- **Delete**: Entry owner or admin
+- **Stop**: Entry owner only
+
+**Implementation**:
+```ruby
+# ProjectsController
+before_action :require_admin, except: [:index, :show]
+
+# TasksController
+before_action :require_admin, except: [:index, :show]
+
+# TimeEntriesController
+def index
+  entries_scope = tenant_scope(::TimeTracking::TimeEntry)
+
+  # Managers only see their own entries
+  unless current_user.admin? || current_user.super_admin?
+    entries_scope = entries_scope.for_user(current_user.id)
+  end
+
+  @entries = entries_scope.includes(:task, :user).all
+end
+
+def stop
+  # Only owner can stop their timer
+  unless @entry.user_id == current_user.id
+    render json: { error: 'Forbidden' }, status: :forbidden
+    return
+  end
+
+  # Stop logic...
+end
+```
+
+**Why Different**:
+- Projects/tasks are organizational (admin manages)
+- Time tracking is personal (all users track their own time)
+- Supports collaborative time tracking within projects
+
+---
+
+### Rule 24: Task Position Auto-Assignment
+
+**CRITICAL**: Tasks are ordered by position, auto-incremented on creation.
+
+**Implementation**:
+```ruby
+# Task model
+before_create :set_position
+
+def set_position
+  return if position.present? && position >= 0
+
+  max_position = project.tasks.unscope(:order).active.maximum(:position).to_i
+  self.position = max_position + 1
+end
+```
+
+**Position Behavior**:
+- New tasks appended to end (max_position + 1)
+- Position persists even if earlier tasks deleted
+- Can be manually reordered via update
+- Scoped to project and active tasks only
+
+---
+
+### Rule 25: Time Aggregation Rules
+
+**CRITICAL**: Time totals calculated from time entry durations.
+
+**Project Total Time**:
+```ruby
+# Project model
+def total_time_seconds
+  tasks.active.joins(:time_entries)
+    .where(time_tracking_time_entries: { deleted_at: nil })
+    .sum(:duration_seconds)
+    .to_i
+end
+
+def total_time_formatted
+  return "0h 0m" if total_time_seconds == 0
+
+  hours = total_time_seconds / 3600
+  minutes = (total_time_seconds % 3600) / 60
+  "#{hours}h #{minutes}m"
+end
+```
+
+**Task Total Time**:
+```ruby
+# Task model
+def total_time_seconds
+  time_entries.active.sum(:duration_seconds).to_i
+end
+
+def entries_count
+  time_entries.active.count
+end
+```
+
+**Calculation Rules**:
+- Only includes active (non-deleted) time entries
+- Running entries (end_time = nil) excluded from totals
+- Totals updated when entries created/updated/deleted/stopped
+- Formatted as "Xh Ym" for display
+
+---
+
+### Rule 26: Time Entry Validation Rules
+
+**Required Fields**:
+- `task_id`: required, must belong to tenant
+- `title`: required
+- `start_time`: required
+- `user_id`: auto-set to current_user
+
+**Optional Fields**:
+- `end_time`: optional, must be after start_time if provided
+- `notes`: optional
+- `duration_seconds`: auto-calculated
+
+**Validation**:
+```ruby
+validates :task_id, presence: true
+validates :title, presence: true
+validates :start_time, presence: true
+validate :end_time_after_start_time
+
+def end_time_after_start_time
+  if end_time.present? && start_time.present? && end_time <= start_time
+    errors.add(:end_time, 'must be after start time')
+  end
+end
+```
+
+---
+
 ## Summary of Critical Rules
 
 ### Multi-Tenant System
@@ -1533,6 +1845,7 @@ try {
 3. ✅ Car models and expense categories are tenant-specific
 4. ✅ Cross-tenant access returns 404 (prevents data leakage)
 5. ✅ Super admin manages tenants, admin manages tenant data
+6. ✅ Time tracking data also tenant-scoped with namespace isolation
 
 ### Car Management
 1. ✅ Total cost = purchase_price + clearance + towing + expenses
@@ -1554,11 +1867,21 @@ try {
 4. ✅ Cannot delete models with associated cars
 5. ✅ Cannot delete categories with associated expenses
 
+### Time Tracking
+1. ✅ Complete namespace isolation (TimeTracking::)
+2. ✅ Multi-tenant scoped (same patterns as car management)
+3. ✅ Soft deletion for all entities
+4. ✅ One running timer per user at a time
+5. ✅ Admin manages projects/tasks, all users track time
+6. ✅ Task position auto-incremented on creation
+7. ✅ Time totals calculated from completed entries only
+
 ### Authorization
 1. ✅ Admin role required for: create, update, delete operations
 2. ✅ Super admin role required for: tenant management
 3. ✅ Read access available to all authenticated users
 4. ✅ Frontend hides UI, backend enforces security
+5. ✅ Time tracking: admin for structure, all users for personal time
 
 ### Data Integrity
 1. ✅ All tenant-scoped queries use tenant_scope(Model)

@@ -110,6 +110,27 @@ Rails.application.routes.draw do
       end
     end
 
+    # Time Tracking (namespaced)
+    namespace :time_tracking do
+      resources :projects do
+        member do
+          post 'restore'
+        end
+      end
+
+      resources :tasks do
+        member do
+          post 'complete'
+        end
+      end
+
+      resources :time_entries do
+        member do
+          post 'stop'
+        end
+      end
+    end
+
     # Car Shares (authenticated CRUD)
     resources :car_shares, only: [:index, :show, :create, :update, :destroy]
 

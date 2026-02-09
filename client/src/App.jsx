@@ -19,6 +19,9 @@ import Debts from './pages/Debts';
 import Projects from './pages/Projects';
 import ProjectExpenseCategories from './pages/ProjectExpenseCategories';
 import SharedCar from './pages/SharedCar';
+import TimeTrackingProjects from './pages/TimeTracking/Projects';
+import TimeTrackingProjectDetail from './pages/TimeTracking/ProjectDetail';
+import TimeTrackingTaskDetail from './pages/TimeTracking/TaskDetail';
 
 function PrivateRoute({ children, requireAdmin = false }) {
   const { user, loading } = useAuth();
@@ -90,6 +93,30 @@ function AppRoutes() {
         element={
           <PrivateRoute>
             <ManagerProfits />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/time-tracking"
+        element={
+          <PrivateRoute>
+            <TimeTrackingProjects />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/time-tracking/projects/:id"
+        element={
+          <PrivateRoute>
+            <TimeTrackingProjectDetail />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/time-tracking/tasks/:id"
+        element={
+          <PrivateRoute>
+            <TimeTrackingTaskDetail />
           </PrivateRoute>
         }
       />

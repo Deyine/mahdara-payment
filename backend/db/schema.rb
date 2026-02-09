@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_07_132053) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_09_111121) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -293,6 +293,61 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_07_132053) do
     t.index ["subdomain"], name: "index_tenants_on_subdomain", unique: true
   end
 
+  create_table "time_tracking_projects", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "tenant_id", null: false
+    t.bigint "user_id", null: false
+    t.string "label", null: false
+    t.text "description"
+    t.string "status", default: "active", null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deleted_at"], name: "index_time_tracking_projects_on_deleted_at"
+    t.index ["status"], name: "index_time_tracking_projects_on_status"
+    t.index ["tenant_id", "label"], name: "index_time_tracking_projects_on_tenant_and_label", unique: true, where: "(deleted_at IS NULL)"
+    t.index ["tenant_id"], name: "index_time_tracking_projects_on_tenant_id"
+    t.index ["user_id"], name: "index_time_tracking_projects_on_user_id"
+  end
+
+  create_table "time_tracking_tasks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "tenant_id", null: false
+    t.uuid "project_id", null: false
+    t.bigint "user_id", null: false
+    t.string "title", null: false
+    t.text "description"
+    t.integer "position", default: 0, null: false
+    t.string "status", default: "active", null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deleted_at"], name: "index_time_tracking_tasks_on_deleted_at"
+    t.index ["project_id", "position"], name: "index_time_tracking_tasks_on_project_id_and_position"
+    t.index ["project_id"], name: "index_time_tracking_tasks_on_project_id"
+    t.index ["status"], name: "index_time_tracking_tasks_on_status"
+    t.index ["tenant_id"], name: "index_time_tracking_tasks_on_tenant_id"
+    t.index ["user_id"], name: "index_time_tracking_tasks_on_user_id"
+  end
+
+  create_table "time_tracking_time_entries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "tenant_id", null: false
+    t.uuid "task_id", null: false
+    t.bigint "user_id", null: false
+    t.string "title", null: false
+    t.datetime "start_time", null: false
+    t.datetime "end_time"
+    t.integer "duration_seconds"
+    t.text "notes"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["deleted_at"], name: "index_time_tracking_time_entries_on_deleted_at"
+    t.index ["task_id", "start_time"], name: "index_time_tracking_time_entries_on_task_id_and_start_time"
+    t.index ["task_id"], name: "index_time_tracking_time_entries_on_task_id"
+    t.index ["tenant_id"], name: "index_time_tracking_time_entries_on_tenant_id"
+    t.index ["user_id", "start_time"], name: "index_time_tracking_time_entries_on_user_id_and_start_time"
+    t.index ["user_id"], name: "index_time_tracking_time_entries_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "name", null: false
     t.string "username", null: false
@@ -341,5 +396,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_07_132053) do
   add_foreign_key "rental_transactions", "users", column: "profit_share_user_id"
   add_foreign_key "sellers", "tenants"
   add_foreign_key "tags", "tenants"
+  add_foreign_key "time_tracking_projects", "tenants"
+  add_foreign_key "time_tracking_projects", "users"
+  add_foreign_key "time_tracking_tasks", "tenants"
+  add_foreign_key "time_tracking_tasks", "time_tracking_projects", column: "project_id"
+  add_foreign_key "time_tracking_tasks", "users"
+  add_foreign_key "time_tracking_time_entries", "tenants"
+  add_foreign_key "time_tracking_time_entries", "time_tracking_tasks", column: "task_id"
+  add_foreign_key "time_tracking_time_entries", "users"
   add_foreign_key "users", "tenants"
 end

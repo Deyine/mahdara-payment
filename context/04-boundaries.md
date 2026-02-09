@@ -754,6 +754,368 @@ useEffect(() => {
 
 ---
 
+---
+
+## Time Tracking Integration
+
+### Time Tracking API Service
+
+**File**: `client/src/services/api.js`
+
+Added timeTrackingAPI object with three sub-groups:
+
+```javascript
+export const timeTrackingAPI = {
+  projects: {
+    getAll: () => api.get('/time_tracking/projects'),
+    getOne: (id) => api.get(`/time_tracking/projects/${id}`),
+    create: (data) => api.post('/time_tracking/projects', { project: data }),
+    update: (id, data) => api.put(`/time_tracking/projects/${id}`, { project: data }),
+    delete: (id) => api.delete(`/time_tracking/projects/${id}`),
+    restore: (id) => api.post(`/time_tracking/projects/${id}/restore`),
+  },
+  tasks: {
+    getAll: (filters) => api.get('/time_tracking/tasks', { params: filters }),
+    getOne: (id) => api.get(`/time_tracking/tasks/${id}`),
+    create: (data) => api.post('/time_tracking/tasks', { task: data }),
+    update: (id, data) => api.put(`/time_tracking/tasks/${id}`, { task: data }),
+    delete: (id) => api.delete(`/time_tracking/tasks/${id}`),
+    complete: (id) => api.post(`/time_tracking/tasks/${id}/complete`),
+  },
+  timeEntries: {
+    getAll: (filters) => api.get('/time_tracking/time_entries', { params: filters }),
+    getOne: (id) => api.get(`/time_tracking/time_entries/${id}`),
+    create: (data) => api.post('/time_tracking/time_entries', { time_entry: data }),
+    update: (id, data) => api.put(`/time_tracking/time_entries/${id}`, { time_entry: data }),
+    delete: (id) => api.delete(`/time_tracking/time_entries/${id}`),
+    stop: (id, endTime = null) => api.post(`/time_tracking/time_entries/${id}/stop`, { end_time: endTime }),
+  },
+};
+```
+
+---
+
+### Time Tracking Pages
+
+**Three Main Pages**:
+
+1. **Projects List** (`client/src/pages/TimeTracking/Projects.jsx`)
+   - Lists all time tracking projects in a table
+   - Admin can create/edit/delete projects
+   - Click project to view details
+
+2. **Project Detail** (`client/src/pages/TimeTracking/ProjectDetail.jsx`)
+   - Shows project header with stats (total time, tasks count)
+   - Lists tasks within project
+   - Admin can create/edit/delete/complete tasks
+   - Click task to view details
+
+3. **Task Detail** (`client/src/pages/TimeTracking/TaskDetail.jsx`)
+   - Shows task header with stats (total time, entries count)
+   - Displays running timer if active
+   - Start/stop timer buttons
+   - Lists all time entries for task
+   - Users can delete their own entries
+
+---
+
+### Timer State Management
+
+**Pattern**: Client-side real-time duration calculation for running timers.
+
+**Implementation** (TaskDetail.jsx):
+
+```javascript
+const [runningEntry, setRunningEntry] = useState(null);
+const [currentTime, setCurrentTime] = useState(Date.now());
+
+// Fetch entries and identify running entry
+const fetchTimeEntries = async () => {
+  const response = await timeTrackingAPI.timeEntries.getAll({ taskId: id });
+  setTimeEntries(response.data);
+
+  // Find running entry (end_time is null)
+  const running = response.data.find(entry => entry.running);
+  setRunningEntry(running || null);
+};
+
+// Update current time every second for live display
+useEffect(() => {
+  if (!runningEntry) return;
+
+  const timer = setInterval(() => {
+    setCurrentTime(Date.now());
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, [runningEntry]);
+
+// Calculate elapsed time in real-time
+const getElapsedTime = (startTime) => {
+  const start = new Date(startTime);
+  const now = new Date(currentTime);
+  const seconds = Math.floor((now - start) / 1000);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return `${hours}h ${minutes}m`;
+};
+```
+
+**Display**:
+```jsx
+{runningEntry && (
+  <div>
+    <div>⏱️ Chronomètre en cours</div>
+    <div>{getElapsedTime(runningEntry.start_time)}</div>
+    <button onClick={() => handleStopTimer(runningEntry)}>
+      Arrêter
+    </button>
+  </div>
+)}
+```
+
+**Why Client-Side**:
+- No server polling required
+- Instant updates every second
+- Reduces backend load
+- Server only called on start/stop
+
+---
+
+### Timer Workflow Integration
+
+**Start Timer Flow**:
+
+```javascript
+const handleStartTimer = async () => {
+  try {
+    const data = {
+      task_id: id,
+      title: 'Session de travail',
+      start_time: new Date().toISOString()
+    };
+
+    await timeTrackingAPI.timeEntries.create(data);
+    await showAlert('Chronomètre démarré', 'success');
+
+    // Refetch to get running entry
+    fetchTimeEntries();
+    fetchTask(); // Update task totals
+  } catch (error) {
+    const message = error.response?.data?.errors?.[0]
+      || error.response?.data?.error
+      || 'Erreur lors du démarrage';
+    await showAlert(message, 'error');
+  }
+};
+```
+
+**Stop Timer Flow**:
+
+```javascript
+const handleStopTimer = async (entry) => {
+  try {
+    // Server calculates duration from start_time to now
+    await timeTrackingAPI.timeEntries.stop(entry.id);
+    await showAlert('Chronomètre arrêté', 'success');
+
+    // Refetch to update durations and totals
+    fetchTimeEntries();
+    fetchTask();
+  } catch (error) {
+    const message = error.response?.data?.error || 'Erreur lors de l\'arrêt';
+    await showAlert(message, 'error');
+  }
+};
+```
+
+**Backend Response After Stop**:
+```json
+{
+  "message": "Timer stopped",
+  "entry": {
+    "id": "uuid",
+    "end_time": "2026-02-09T16:30:00.000Z",
+    "duration_seconds": 9000,
+    "duration_formatted": "2h 30m",
+    "running": false
+  }
+}
+```
+
+---
+
+### Permission-Based UI Rendering
+
+**Pattern**: Show/hide actions based on user role and entry ownership.
+
+**Project/Task Actions** (admin only):
+```jsx
+import { useAuth } from '../../context/AuthContext';
+
+const { canWrite } = useAuth();
+
+{canWrite && (
+  <button onClick={() => setShowForm(true)}>
+    + Nouveau Projet
+  </button>
+)}
+```
+
+**Time Entry Actions** (owner or admin):
+```jsx
+const { user } = useAuth();
+
+const canEditEntry = (entry) => {
+  return user?.id === entry.user_id
+    || user?.role === 'admin'
+    || user?.role === 'super_admin';
+};
+
+{canEditEntry(entry) && (
+  <button onClick={() => handleDeleteEntry(entry)}>
+    🗑️
+  </button>
+)}
+```
+
+**Stop Timer** (owner only):
+```jsx
+{entry.running && entry.user_id === user?.id && (
+  <button onClick={() => handleStopTimer(entry)}>
+    Arrêter
+  </button>
+)}
+```
+
+---
+
+### Navigation Pattern
+
+**Routes** (App.jsx):
+```jsx
+<Route path="/time-tracking" element={<PrivateRoute><TimeTrackingProjects /></PrivateRoute>} />
+<Route path="/time-tracking/projects/:id" element={<PrivateRoute><TimeTrackingProjectDetail /></PrivateRoute>} />
+<Route path="/time-tracking/tasks/:id" element={<PrivateRoute><TimeTrackingTaskDetail /></PrivateRoute>} />
+```
+
+**Navigation Flow**:
+```
+Projects List → Click project → Project Detail → Click task → Task Detail
+      ↑                                                           ↓
+      └─────────────────── Back button ──────────────────────────┘
+```
+
+**Implementation**:
+```jsx
+import { useNavigate } from 'react-router-dom';
+
+const navigate = useNavigate();
+
+// Navigate to project detail
+<tr onClick={() => navigate(`/time-tracking/projects/${project.id}`)}>
+
+// Navigate to task detail
+<div onClick={() => navigate(`/time-tracking/tasks/${task.id}`)}>
+
+// Back to project
+<button onClick={() => navigate(`/time-tracking/projects/${task.project_id}`)}>
+  Retour au projet
+</button>
+```
+
+---
+
+### Data Refetch Pattern
+
+**Pattern**: Always refetch related data after mutations to ensure consistency.
+
+**After Creating Entry**:
+```javascript
+await timeTrackingAPI.timeEntries.create(data);
+fetchTimeEntries(); // Refresh entries list
+fetchTask();        // Update task totals (total_time_seconds)
+```
+
+**After Stopping Timer**:
+```javascript
+await timeTrackingAPI.timeEntries.stop(entry.id);
+fetchTimeEntries(); // Update entry with duration
+fetchTask();        // Update task totals
+```
+
+**After Deleting Entry**:
+```javascript
+await timeTrackingAPI.timeEntries.delete(entry.id);
+fetchTimeEntries(); // Remove from list
+fetchTask();        // Update task totals
+```
+
+**Why Refetch**:
+- Backend calculates durations and totals
+- Ensures UI shows accurate calculated values
+- Simple pattern, no local state sync needed
+
+---
+
+### Time Display Formatting
+
+**Pattern**: Backend sends formatted time strings, frontend displays directly.
+
+**Backend Response**:
+```json
+{
+  "total_time_seconds": 7200,
+  "total_time_formatted": "2h 0m",
+  "duration_formatted": "1h 30m"
+}
+```
+
+**Frontend Display**:
+```jsx
+// No formatting needed - use directly from API
+<div>{task.total_time_formatted}</div>
+<div>{entry.duration_formatted}</div>
+```
+
+**For Running Timers** (client-side calculation):
+```javascript
+const getElapsedTime = (startTime) => {
+  const start = new Date(startTime);
+  const now = new Date();
+  const seconds = Math.floor((now - start) / 1000);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return `${hours}h ${minutes}m`;
+};
+```
+
+---
+
+### Error Handling
+
+**Standard Pattern** (same as car management):
+```javascript
+try {
+  await timeTrackingAPI.projects.create(formData);
+  await showAlert('Projet créé avec succès', 'success');
+  resetForm();
+  fetchProjects();
+} catch (error) {
+  const message = error.response?.data?.errors?.[0]
+    || error.response?.data?.error
+    || 'Erreur lors de l\'enregistrement';
+  await showAlert(message, 'error');
+}
+```
+
+**Common Error Scenarios**:
+- **422**: Validation error (label already taken, running timer exists)
+- **403**: Permission denied (non-admin trying to create project)
+- **404**: Resource not found (deleted or cross-tenant access)
+
+---
+
 ## Key Integration Principles
 
 1. **Separation of Concerns**: Frontend handles UI/UX, backend handles business logic and validations
@@ -766,6 +1128,8 @@ useEffect(() => {
 8. **File Uploads**: Separate endpoints after resource creation (not nested attributes)
 9. **Status Workflows**: Clear transitions with validation on both sides
 10. **Real-Time Updates**: Always refetch list data after create/update/delete operations
+11. **Timer Management**: Client-side real-time display, server-side duration calculation
+12. **Namespace Isolation**: Time tracking completely separate from car management
 
 ---
 

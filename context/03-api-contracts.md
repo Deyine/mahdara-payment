@@ -2081,6 +2081,483 @@ Public endpoints for the mobile app. No authentication required. CORS configured
 
 ---
 
+## Time Tracking
+
+Time tracking system for managing projects, tasks, and time entries. Completely isolated from car management via `TimeTracking::` namespace.
+
+### List Time Tracking Projects
+
+**Endpoint**: `GET /api/time_tracking/projects`
+**Access**: Authenticated (admin, super_admin, manager)
+**Description**: Returns all time tracking projects for the current tenant
+
+**Response**:
+```json
+[
+  {
+    "id": "uuid",
+    "label": "Development Project",
+    "description": "Main development work",
+    "status": "active",
+    "tenant_id": "uuid",
+    "user_id": 1,
+    "deleted_at": null,
+    "total_time_seconds": 36000,
+    "total_time_formatted": "10h 0m",
+    "tasks_count": 5,
+    "completed_tasks_count": 2,
+    "user": {
+      "id": 1,
+      "name": "John Doe",
+      "username": "john"
+    },
+    "created_at": "2026-02-09T12:00:00.000Z",
+    "updated_at": "2026-02-09T12:00:00.000Z"
+  }
+]
+```
+
+**Notes**:
+- Projects ordered by updated_at DESC (most recent first)
+- Scoped to current user's tenant
+- `total_time_seconds` is sum of all task time entries
+- `total_time_formatted` shows as "Xh Ym"
+
+### Get Single Time Tracking Project
+
+**Endpoint**: `GET /api/time_tracking/projects/:id`
+**Access**: Authenticated (admin, super_admin, manager)
+
+**Response**: Same as single project object above
+
+### Create Time Tracking Project
+
+**Endpoint**: `POST /api/time_tracking/projects`
+**Access**: Admin only
+**Description**: Create a new time tracking project
+
+**Request**:
+```json
+{
+  "project": {
+    "label": "Development Project",
+    "description": "Main development work",
+    "status": "active"
+  }
+}
+```
+
+**Response** (Success):
+```json
+{
+  "id": "uuid",
+  "label": "Development Project",
+  "description": "Main development work",
+  "status": "active",
+  "tenant_id": "uuid",
+  "user_id": 1,
+  "total_time_seconds": 0,
+  "total_time_formatted": "0h 0m",
+  "tasks_count": 0,
+  "completed_tasks_count": 0,
+  "user": {...}
+}
+```
+
+**Response** (Error - validation failure):
+```json
+{
+  "errors": ["Label has already been taken"]
+}
+```
+
+**Validation Rules**:
+- `label`: required, unique per tenant (excluding deleted)
+- `description`: optional
+- `status`: required, must be 'draft', 'active', 'completed', or 'archived' (default: 'active')
+- tenant_id automatically set from current_user
+
+**Status Codes**:
+- `201 Created` - Success
+- `422 Unprocessable Entity` - Validation error
+
+### Update Time Tracking Project
+
+**Endpoint**: `PUT /api/time_tracking/projects/:id`
+**Access**: Admin only
+
+**Request**: Same structure as Create
+
+**Response**: Updated project object
+
+### Delete Time Tracking Project (Soft Delete)
+
+**Endpoint**: `DELETE /api/time_tracking/projects/:id`
+**Access**: Admin only
+**Description**: Soft delete a project (sets deleted_at timestamp)
+
+**Response** (Success):
+```json
+{
+  "message": "Project deleted successfully"
+}
+```
+
+**Notes**:
+- Projects are ALWAYS soft-deleted (never permanently removed)
+- No restrictions - projects with tasks can be soft-deleted
+- Deleted projects excluded from default queries
+
+### Restore Time Tracking Project
+
+**Endpoint**: `POST /api/time_tracking/projects/:id/restore`
+**Access**: Admin only
+**Description**: Restore a soft-deleted project (clears deleted_at)
+
+**Response** (Success):
+```json
+{
+  "message": "Project restored successfully",
+  "project": { /* updated project object */ }
+}
+```
+
+---
+
+### List Tasks
+
+**Endpoint**: `GET /api/time_tracking/tasks`
+**Access**: Authenticated (admin, super_admin, manager)
+**Description**: Returns tasks with optional filters
+
+**Query Parameters**:
+- `project_id=uuid` - Filter tasks for a specific project
+
+**Response**:
+```json
+[
+  {
+    "id": "uuid",
+    "project_id": "uuid",
+    "title": "Implement feature X",
+    "description": "Add new functionality",
+    "position": 1,
+    "status": "active",
+    "tenant_id": "uuid",
+    "user_id": 1,
+    "deleted_at": null,
+    "total_time_seconds": 7200,
+    "total_time_formatted": "2h 0m",
+    "entries_count": 3,
+    "project": {
+      "id": "uuid",
+      "label": "Development Project"
+    },
+    "user": {
+      "id": 1,
+      "name": "John Doe"
+    },
+    "created_at": "2026-02-09T12:00:00.000Z",
+    "updated_at": "2026-02-09T12:00:00.000Z"
+  }
+]
+```
+
+**Notes**:
+- Tasks ordered by position ASC
+- Scoped to current user's tenant
+- `total_time_seconds` is sum of all time entry durations
+- `entries_count` includes both running and completed entries
+
+### Get Single Task
+
+**Endpoint**: `GET /api/time_tracking/tasks/:id`
+**Access**: Authenticated (admin, super_admin, manager)
+
+**Response**: Same as single task object above
+
+### Create Task
+
+**Endpoint**: `POST /api/time_tracking/tasks`
+**Access**: Admin only
+
+**Request**:
+```json
+{
+  "task": {
+    "project_id": "uuid",
+    "title": "Implement feature X",
+    "description": "Add new functionality",
+    "status": "active"
+  }
+}
+```
+
+**Response** (Success):
+```json
+{
+  "id": "uuid",
+  "project_id": "uuid",
+  "title": "Implement feature X",
+  "description": "Add new functionality",
+  "position": 3,
+  "status": "active",
+  "total_time_seconds": 0,
+  "total_time_formatted": "0h 0m",
+  "entries_count": 0
+}
+```
+
+**Validation Rules**:
+- `project_id`: required, must belong to tenant
+- `title`: required
+- `description`: optional
+- `status`: required, must be 'active', 'completed', or 'archived' (default: 'active')
+- `position`: auto-set to max_position + 1
+- tenant_id automatically set from current_user
+
+**Status Codes**:
+- `201 Created` - Success
+- `422 Unprocessable Entity` - Validation error
+
+### Update Task
+
+**Endpoint**: `PUT /api/time_tracking/tasks/:id`
+**Access**: Admin only
+
+**Request**: Same structure as Create
+
+**Response**: Updated task object
+
+### Delete Task (Soft Delete)
+
+**Endpoint**: `DELETE /api/time_tracking/tasks/:id`
+**Access**: Admin only
+
+**Response** (Success):
+```json
+{
+  "message": "Task deleted successfully"
+}
+```
+
+### Mark Task as Completed
+
+**Endpoint**: `POST /api/time_tracking/tasks/:id/complete`
+**Access**: Admin only
+**Description**: Mark a task as completed
+
+**Response** (Success):
+```json
+{
+  "message": "Task marked as completed",
+  "task": {
+    "id": "uuid",
+    "status": "completed"
+  }
+}
+```
+
+---
+
+### List Time Entries
+
+**Endpoint**: `GET /api/time_tracking/time_entries`
+**Access**: Authenticated (admin, super_admin, manager)
+**Description**: Returns time entries with filters
+
+**Query Parameters**:
+- `task_id=uuid` - Filter entries for a specific task
+- `user_id=uuid` - Filter entries for a specific user (admin only)
+- `running=true` - Filter only running entries
+- `running=false` - Filter only completed entries
+
+**Response**:
+```json
+[
+  {
+    "id": "uuid",
+    "task_id": "uuid",
+    "title": "Work session",
+    "start_time": "2026-02-09T14:00:00.000Z",
+    "end_time": "2026-02-09T16:30:00.000Z",
+    "duration_seconds": 9000,
+    "duration_formatted": "2h 30m",
+    "notes": "Completed feature implementation",
+    "running": false,
+    "tenant_id": "uuid",
+    "user_id": 1,
+    "task": {
+      "id": "uuid",
+      "title": "Implement feature X",
+      "project": {
+        "id": "uuid",
+        "label": "Development Project"
+      }
+    },
+    "user": {
+      "id": 1,
+      "name": "John Doe"
+    },
+    "created_at": "2026-02-09T14:00:00.000Z",
+    "updated_at": "2026-02-09T16:30:00.000Z"
+  }
+]
+```
+
+**Notes**:
+- Entries ordered by start_time DESC (most recent first)
+- Scoped to current user's tenant
+- Managers only see their own entries (unless admin)
+- `running` is true when end_time is null
+- `duration_formatted` shows as "Xh Ym"
+
+### Get Single Time Entry
+
+**Endpoint**: `GET /api/time_tracking/time_entries/:id`
+**Access**: Authenticated (admin, super_admin, manager)
+
+**Response**: Same as single time entry object above
+
+### Create Time Entry (Start Timer)
+
+**Endpoint**: `POST /api/time_tracking/time_entries`
+**Access**: Authenticated (admin, super_admin, manager)
+**Description**: Start a new timer or create a manual time entry
+
+**Request** (Start timer):
+```json
+{
+  "time_entry": {
+    "task_id": "uuid",
+    "title": "Work session",
+    "start_time": "2026-02-09T14:00:00.000Z"
+  }
+}
+```
+
+**Request** (Manual entry with duration):
+```json
+{
+  "time_entry": {
+    "task_id": "uuid",
+    "title": "Work session",
+    "start_time": "2026-02-09T14:00:00.000Z",
+    "end_time": "2026-02-09T16:00:00.000Z",
+    "notes": "Completed task X"
+  }
+}
+```
+
+**Response** (Success):
+```json
+{
+  "id": "uuid",
+  "task_id": "uuid",
+  "title": "Work session",
+  "start_time": "2026-02-09T14:00:00.000Z",
+  "end_time": null,
+  "duration_seconds": null,
+  "duration_formatted": "0h 0m",
+  "running": true,
+  "user_id": 1
+}
+```
+
+**Response** (Error - validation failure):
+```json
+{
+  "errors": ["A time entry is already running for this user"]
+}
+```
+
+**Validation Rules**:
+- `task_id`: required, must belong to tenant
+- `title`: required
+- `start_time`: required
+- `end_time`: optional, must be after start_time
+- `notes`: optional
+- User can only have ONE running entry at a time
+- duration_seconds auto-calculated when end_time is set
+- user_id automatically set to current_user
+- tenant_id automatically set from current_user
+
+**Status Codes**:
+- `201 Created` - Success
+- `422 Unprocessable Entity` - Validation error
+
+### Update Time Entry
+
+**Endpoint**: `PUT /api/time_tracking/time_entries/:id`
+**Access**: Owner or Admin
+**Description**: Update a time entry
+
+**Request**: Same structure as Create
+
+**Response**: Updated time entry object
+
+**Notes**:
+- Only the entry owner or admin can update
+- Cannot update running entries (must stop first)
+
+### Delete Time Entry
+
+**Endpoint**: `DELETE /api/time_tracking/time_entries/:id`
+**Access**: Owner or Admin
+
+**Response** (Success):
+```json
+{
+  "message": "Time entry deleted successfully"
+}
+```
+
+**Notes**:
+- Only the entry owner or admin can delete
+- Soft deletes the entry (sets deleted_at)
+
+### Stop Timer
+
+**Endpoint**: `POST /api/time_tracking/time_entries/:id/stop`
+**Access**: Entry Owner only
+**Description**: Stop a running timer
+
+**Request** (optional):
+```json
+{
+  "end_time": "2026-02-09T16:30:00.000Z"
+}
+```
+
+**Response** (Success):
+```json
+{
+  "message": "Timer stopped",
+  "entry": {
+    "id": "uuid",
+    "end_time": "2026-02-09T16:30:00.000Z",
+    "duration_seconds": 9000,
+    "duration_formatted": "2h 30m",
+    "running": false
+  }
+}
+```
+
+**Response** (Error - not owner):
+```json
+{
+  "error": "Forbidden"
+}
+```
+
+**Notes**:
+- Only the entry owner can stop their own timer
+- If `end_time` not provided, uses current time
+- Automatically calculates duration_seconds
+- Sets running to false
+
+---
+
 ## Route Summary
 
 | Method | Endpoint | Access | Description |
@@ -2121,6 +2598,12 @@ Public endpoints for the mobile app. No authentication required. CORS configured
 | GET | `/api/public/cars/:token` | Public | View shared car (no auth) |
 | GET | `/api/public/catalog` | Public | List published cars (catalog) |
 | GET | `/api/public/catalog/:id` | Public | View single catalog car |
+| GET/POST/PUT/DELETE | `/api/time_tracking/projects` | Auth/Admin | Time tracking projects |
+| POST | `/api/time_tracking/projects/:id/restore` | Admin | Restore deleted project |
+| GET/POST/PUT/DELETE | `/api/time_tracking/tasks` | Auth/Admin | Time tracking tasks |
+| POST | `/api/time_tracking/tasks/:id/complete` | Admin | Mark task as completed |
+| GET/POST/PUT/DELETE | `/api/time_tracking/time_entries` | Auth | Time entries (timer tracking) |
+| POST | `/api/time_tracking/time_entries/:id/stop` | Owner | Stop running timer |
 
 **Legend**:
 
