@@ -1,7 +1,7 @@
 import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { colors } from '../constants/theme';
+import { colors, fontFamily } from '../constants/theme';
 import { formatPrice, formatMileage } from '../utils/formatters';
 
 export default function CarCard({ car }) {
@@ -12,66 +12,60 @@ export default function CarCard({ car }) {
   const isSold = car.status === 'sold';
 
   return (
-    <Pressable
-      style={styles.card}
-      onPress={() => router.push(`/car/${car.id}`)}
-    >
-      <View style={styles.imageContainer}>
-        {photo ? (
-          <Image
-            source={{ uri: photo.url }}
-            style={styles.image}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={[styles.image, styles.placeholder]}>
-            <Text style={styles.placeholderText}>{t('common.noPhoto')}</Text>
-          </View>
-        )}
+    <View style={styles.cardWrapper}>
+      <Pressable
+        style={styles.card}
+        onPress={() => router.push(`/car/${car.id}`)}
+      >
+        <View style={styles.imageContainer}>
+          {photo ? (
+            <Image
+              source={{ uri: photo.url }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.image, styles.placeholder]}>
+              <Text style={styles.placeholderText}>{t('common.noPhoto')}</Text>
+            </View>
+          )}
 
-        {/* Sold ribbon - only show for sold cars */}
-        {isSold && (
-          <View style={styles.ribbon}>
-            <Text style={styles.ribbonText}>{t('carDetail.sold')}</Text>
-          </View>
-        )}
-      </View>
+          {isSold && (
+            <View style={styles.ribbon}>
+              <Text style={styles.ribbonText}>{t('carDetail.sold')}</Text>
+            </View>
+          )}
+        </View>
 
-      <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={2}>
-          {car.display_name}
-        </Text>
-
-        <Text style={styles.mileage}>
-          {formatMileage(car.mileage)}
-        </Text>
-
-        <Text style={styles.price}>
-          {car.price ? formatPrice(car.price) : '—'}
-        </Text>
-      </View>
-    </Pressable>
+        <View style={styles.info}>
+          <Text style={styles.name} numberOfLines={2}>
+            {car.display_name}
+          </Text>
+          <Text style={styles.price}>
+            {car.price ? formatPrice(car.price) : '—'}
+          </Text>
+        </View>
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
+  cardWrapper: {
     flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 10,
-    overflow: 'hidden',
-    margin: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+  },
+  card: {
+    backgroundColor: 'transparent',
   },
   imageContainer: {
     position: 'relative',
     width: '100%',
-    aspectRatio: 4 / 3, // Maintains proper photo proportions
-    backgroundColor: '#e2e8f0',
+    aspectRatio: 4 / 3,
+    backgroundColor: colors.placeholder,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   image: {
     width: '100%',
@@ -83,47 +77,42 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     color: colors.textSecondary,
-    fontSize: 12,
+    fontSize: 11,
+    fontFamily: fontFamily.regular,
   },
   ribbon: {
     position: 'absolute',
-    top: 12,
-    right: -30,
-    backgroundColor: '#f59e0b',
-    paddingVertical: 6,
-    paddingHorizontal: 40,
+    top: 8,
+    right: -28,
+    backgroundColor: colors.warning,
+    paddingVertical: 4,
+    paddingHorizontal: 32,
     transform: [{ rotate: '45deg' }],
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 4,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
   },
   ribbonText: {
-    color: '#ffffff',
-    fontSize: 10,
+    color: colors.surface,
+    fontSize: 8,
     fontWeight: '800',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
   info: {
-    padding: 12,
-    gap: 8,
+    padding: 10,
+    gap: 4,
   },
   name: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 13,
+    fontFamily: fontFamily.bold,
     color: colors.text,
-    lineHeight: 18,
-  },
-  mileage: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: -2,
+    lineHeight: 17,
   },
   price: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.primary,
-    marginTop: 2,
+    fontSize: 12,
+    fontFamily: fontFamily.semiBold,
+    color: colors.textSecondary,
   },
 });

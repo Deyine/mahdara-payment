@@ -16,6 +16,7 @@
     "filterAvailable": "Disponible",
     "filterSold": "Vendu",
     "noCars": "Aucun véhicule disponible",
+    "searchPlaceholder": "Rechercher un véhicule...",
     "pullToRefresh": "Tirer pour actualiser",
     "loadingMore": "Chargement..."
   },
@@ -26,10 +27,11 @@
     "mileage": "Kilométrage",
     "year": "Année",
     "model": "Modèle",
-    "salvagePhotos": "Photos d'origine",
+    "salvagePhotos": "Photos avant réparation",
     "afterRepairPhotos": "Photos après réparation",
     "noPhotos": "Aucune photo disponible",
-    "sold": "VENDU"
+    "sold": "VENDU",
+    "contact": "Contacter"
   },
   "status": {
     "available": "Disponible",

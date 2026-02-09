@@ -16,6 +16,7 @@
     "filterAvailable": "متاح",
     "filterSold": "مباع",
     "noCars": "لا توجد سيارات متاحة",
+    "searchPlaceholder": "ابحث عن سيارة...",
     "pullToRefresh": "اسحب للتحديث",
     "loadingMore": "جاري التحميل..."
   },
@@ -29,7 +30,8 @@
     "salvagePhotos": "الصور الأصلية",
     "afterRepairPhotos": "الصور بعد الإصلاح",
     "noPhotos": "لا توجد صور",
-    "sold": "مباع"
+    "sold": "مباع",
+    "contact": "اتصل بنا"
   },
   "status": {
     "available": "متاح",

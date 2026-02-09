@@ -11,7 +11,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function PhotoViewer({ photos, visible, initialIndex = 0, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -101,11 +101,12 @@ const styles = StyleSheet.create({
   },
   photoContainer: {
     width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
     justifyContent: 'center',
     alignItems: 'center',
   },
   photo: {
     width: SCREEN_WIDTH,
-    height: '80%',
+    height: SCREEN_HEIGHT * 0.7,
   },
 });

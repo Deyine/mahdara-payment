@@ -13,30 +13,42 @@ Public-facing React Native mobile app for browsing the BestCar catalog. Built wi
 - **State Management**: React hooks (useState, useEffect, useCallback)
 - **HTTP Client**: Native `fetch` API
 - **Navigation**: Stack navigation with expo-router
+- **Internationalization**: i18next, react-i18next (French/Arabic support)
+- **Storage**: @react-native-async-storage/async-storage (language persistence)
+- **Fonts**: expo-font, expo-splash-screen
 
 ## Project Structure
 
 ```
 mobile/
 ├── app/                          # expo-router screens
-│   ├── _layout.js               # Root navigation layout
-│   ├── index.js                 # Catalog list screen (home)
+│   ├── _layout.js               # Root navigation layout with i18n
+│   ├── index.js                 # Catalog list screen (single column)
 │   └── car/
 │       └── [id].js              # Car detail screen (dynamic route)
 │
 ├── components/                   # Reusable components
-│   ├── CarCard.js               # Grid card for catalog list
-│   ├── StatusBadge.js           # Status badge (Disponible/Vendu)
+│   ├── CarCard.js               # Catalog card (single column, responsive)
+│   ├── LanguageSwitcher.js      # Globe icon with FR/AR dropdown
+│   ├── SplashScreen.js          # Custom splash with glitch effect
+│   ├── StatusBadge.js           # Status badge (deprecated in detail view)
 │   └── PhotoViewer.js           # Fullscreen swipeable photo gallery
+│
+├── i18n/
+│   └── index.js                 # i18next config with RTL support
+│
+├── locales/
+│   ├── fr.json                  # French translations
+│   └── ar.json                  # Arabic translations
 │
 ├── services/
 │   └── api.js                   # API client (fetch-based)
 │
 ├── constants/
-│   └── theme.js                 # Design tokens (colors, fonts)
+│   └── theme.js                 # Design tokens (BestCar red #e61536)
 │
 ├── utils/
-│   └── formatters.js            # Price & mileage formatters
+│   └── formatters.js            # Price & mileage formatters (km→miles)
 │
 ├── assets/                       # Images & icons
 ├── app.json                     # Expo configuration
@@ -66,17 +78,18 @@ const BASE_URL = __DEV__ ? DEV_URL : PROD_URL;
 ### 1. Catalog List (`app/index.js`)
 
 **Features**:
-- Grid layout (2 columns)
-- Filter tabs: All / Disponible / Vendu
+- Single column layout with responsive card sizing (maxWidth: 500px)
+- Filter tabs: Tous / Disponible / Vendu (translated based on language)
 - Pull-to-refresh
 - Infinite scroll (pagination)
 - Loading & error states
+- Language switcher in header (FR/AR)
 
 **Data Display**:
-- Photo (first after_repair or salvage photo)
+- Photo (first after_repair or salvage photo, 4:3 aspect ratio)
 - Car name (display_name)
-- Status badge
-- Tenant name
+- Mileage (converted from km to miles)
+- "VENDU" ribbon for sold cars only
 - Price (listing_price or sale_price based on status)
 
 **State Management**:
@@ -100,15 +113,15 @@ const data = await getCatalog(page, perPage);
 
 **Features**:
 - Hero photo carousel with pagination dots
-- Full car information
+- Full car information with RTL text alignment for Arabic
 - Photo sections (before/after repair)
 - Fullscreen photo viewer on tap
 
 **Data Display**:
 - Hero carousel (all photos)
-- Car name, status badge, tenant
+- Car name (no status badge or tenant name)
 - Price (listing_price or sale_price)
-- Details grid: Color, Kilométrage, Année, Modèle
+- Details grid with RTL support: Color, Mileage (in miles), Year, Model
 - After repair photos (horizontal scroll)
 - Salvage photos (horizontal scroll)
 
@@ -122,20 +135,71 @@ const { id } = useLocalSearchParams();
 
 ### CarCard (`components/CarCard.js`)
 
-Grid card component for catalog list.
+Single-column responsive card component for catalog list.
 
 **Props**:
 - `car`: Car object from API
 
 **Features**:
 - Pressable (navigates to detail screen)
-- Photo display with placeholder
-- Status badge integration
+- Photo display with 4:3 aspect ratio and cover mode
+- "VENDU" diagonal ribbon for sold cars only
+- Mileage display (converted to miles)
 - Price formatting
+- Responsive sizing (maxWidth: 500px, centered on large screens)
+
+**Styling**:
+- Container: maxWidth 500px, paddingHorizontal 12px
+- Image: aspectRatio 4/3, resizeMode "cover"
+- Ribbon: position absolute, rotated 45deg, amber background
 
 **Usage**:
 ```javascript
 <CarCard car={car} />
+```
+
+### SplashScreen (`components/SplashScreen.js`)
+
+Custom branded splash screen with glitch effect.
+
+**Features**:
+- White background with BestCar red (#e61536) text
+- "BESTCAR" in bold uppercase with wide letter spacing
+- Static glitch effect (cyan and magenta color layers)
+- Geometric triangle decorations in corners (inspired by brand design)
+- Duration: 1.5 seconds (configurable in _layout.js)
+
+**Styling**:
+- Text: fontSize 50, fontWeight 'bold', letterSpacing 8
+- Glitch layers: rgba(0, 255, 255, 0.5) and rgba(255, 0, 255, 0.5)
+- Triangles: Semi-transparent primary color (15-25% opacity)
+
+**Usage**:
+Automatically displayed via `_layout.js` during app initialization.
+
+### LanguageSwitcher (`components/LanguageSwitcher.js`)
+
+Globe icon button with modal dropdown for language selection.
+
+**Features**:
+- Globe icon (🌐) in header
+- Modal with FR/AR options (flag emojis + labels)
+- Checkmark for active language
+- Immediate language change
+- Saves preference to AsyncStorage
+- Alert about RTL changes (requires app restart on native)
+
+**Languages**:
+```javascript
+[
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'ar', label: 'العربية', flag: '🇸🇦' },
+]
+```
+
+**Usage**:
+```javascript
+<LanguageSwitcher /> // In header via _layout.js
 ```
 
 ### StatusBadge (`components/StatusBadge.js`)
@@ -212,21 +276,81 @@ try {
 }
 ```
 
+## Internationalization (i18n)
+
+### Configuration (`i18n/index.js`)
+
+**Supported Languages**:
+- French (fr) - Default
+- Arabic (ar) - RTL support
+
+**Features**:
+- Synchronous initialization with i18next
+- Language persistence via AsyncStorage
+- Automatic RTL layout for Arabic (I18nManager)
+- Translation keys for all UI text
+
+**Translation Files**:
+- `locales/fr.json` - French translations
+- `locales/ar.json` - Arabic translations
+
+**Key Translation Sections**:
+```javascript
+{
+  "common": { "loading", "error", "retry", "noPhoto" },
+  "catalog": { "title", "filterAll", "filterAvailable", "filterSold", "noCars" },
+  "carDetail": { "title", "sold", "color", "mileage", "year", "model" },
+  "settings": { "language" }
+}
+```
+
+**Usage in Components**:
+```javascript
+import { useTranslation } from 'react-i18next';
+
+const { t, i18n } = useTranslation();
+
+// Translate text
+<Text>{t('catalog.title')}</Text>
+
+// Check current language
+const isArabic = i18n.language === 'ar';
+
+// Change language
+await i18n.changeLanguage('ar');
+```
+
+**RTL Support**:
+- Text alignment automatically adjusts for Arabic
+- Labels and values both align right when RTL active
+- Requires app restart on native platforms for full RTL layout
+
+**Language Persistence**:
+```javascript
+// Save preference
+await saveLanguage('ar');
+
+// Load on app start
+const savedLanguage = await getInitialLanguage();
+```
+
 ## Theme & Styling
 
 ### Colors (`constants/theme.js`)
 
+**BestCar Brand Colors**:
+
 ```javascript
 export const colors = {
-  primary: '#167bff',
-  primaryDark: '#1260cc',
+  primary: '#e61536',        // BestCar red
+  primaryDark: '#b81129',    // Darker red
   background: '#f8fafc',
   surface: '#ffffff',
   text: '#1e293b',
   textSecondary: '#64748b',
   border: '#e2e8f0',
   success: '#10b981',
-  warning: '#f59e0b',
+  warning: '#f59e0b',        // Used for "VENDU" ribbon
   error: '#ef4444',
 };
 ```
@@ -269,11 +393,16 @@ formatNumber(num)
 
 ### Mileage Formatter
 
+**Automatic km → miles conversion** for target market:
+
 ```javascript
 formatMileage(km)
-// 120000 → "120 000 km"
+// 120000 km → "74 564 mi" (120000 * 0.621371)
 // null → "—"
+// Uses French locale number formatting with space separators
 ```
+
+**Conversion factor**: 1 km = 0.621371 miles
 
 ## Development Workflow
 
@@ -410,20 +539,39 @@ if (error) {
 
 ### Manual Testing Checklist
 
+**Splash Screen**:
+- [ ] White background with red BESTCAR text displays
+- [ ] Glitch effect visible (cyan/magenta layers)
+- [ ] Triangle decorations appear in corners
+- [ ] Displays for ~1.5 seconds before catalog loads
+
 **Catalog List**:
-- [ ] Grid displays 2 columns
-- [ ] Photos load correctly (or show placeholder)
-- [ ] Status badges show correct color/text
+- [ ] Single column layout with centered cards
+- [ ] Cards don't stretch beyond 500px on large screens
+- [ ] Photos display with correct 4:3 aspect ratio
+- [ ] "VENDU" ribbon appears only on sold cars
+- [ ] Mileage displays in miles (not km)
 - [ ] Price displays formatted with MRU
 - [ ] Pull-to-refresh works
 - [ ] Infinite scroll loads more pages
-- [ ] Filter tabs work (All/Disponible/Vendu)
+- [ ] Filter tabs work and show translated labels
 - [ ] Tap card navigates to detail
+
+**Language Switcher**:
+- [ ] Globe icon visible in header
+- [ ] Tap opens modal with FR/AR options
+- [ ] Flag emojis and labels display correctly
+- [ ] Checkmark shows on active language
+- [ ] Switching language updates all UI text immediately
+- [ ] Alert appears after switching (about RTL restart)
+- [ ] Language preference persists after app restart
 
 **Car Detail**:
 - [ ] Hero carousel swipes correctly
 - [ ] Pagination dots update on swipe
-- [ ] All car info displays (name, status, price, color, mileage, year)
+- [ ] Car name and price display (no status badge or tenant)
+- [ ] Detail items show correct info (color, mileage in miles, year, model)
+- [ ] RTL text alignment works for Arabic (both labels and values align right)
 - [ ] Photo sections scroll horizontally
 - [ ] Tap thumbnail opens fullscreen viewer
 - [ ] Back button returns to list
@@ -434,6 +582,12 @@ if (error) {
 - [ ] Counter updates (1/5)
 - [ ] Close button dismisses modal
 - [ ] Photos display at correct size
+
+**RTL / Arabic**:
+- [ ] All text translates to Arabic correctly
+- [ ] Text aligns right when Arabic is active
+- [ ] Layout feels natural for RTL users
+- [ ] Numbers and prices display correctly
 
 ## Deployment
 
