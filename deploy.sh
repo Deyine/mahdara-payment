@@ -111,14 +111,12 @@ if [ "$DEPLOY_TIME_TRACKING" = "1" ]; then
   if [ -d "/var/www/time-tracking" ]; then
     sudo rm -rf /var/www/time-tracking/dist
     sudo cp -r dist /var/www/time-tracking/
-    sudo chown -R www-data:www-data /var/www/time-tracking/dist
     echo -e "${GREEN}✓ Time tracking frontend deployed to /var/www/time-tracking/dist${NC}"
   else
     echo -e "${RED}⚠ Warning: /var/www/time-tracking directory not found${NC}"
     echo -e "${YELLOW}Creating directory and deploying...${NC}"
     sudo mkdir -p /var/www/time-tracking
     sudo cp -r dist /var/www/time-tracking/
-    sudo chown -R www-data:www-data /var/www/time-tracking
     echo -e "${GREEN}✓ Time tracking frontend deployed${NC}"
     echo -e "${YELLOW}⚠ Note: Make sure nginx is configured to serve time.next-version.com from /var/www/time-tracking/dist${NC}"
   fi
