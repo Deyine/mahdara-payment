@@ -3,6 +3,15 @@
 # Bestcar Dealership Management Deployment Script
 # This script handles deployment updates for production environment
 # Prerequisites: Initial server configuration must be complete (nginx, systemd, postgresql)
+#
+# Usage:
+#   ./deploy.sh                    # Deploy main app + time tracking frontend
+#   DEPLOY_TIME_TRACKING=0 ./deploy.sh  # Deploy main app only
+#
+# Time Tracking Frontend:
+#   - Deployed to: /var/www/time-tracking/dist
+#   - Domain: time.next-version.com
+#   - Nginx config required (see context/06-time-tracking-frontend.md)
 
 set -e  # Exit on any error
 
@@ -17,7 +26,11 @@ NC='\033[0m' # No Color
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$PROJECT_DIR/backend"
 CLIENT_DIR="$PROJECT_DIR/client"
+TIME_TRACKING_CLIENT_DIR="$PROJECT_DIR/time-tracking-client"
 SERVICE_NAME="bestcar"
+
+# Deployment options (set to 1 to enable)
+DEPLOY_TIME_TRACKING=${DEPLOY_TIME_TRACKING:-1}  # Deploy time tracking frontend by default
 
 # Load environment variables from .env file (needed for Rails commands)
 if [ -f "$BACKEND_DIR/.env" ]; then
@@ -35,50 +48,94 @@ echo -e "${BLUE}  Bestcar Dealership Management Deployment${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 
+# Check deployment mode
+if [ "$DEPLOY_TIME_TRACKING" = "1" ]; then
+  TOTAL_STEPS=9
+  echo -e "${GREEN}Mode: Full deployment (Main App + Time Tracking)${NC}"
+else
+  TOTAL_STEPS=7
+  echo -e "${GREEN}Mode: Main app deployment only${NC}"
+fi
+echo ""
+
 # Step 1: Setup SSH keys
-echo -e "${YELLOW}[1/7] Setting up SSH keys...${NC}"
+echo -e "${YELLOW}[1/$TOTAL_STEPS] Setting up SSH keys...${NC}"
 ssh-add -D
 ssh-add ~/.ssh/id_rsa_all
 echo -e "${GREEN}✓ SSH keys configured${NC}"
 echo ""
 
 # Step 2: Pull latest code
-echo -e "${YELLOW}[2/7] Pulling latest code from repository...${NC}"
+echo -e "${YELLOW}[2/$TOTAL_STEPS] Pulling latest code from repository...${NC}"
 cd "$PROJECT_DIR"
 git pull origin main
 echo -e "${GREEN}✓ Code updated${NC}"
 echo ""
 
 # Step 3: Install backend dependencies
-echo -e "${YELLOW}[3/7] Installing backend dependencies...${NC}"
+echo -e "${YELLOW}[3/$TOTAL_STEPS] Installing backend dependencies...${NC}"
 cd "$BACKEND_DIR"
 bundle install --deployment --without development test
 echo -e "${GREEN}✓ Backend dependencies installed${NC}"
 echo ""
 
-# Step 4: Install frontend dependencies
-echo -e "${YELLOW}[4/7] Installing frontend dependencies...${NC}"
+# Step 4: Install main frontend dependencies
+echo -e "${YELLOW}[4/$TOTAL_STEPS] Installing main frontend dependencies...${NC}"
 cd "$CLIENT_DIR"
 npm install --production=false
 echo -e "${GREEN}✓ Frontend dependencies installed${NC}"
 echo ""
 
-# Step 5: Build frontend
-echo -e "${YELLOW}[5/7] Building frontend...${NC}"
+# Step 5: Build main frontend
+echo -e "${YELLOW}[5/$TOTAL_STEPS] Building main frontend...${NC}"
 cd "$CLIENT_DIR"
 npm run build
-echo -e "${GREEN}✓ Frontend built successfully${NC}"
+echo -e "${GREEN}✓ Main frontend built successfully${NC}"
 echo ""
 
-# Step 6: Run database migrations
-echo -e "${YELLOW}[6/7] Running database migrations...${NC}"
+# Step 6: Deploy time tracking frontend (if enabled)
+if [ "$DEPLOY_TIME_TRACKING" = "1" ]; then
+  echo -e "${YELLOW}[6/$TOTAL_STEPS] Installing time tracking frontend dependencies...${NC}"
+  cd "$TIME_TRACKING_CLIENT_DIR"
+  npm install --production=false
+  echo -e "${GREEN}✓ Time tracking dependencies installed${NC}"
+  echo ""
+
+  echo -e "${YELLOW}[7/$TOTAL_STEPS] Building time tracking frontend...${NC}"
+  npm run build
+  echo -e "${GREEN}✓ Time tracking frontend built successfully${NC}"
+  echo ""
+
+  echo -e "${YELLOW}[8/$TOTAL_STEPS] Deploying time tracking frontend...${NC}"
+  # Assuming nginx is configured to serve from /var/www/time-tracking/dist
+  if [ -d "/var/www/time-tracking" ]; then
+    sudo rm -rf /var/www/time-tracking/dist
+    sudo cp -r dist /var/www/time-tracking/
+    sudo chown -R www-data:www-data /var/www/time-tracking/dist
+    echo -e "${GREEN}✓ Time tracking frontend deployed to /var/www/time-tracking/dist${NC}"
+  else
+    echo -e "${RED}⚠ Warning: /var/www/time-tracking directory not found${NC}"
+    echo -e "${YELLOW}Creating directory and deploying...${NC}"
+    sudo mkdir -p /var/www/time-tracking
+    sudo cp -r dist /var/www/time-tracking/
+    sudo chown -R www-data:www-data /var/www/time-tracking
+    echo -e "${GREEN}✓ Time tracking frontend deployed${NC}"
+    echo -e "${YELLOW}⚠ Note: Make sure nginx is configured to serve time.next-version.com from /var/www/time-tracking/dist${NC}"
+  fi
+  echo ""
+fi
+
+# Step 7/9: Run database migrations
+MIGRATION_STEP=$((DEPLOY_TIME_TRACKING ? 9 : 6))
+echo -e "${YELLOW}[$MIGRATION_STEP/$TOTAL_STEPS] Running database migrations...${NC}"
 cd "$BACKEND_DIR"
 RAILS_ENV=production bundle exec rails db:migrate
 echo -e "${GREEN}✓ Database migrations completed${NC}"
 echo ""
 
-# Step 7: Restart Rails server
-echo -e "${YELLOW}[7/7] Restarting application server...${NC}"
+# Step 7/9: Restart Rails server
+RESTART_STEP=$((DEPLOY_TIME_TRACKING ? TOTAL_STEPS : 7))
+echo -e "${YELLOW}[$RESTART_STEP/$TOTAL_STEPS] Restarting application server...${NC}"
 if systemctl is-active --quiet "$SERVICE_NAME"; then
     sudo systemctl restart "$SERVICE_NAME"
     echo -e "${GREEN}✓ Service restarted: $SERVICE_NAME${NC}"
@@ -111,3 +168,50 @@ echo -e "${YELLOW}Useful commands:${NC}"
 echo "  - Check service status: sudo systemctl status $SERVICE_NAME"
 echo "  - View logs: sudo journalctl -u $SERVICE_NAME -f"
 echo "  - Check nginx: sudo systemctl status nginx"
+echo ""
+
+if [ "$DEPLOY_TIME_TRACKING" = "1" ]; then
+  echo -e "${BLUE}========================================${NC}"
+  echo -e "${BLUE}  Time Tracking Frontend Info${NC}"
+  echo -e "${BLUE}========================================${NC}"
+  echo ""
+  echo -e "${YELLOW}Deployment location:${NC} /var/www/time-tracking/dist"
+  echo -e "${YELLOW}Domain:${NC} time.next-version.com"
+  echo -e "${YELLOW}Dev server:${NC} http://localhost:5174"
+  echo ""
+  echo -e "${YELLOW}Nginx configuration example:${NC}"
+  echo ""
+  cat << 'NGINX_CONF'
+  server {
+      listen 80;
+      server_name time.next-version.com;
+
+      root /var/www/time-tracking/dist;
+      index index.html;
+
+      # SPA fallback routing
+      location / {
+          try_files $uri $uri/ /index.html;
+      }
+
+      # Optional: Proxy API requests (alternative to CORS)
+      location /api {
+          proxy_pass http://localhost:3000/api;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+      }
+  }
+NGINX_CONF
+  echo ""
+  echo -e "${YELLOW}To apply nginx config:${NC}"
+  echo "  1. Create/edit: sudo nano /etc/nginx/sites-available/time-tracking"
+  echo "  2. Enable site: sudo ln -s /etc/nginx/sites-available/time-tracking /etc/nginx/sites-enabled/"
+  echo "  3. Test config: sudo nginx -t"
+  echo "  4. Reload nginx: sudo systemctl reload nginx"
+  echo "  5. Setup SSL: sudo certbot --nginx -d time.next-version.com"
+  echo ""
+  echo -e "${YELLOW}Documentation:${NC} context/06-time-tracking-frontend.md"
+  echo ""
+fi
