@@ -50,10 +50,10 @@ echo ""
 
 # Check deployment mode
 if [ "$DEPLOY_TIME_TRACKING" = "1" ]; then
-  TOTAL_STEPS=9
+  TOTAL_STEPS=8
   echo -e "${GREEN}Mode: Full deployment (Main App + Time Tracking)${NC}"
 else
-  TOTAL_STEPS=7
+  TOTAL_STEPS=6
   echo -e "${GREEN}Mode: Main app deployment only${NC}"
 fi
 echo ""
@@ -93,7 +93,7 @@ npm run build
 echo -e "${GREEN}✓ Main frontend built successfully${NC}"
 echo ""
 
-# Step 6: Deploy time tracking frontend (if enabled)
+# Step 6: Install and build time tracking frontend (if enabled)
 if [ "$DEPLOY_TIME_TRACKING" = "1" ]; then
   echo -e "${YELLOW}[6/$TOTAL_STEPS] Installing time tracking frontend dependencies...${NC}"
   cd "$TIME_TRACKING_CLIENT_DIR"
@@ -105,26 +105,10 @@ if [ "$DEPLOY_TIME_TRACKING" = "1" ]; then
   npm run build
   echo -e "${GREEN}✓ Time tracking frontend built successfully${NC}"
   echo ""
-
-  echo -e "${YELLOW}[8/$TOTAL_STEPS] Deploying time tracking frontend...${NC}"
-  # Assuming nginx is configured to serve from /var/www/time-tracking/dist
-  if [ -d "/var/www/time-tracking" ]; then
-    sudo rm -rf /var/www/time-tracking/dist
-    sudo cp -r dist /var/www/time-tracking/
-    echo -e "${GREEN}✓ Time tracking frontend deployed to /var/www/time-tracking/dist${NC}"
-  else
-    echo -e "${RED}⚠ Warning: /var/www/time-tracking directory not found${NC}"
-    echo -e "${YELLOW}Creating directory and deploying...${NC}"
-    sudo mkdir -p /var/www/time-tracking
-    sudo cp -r dist /var/www/time-tracking/
-    echo -e "${GREEN}✓ Time tracking frontend deployed${NC}"
-    echo -e "${YELLOW}⚠ Note: Make sure nginx is configured to serve time.next-version.com from /var/www/time-tracking/dist${NC}"
-  fi
-  echo ""
 fi
 
-# Step 7/9: Run database migrations
-MIGRATION_STEP=$((DEPLOY_TIME_TRACKING ? 9 : 6))
+# Step 7/8: Run database migrations
+MIGRATION_STEP=$((DEPLOY_TIME_TRACKING ? 8 : 6))
 echo -e "${YELLOW}[$MIGRATION_STEP/$TOTAL_STEPS] Running database migrations...${NC}"
 cd "$BACKEND_DIR"
 RAILS_ENV=production bundle exec rails db:migrate
@@ -173,32 +157,32 @@ if [ "$DEPLOY_TIME_TRACKING" = "1" ]; then
   echo -e "${BLUE}  Time Tracking Frontend Info${NC}"
   echo -e "${BLUE}========================================${NC}"
   echo ""
-  echo -e "${YELLOW}Deployment location:${NC} /var/www/time-tracking/dist"
+  echo -e "${YELLOW}Build location:${NC} $TIME_TRACKING_CLIENT_DIR/dist"
   echo -e "${YELLOW}Domain:${NC} time.next-version.com"
   echo -e "${YELLOW}Dev server:${NC} http://localhost:5174"
   echo ""
   echo -e "${YELLOW}Nginx configuration example:${NC}"
   echo ""
-  cat << 'NGINX_CONF'
+  cat << NGINX_CONF
   server {
       listen 80;
       server_name time.next-version.com;
 
-      root /var/www/time-tracking/dist;
+      root $PROJECT_DIR/time-tracking-client/dist;
       index index.html;
 
       # SPA fallback routing
       location / {
-          try_files $uri $uri/ /index.html;
+          try_files \$uri \$uri/ /index.html;
       }
 
       # Optional: Proxy API requests (alternative to CORS)
       location /api {
           proxy_pass http://localhost:3000/api;
-          proxy_set_header Host $host;
-          proxy_set_header X-Real-IP $remote_addr;
-          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-          proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_set_header Host \$host;
+          proxy_set_header X-Real-IP \$remote_addr;
+          proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto \$scheme;
       }
   }
 NGINX_CONF

@@ -189,7 +189,7 @@ npm run build
 ```
 
 ### Deploy to Server
-Upload `dist/` contents to web server configured for time.next-version.com
+Run `./deploy.sh` to build and deploy both frontends
 
 ### Nginx Configuration Example
 ```nginx
@@ -197,7 +197,7 @@ server {
     listen 80;
     server_name time.next-version.com;
 
-    root /var/www/time-tracking/dist;
+    root /path/to/bestcar/time-tracking-client/dist;
     index index.html;
 
     # SPA fallback routing
