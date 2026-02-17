@@ -180,7 +180,7 @@ export default function ProjectDetail() {
           <div>
             <h1 className="text-2xl font-bold mb-2" style={{ color: '#1e293b' }}>{project.label}</h1>
             {project.description && (
-              <p className="text-sm" style={{ color: '#64748b' }}>{project.description}</p>
+              <p className="text-sm" style={{ color: '#64748b', whiteSpace: 'pre-line' }}>{project.description}</p>
             )}
             <div className="flex items-center gap-3 mt-2">
               {getStatusBadge(project.status)}
@@ -261,7 +261,7 @@ export default function ProjectDetail() {
                       {getStatusBadge(task.status)}
                     </div>
                     {task.description && (
-                      <p className="text-sm mb-2" style={{ color: '#64748b' }}>{task.description}</p>
+                      <p className="text-sm mb-2" style={{ color: '#64748b', whiteSpace: 'pre-line' }}>{task.description}</p>
                     )}
                     <div className="flex items-center gap-4 text-sm" style={{ color: '#64748b' }}>
                       <span>{task.total_time_formatted}{task.estimated_time_formatted ? ` / ${task.estimated_time_formatted}` : ''}</span>

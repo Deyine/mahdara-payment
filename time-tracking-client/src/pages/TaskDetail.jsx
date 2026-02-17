@@ -158,7 +158,7 @@ export default function TaskDetail() {
           </div>
           <h1 className="text-2xl font-bold mb-2" style={{ color: '#1e293b' }}>{task.title}</h1>
           {task.description && (
-            <p className="text-sm" style={{ color: '#64748b' }}>{task.description}</p>
+            <p className="text-sm" style={{ color: '#64748b', whiteSpace: 'pre-line' }}>{task.description}</p>
           )}
         </div>
       </div>
