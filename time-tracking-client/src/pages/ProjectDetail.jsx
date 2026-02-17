@@ -18,7 +18,9 @@ export default function ProjectDetail() {
   const [taskFormData, setTaskFormData] = useState({
     title: '',
     description: '',
-    status: 'active'
+    status: 'active',
+    estimated_hours: '',
+    estimated_minutes: ''
   });
 
   useEffect(() => {
@@ -51,15 +53,19 @@ export default function ProjectDetail() {
   const resetTaskForm = () => {
     setShowTaskForm(false);
     setEditingTask(null);
-    setTaskFormData({ title: '', description: '', status: 'active' });
+    setTaskFormData({ title: '', description: '', status: 'active', estimated_hours: '', estimated_minutes: '' });
   };
 
   const handleEditTask = (task) => {
     setEditingTask(task);
+    const estH = task.estimated_minutes ? Math.floor(task.estimated_minutes / 60) : '';
+    const estM = task.estimated_minutes ? task.estimated_minutes % 60 : '';
     setTaskFormData({
       title: task.title,
       description: task.description || '',
-      status: task.status
+      status: task.status,
+      estimated_hours: estH !== '' && estH > 0 ? String(estH) : '',
+      estimated_minutes: estM !== '' && estM > 0 ? String(estM) : ''
     });
     setShowTaskForm(true);
   };
@@ -68,7 +74,14 @@ export default function ProjectDetail() {
     e.preventDefault();
 
     try {
-      const data = { ...taskFormData, project_id: id };
+      const totalEstimated = (parseInt(taskFormData.estimated_hours) || 0) * 60 + (parseInt(taskFormData.estimated_minutes) || 0);
+      const data = {
+        title: taskFormData.title,
+        description: taskFormData.description,
+        status: taskFormData.status,
+        estimated_minutes: totalEstimated > 0 ? totalEstimated : null,
+        project_id: id
+      };
 
       if (editingTask) {
         await timeTrackingAPI.tasks.update(editingTask.id, data);
@@ -191,17 +204,23 @@ export default function ProjectDetail() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-lg p-4 shadow-sm" style={{ border: '1px solid #e2e8f0' }}>
-          <div className="text-sm mb-1" style={{ color: '#64748b' }}>Temps Total</div>
+          <div className="text-sm mb-1" style={{ color: '#64748b' }}>Consommé</div>
           <div className="text-2xl font-bold" style={{ color: '#1e293b' }}>{project.total_time_formatted}</div>
+        </div>
+        <div className="bg-white rounded-lg p-4 shadow-sm" style={{ border: '1px solid #e2e8f0' }}>
+          <div className="text-sm mb-1" style={{ color: '#64748b' }}>Estimé</div>
+          <div className="text-2xl font-bold" style={{ color: '#1e293b' }}>
+            {project.total_estimated_minutes > 0 ? project.total_estimated_formatted : '—'}
+          </div>
         </div>
         <div className="bg-white rounded-lg p-4 shadow-sm" style={{ border: '1px solid #e2e8f0' }}>
           <div className="text-sm mb-1" style={{ color: '#64748b' }}>Tâches</div>
           <div className="text-2xl font-bold" style={{ color: '#1e293b' }}>{project.tasks_count}</div>
         </div>
         <div className="bg-white rounded-lg p-4 shadow-sm" style={{ border: '1px solid #e2e8f0' }}>
-          <div className="text-sm mb-1" style={{ color: '#64748b' }}>Tâches Terminées</div>
+          <div className="text-sm mb-1" style={{ color: '#64748b' }}>Terminées</div>
           <div className="text-2xl font-bold" style={{ color: '#1e293b' }}>{project.completed_tasks_count}</div>
         </div>
       </div>
@@ -245,8 +264,8 @@ export default function ProjectDetail() {
                       <p className="text-sm mb-2" style={{ color: '#64748b' }}>{task.description}</p>
                     )}
                     <div className="flex items-center gap-4 text-sm" style={{ color: '#64748b' }}>
-                      <span>⏱️ {task.total_time_formatted}</span>
-                      <span>📝 {task.entries_count} entrées</span>
+                      <span>{task.total_time_formatted}{task.estimated_time_formatted ? ` / ${task.estimated_time_formatted}` : ''}</span>
+                      <span>{task.entries_count} entrées</span>
                     </div>
                   </div>
 
@@ -365,6 +384,37 @@ export default function ProjectDetail() {
                     <option value="completed">Terminé</option>
                     <option value="archived">Archivé</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: '#1e293b' }}>
+                    Temps Estimé
+                  </label>
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <input
+                        type="number"
+                        min="0"
+                        value={taskFormData.estimated_hours}
+                        onChange={(e) => setTaskFormData({ ...taskFormData, estimated_hours: e.target.value })}
+                        className="w-full px-4 py-2 rounded-lg"
+                        style={{ border: '1px solid #e2e8f0', color: '#1e293b' }}
+                        placeholder="Heures"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="number"
+                        min="0"
+                        max="59"
+                        value={taskFormData.estimated_minutes}
+                        onChange={(e) => setTaskFormData({ ...taskFormData, estimated_minutes: e.target.value })}
+                        className="w-full px-4 py-2 rounded-lg"
+                        style={{ border: '1px solid #e2e8f0', color: '#1e293b' }}
+                        placeholder="Minutes"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4">

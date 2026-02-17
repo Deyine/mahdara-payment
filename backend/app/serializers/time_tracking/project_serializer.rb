@@ -18,8 +18,10 @@ module TimeTracking
         deleted: @project.deleted?,
 
         # Calculated fields
-        total_time_seconds: @project.total_time_seconds,
+        total_time_minutes: @project.total_time_minutes,
         total_time_formatted: @project.total_time_formatted,
+        total_estimated_minutes: @project.total_estimated_minutes,
+        total_estimated_formatted: @project.total_estimated_formatted,
         tasks_count: @project.tasks_count,
         completed_tasks_count: @project.completed_tasks_count,
 

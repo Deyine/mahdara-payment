@@ -80,7 +80,6 @@ export const timeTrackingAPI = {
       const params = new URLSearchParams();
       if (filters.taskId) params.append('task_id', filters.taskId);
       if (filters.userId) params.append('user_id', filters.userId);
-      if (filters.running !== undefined) params.append('running', filters.running.toString());
       const queryString = params.toString();
       return api.get(`/time_tracking/time_entries${queryString ? `?${queryString}` : ''}`);
     },
@@ -88,10 +87,6 @@ export const timeTrackingAPI = {
     create: (data) => api.post('/time_tracking/time_entries', { time_entry: data }),
     update: (id, data) => api.put(`/time_tracking/time_entries/${id}`, { time_entry: data }),
     delete: (id) => api.delete(`/time_tracking/time_entries/${id}`),
-    stop: (id, endTime = null) => {
-      const data = endTime ? { end_time: endTime } : {};
-      return api.post(`/time_tracking/time_entries/${id}/stop`, data);
-    },
   },
 };
 

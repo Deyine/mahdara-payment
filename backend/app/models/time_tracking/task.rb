@@ -12,6 +12,7 @@ module TimeTracking
     validates :title, presence: true
     validates :status, presence: true, inclusion: { in: %w[active completed archived] }
     validates :position, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+    validates :estimated_minutes, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
 
     # Scopes
     scope :for_tenant, ->(tenant_id) { where(tenant_id: tenant_id) }
@@ -27,17 +28,32 @@ module TimeTracking
     # Callbacks
     before_create :set_position
 
-    # Calculate total time spent on this task (in seconds)
-    def total_time_seconds
-      time_entries.where(deleted_at: nil).sum(:duration_seconds).to_i
+    # Calculate total time spent on this task (in minutes)
+    def total_time_minutes
+      time_entries.where(deleted_at: nil).sum(:duration_minutes).to_i
     end
 
     # Format total time
     def total_time_formatted
-      seconds = total_time_seconds
-      hours = seconds / 3600
-      minutes = (seconds % 3600) / 60
-      "#{hours}h #{minutes}m"
+      hours = total_time_minutes / 60
+      mins = total_time_minutes % 60
+      "#{hours}h #{mins}m"
+    end
+
+    # Format estimated time
+    def estimated_time_formatted
+      return nil unless estimated_minutes
+
+      hours = estimated_minutes / 60
+      mins = estimated_minutes % 60
+      "#{hours}h #{mins}m"
+    end
+
+    # Remaining minutes (estimated - consumed)
+    def remaining_minutes
+      return nil unless estimated_minutes
+
+      estimated_minutes - total_time_minutes
     end
 
     # Count of time entries

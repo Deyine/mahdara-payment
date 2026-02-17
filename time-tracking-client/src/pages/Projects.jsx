@@ -166,7 +166,7 @@ export default function Projects() {
                   Tâches
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#64748b' }}>
-                  Temps Total
+                  Temps
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#64748b' }}>
                   Créé par
@@ -201,6 +201,9 @@ export default function Projects() {
                   </td>
                   <td className="px-6 py-4 font-medium" style={{ color: '#1e293b' }}>
                     {project.total_time_formatted}
+                    {project.total_estimated_minutes > 0 && (
+                      <span style={{ color: '#64748b', fontWeight: 'normal' }}> / {project.total_estimated_formatted}</span>
+                    )}
                   </td>
                   <td className="px-6 py-4" style={{ color: '#475569' }}>
                     {project.user?.name}

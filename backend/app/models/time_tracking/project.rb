@@ -27,17 +27,28 @@ module TimeTracking
     # Default ordering
     default_scope -> { order(:label) }
 
-    # Calculate total time spent on this project (in seconds)
-    def total_time_seconds
-      time_entries.where(deleted_at: nil).sum(:duration_seconds).to_i
+    # Calculate total time spent on this project (in minutes)
+    def total_time_minutes
+      time_entries.where(deleted_at: nil).sum(:duration_minutes).to_i
     end
 
-    # Format total time as hours:minutes
+    # Format total consumed time
     def total_time_formatted
-      seconds = total_time_seconds
-      hours = seconds / 3600
-      minutes = (seconds % 3600) / 60
-      "#{hours}h #{minutes}m"
+      hours = total_time_minutes / 60
+      mins = total_time_minutes % 60
+      "#{hours}h #{mins}m"
+    end
+
+    # Total estimated minutes across all tasks
+    def total_estimated_minutes
+      tasks.active.sum(:estimated_minutes).to_i
+    end
+
+    # Format total estimated time
+    def total_estimated_formatted
+      hours = total_estimated_minutes / 60
+      mins = total_estimated_minutes % 60
+      "#{hours}h #{mins}m"
     end
 
     # Count of tasks

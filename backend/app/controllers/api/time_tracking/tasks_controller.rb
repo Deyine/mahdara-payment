@@ -83,7 +83,7 @@ module Api
       end
 
       def task_params
-        params.require(:task).permit(:title, :description, :project_id, :position, :status)
+        params.require(:task).permit(:title, :description, :project_id, :position, :status, :estimated_minutes)
       end
 
       def require_admin

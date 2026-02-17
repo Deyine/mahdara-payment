@@ -11,6 +11,8 @@ module TimeTracking
         description: @task.description,
         position: @task.position,
         status: @task.status,
+        estimated_minutes: @task.estimated_minutes,
+        estimated_time_formatted: @task.estimated_time_formatted,
         project_id: @task.project_id,
         tenant_id: @task.tenant_id,
         user_id: @task.user_id,
@@ -20,8 +22,9 @@ module TimeTracking
         deleted: @task.deleted?,
 
         # Calculated fields
-        total_time_seconds: @task.total_time_seconds,
+        total_time_minutes: @task.total_time_minutes,
         total_time_formatted: @task.total_time_formatted,
+        remaining_minutes: @task.remaining_minutes,
         entries_count: @task.entries_count,
 
         # Project info

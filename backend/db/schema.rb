@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_17_130240) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_17_151419) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -320,6 +320,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_17_130240) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "estimated_minutes"
     t.index ["deleted_at"], name: "index_time_tracking_tasks_on_deleted_at"
     t.index ["project_id", "position"], name: "index_time_tracking_tasks_on_project_id_and_position"
     t.index ["project_id"], name: "index_time_tracking_tasks_on_project_id"
@@ -333,18 +334,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_17_130240) do
     t.uuid "task_id", null: false
     t.bigint "user_id", null: false
     t.string "title", null: false
-    t.datetime "start_time", null: false
-    t.datetime "end_time"
-    t.integer "duration_seconds"
     t.text "notes"
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "duration_minutes", default: 0, null: false
+    t.date "entry_date", default: -> { "CURRENT_DATE" }, null: false
     t.index ["deleted_at"], name: "index_time_tracking_time_entries_on_deleted_at"
-    t.index ["task_id", "start_time"], name: "index_time_tracking_time_entries_on_task_id_and_start_time"
     t.index ["task_id"], name: "index_time_tracking_time_entries_on_task_id"
     t.index ["tenant_id"], name: "index_time_tracking_time_entries_on_tenant_id"
-    t.index ["user_id", "start_time"], name: "index_time_tracking_time_entries_on_user_id_and_start_time"
     t.index ["user_id"], name: "index_time_tracking_time_entries_on_user_id"
   end
 

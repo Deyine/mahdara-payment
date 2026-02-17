@@ -124,11 +124,7 @@ Rails.application.routes.draw do
         end
       end
 
-      resources :time_entries do
-        member do
-          post 'stop'
-        end
-      end
+      resources :time_entries
     end
 
     # Car Shares (authenticated CRUD)

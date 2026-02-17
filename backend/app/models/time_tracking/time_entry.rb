@@ -9,8 +9,8 @@ module TimeTracking
 
     # Validations
     validates :title, presence: true
-    validates :start_time, presence: true
-    validate :end_time_after_start_time
+    validates :duration_minutes, presence: true, numericality: { only_integer: true, greater_than: 0 }
+    validates :entry_date, presence: true
 
     # Scopes
     scope :for_tenant, ->(tenant_id) { where(tenant_id: tenant_id) }
@@ -18,39 +18,16 @@ module TimeTracking
     scope :for_user, ->(user_id) { where(user_id: user_id) }
     scope :active, -> { where(deleted_at: nil) }
     scope :deleted, -> { where.not(deleted_at: nil) }
-    scope :running, -> { where(end_time: nil) }
-    scope :completed, -> { where.not(end_time: nil) }
-    scope :recent, -> { order(start_time: :desc) }
+    scope :recent, -> { order(entry_date: :desc) }
 
     # Default ordering
-    default_scope -> { order(start_time: :desc) }
-
-    # Callbacks
-    before_save :calculate_duration
-
-    # Get duration in seconds
-    def duration
-      duration_seconds.to_i
-    end
+    default_scope -> { order(entry_date: :desc, created_at: :desc) }
 
     # Format duration
     def duration_formatted
-      return "Running..." unless end_time
-
-      seconds = duration_seconds.to_i
-      hours = seconds / 3600
-      minutes = (seconds % 3600) / 60
-      "#{hours}h #{minutes}m"
-    end
-
-    # Check if timer is running
-    def running?
-      end_time.nil?
-    end
-
-    # Stop the timer
-    def stop!(stop_time = Time.current)
-      update!(end_time: stop_time)
+      hours = duration_minutes / 60
+      mins = duration_minutes % 60
+      "#{hours}h #{mins}m"
     end
 
     # Soft deletion
@@ -64,22 +41,6 @@ module TimeTracking
 
     def deleted?
       deleted_at.present?
-    end
-
-    private
-
-    def calculate_duration
-      if end_time && start_time
-        self.duration_seconds = (end_time - start_time).to_i
-      end
-    end
-
-    def end_time_after_start_time
-      return unless end_time && start_time
-
-      if end_time <= start_time
-        errors.add(:end_time, 'must be after start time')
-      end
     end
   end
 end

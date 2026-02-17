@@ -4,7 +4,7 @@ module Api
       include MultiTenantable
 
       before_action -> { require_permission(:time_tracking) }
-      before_action :set_time_entry, only: [:show, :update, :destroy, :stop]
+      before_action :set_time_entry, only: [:show, :update, :destroy]
 
       def index
         entries_scope = tenant_scope(::TimeTracking::TimeEntry)
@@ -19,13 +19,6 @@ module Api
           entries_scope = entries_scope.for_user(params[:user_id])
         elsif !current_user.admin? && !current_user.super_admin?
           entries_scope = entries_scope.for_user(current_user.id)
-        end
-
-        # Filter running entries
-        if params[:running] == 'true'
-          entries_scope = entries_scope.running
-        elsif params[:running] == 'false'
-          entries_scope = entries_scope.completed
         end
 
         # Apply deleted filter
@@ -79,25 +72,6 @@ module Api
         end
       end
 
-      def stop
-        # Only owner can stop their timer
-        unless @entry.user_id == current_user.id
-          render json: { error: 'Forbidden' }, status: :forbidden
-          return
-        end
-
-        end_time = params[:end_time].present? ? Time.zone.parse(params[:end_time]) : Time.current
-
-        if @entry.stop!(end_time)
-          render json: {
-            message: 'Timer stopped',
-            entry: ::TimeTracking::TimeEntrySerializer.new(@entry.reload).as_json
-          }
-        else
-          render json: { errors: @entry.errors.full_messages }, status: :unprocessable_entity
-        end
-      end
-
       private
 
       def set_time_entry
@@ -105,7 +79,7 @@ module Api
       end
 
       def time_entry_params
-        params.require(:time_entry).permit(:title, :task_id, :start_time, :end_time, :duration_seconds, :notes)
+        params.require(:time_entry).permit(:title, :task_id, :duration_minutes, :entry_date, :notes)
       end
     end
   end
