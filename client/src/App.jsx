@@ -19,12 +19,8 @@ import Debts from './pages/Debts';
 import Projects from './pages/Projects';
 import ProjectExpenseCategories from './pages/ProjectExpenseCategories';
 import SharedCar from './pages/SharedCar';
-import TimeTrackingProjects from './pages/TimeTracking/Projects';
-import TimeTrackingProjectDetail from './pages/TimeTracking/ProjectDetail';
-import TimeTrackingTaskDetail from './pages/TimeTracking/TaskDetail';
-
-function PrivateRoute({ children, requireAdmin = false, requirePermission = null }) {
-  const { user, loading, hasPermission } = useAuth();
+function PrivateRoute({ children, requireAdmin = false }) {
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -39,10 +35,6 @@ function PrivateRoute({ children, requireAdmin = false, requirePermission = null
   }
 
   if (requireAdmin && user.role !== 'admin' && user.role !== 'super_admin') {
-    return <Navigate to="/" />;
-  }
-
-  if (requirePermission && !hasPermission(requirePermission)) {
     return <Navigate to="/" />;
   }
 
@@ -97,30 +89,6 @@ function AppRoutes() {
         element={
           <PrivateRoute>
             <ManagerProfits />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/time-tracking"
-        element={
-          <PrivateRoute requirePermission="time_tracking">
-            <TimeTrackingProjects />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/time-tracking/projects/:id"
-        element={
-          <PrivateRoute requirePermission="time_tracking">
-            <TimeTrackingProjectDetail />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/time-tracking/tasks/:id"
-        element={
-          <PrivateRoute requirePermission="time_tracking">
-            <TimeTrackingTaskDetail />
           </PrivateRoute>
         }
       />
