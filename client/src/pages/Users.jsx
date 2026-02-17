@@ -14,7 +14,8 @@ export default function Users() {
     name: '',
     username: '',
     password: '',
-    role: 'manager'
+    role: 'manager',
+    permissions: { time_tracking: false }
   });
 
   const ROLES = [
@@ -40,7 +41,7 @@ export default function Users() {
 
   const handleCreate = () => {
     setEditingUser(null);
-    setFormData({ name: '', username: '', password: '', role: 'manager' });
+    setFormData({ name: '', username: '', password: '', role: 'manager', permissions: { time_tracking: false } });
     setShowForm(true);
   };
 
@@ -50,7 +51,8 @@ export default function Users() {
       name: user.name,
       username: user.username,
       password: '',
-      role: user.role
+      role: user.role,
+      permissions: user.permissions || { time_tracking: false }
     });
     setShowForm(true);
   };
@@ -140,7 +142,7 @@ export default function Users() {
   const resetForm = () => {
     setShowForm(false);
     setEditingUser(null);
-    setFormData({ name: '', username: '', password: '', role: 'manager' });
+    setFormData({ name: '', username: '', password: '', role: 'manager', permissions: { time_tracking: false } });
   };
 
   const getRoleBadge = (role) => {
@@ -452,6 +454,44 @@ export default function Users() {
                   </p>
                 )}
               </div>
+
+              {formData.role === 'manager' && (
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '10px', fontSize: '14px', fontWeight: '500' }}>
+                    Permissions
+                  </label>
+                  <div style={{
+                    padding: '12px',
+                    borderRadius: '6px',
+                    border: '1px solid #e2e8f0',
+                    backgroundColor: '#f8fafc'
+                  }}>
+                    <label style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}>
+                      <input
+                        type="checkbox"
+                        checked={formData.permissions?.time_tracking || false}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          permissions: { ...formData.permissions, time_tracking: e.target.checked }
+                        })}
+                        style={{ width: '18px', height: '18px', accentColor: '#167bff' }}
+                      />
+                      <span>
+                        <span style={{ fontWeight: '500', color: '#1e293b' }}>Suivi du Temps</span>
+                        <span style={{ display: 'block', fontSize: '12px', color: '#64748b' }}>
+                          Accès au module de suivi du temps
+                        </span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button

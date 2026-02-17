@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_09_111121) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_17_130240) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -357,6 +357,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_09_111121) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "active", default: true, null: false
+    t.jsonb "permissions", default: {}, null: false
     t.index ["tenant_id", "role"], name: "index_users_on_tenant_id_and_role"
     t.index ["tenant_id"], name: "index_users_on_tenant_id"
     t.index ["username"], name: "index_users_on_username", unique: true

@@ -67,6 +67,11 @@ export function AuthProvider({ children }) {
     isOperator: user?.role === 'operator',
     canWrite: user?.role === 'admin' || user?.role === 'super_admin',
     canRead: user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'manager',
+    hasPermission: (feature) => {
+      if (!user) return false;
+      if (user.role === 'admin' || user.role === 'super_admin') return true;
+      return user.permissions?.[feature] === true;
+    },
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

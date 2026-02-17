@@ -3,6 +3,7 @@ module Api
     class TasksController < ApplicationController
       include MultiTenantable
 
+      before_action -> { require_permission(:time_tracking) }
       before_action :set_task, only: [:show, :update, :destroy, :complete]
       before_action :require_admin, except: [:index, :show]
 

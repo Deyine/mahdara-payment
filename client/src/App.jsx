@@ -23,8 +23,8 @@ import TimeTrackingProjects from './pages/TimeTracking/Projects';
 import TimeTrackingProjectDetail from './pages/TimeTracking/ProjectDetail';
 import TimeTrackingTaskDetail from './pages/TimeTracking/TaskDetail';
 
-function PrivateRoute({ children, requireAdmin = false }) {
-  const { user, loading } = useAuth();
+function PrivateRoute({ children, requireAdmin = false, requirePermission = null }) {
+  const { user, loading, hasPermission } = useAuth();
 
   if (loading) {
     return (
@@ -39,6 +39,10 @@ function PrivateRoute({ children, requireAdmin = false }) {
   }
 
   if (requireAdmin && user.role !== 'admin' && user.role !== 'super_admin') {
+    return <Navigate to="/" />;
+  }
+
+  if (requirePermission && !hasPermission(requirePermission)) {
     return <Navigate to="/" />;
   }
 
@@ -99,7 +103,7 @@ function AppRoutes() {
       <Route
         path="/time-tracking"
         element={
-          <PrivateRoute>
+          <PrivateRoute requirePermission="time_tracking">
             <TimeTrackingProjects />
           </PrivateRoute>
         }
@@ -107,7 +111,7 @@ function AppRoutes() {
       <Route
         path="/time-tracking/projects/:id"
         element={
-          <PrivateRoute>
+          <PrivateRoute requirePermission="time_tracking">
             <TimeTrackingProjectDetail />
           </PrivateRoute>
         }
@@ -115,7 +119,7 @@ function AppRoutes() {
       <Route
         path="/time-tracking/tasks/:id"
         element={
-          <PrivateRoute>
+          <PrivateRoute requirePermission="time_tracking">
             <TimeTrackingTaskDetail />
           </PrivateRoute>
         }

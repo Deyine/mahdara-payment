@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Layout({ children }) {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, hasPermission } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -22,7 +22,7 @@ export default function Layout({ children }) {
   const navItems = [
     { path: '/', label: 'Tableau de Bord', icon: '📊', adminOnly: false },
     { path: '/cars', label: 'Véhicules', icon: '🚗', adminOnly: false },
-    { path: '/time-tracking', label: 'Suivi du Temps', icon: '⏱️', adminOnly: false },
+    { path: '/time-tracking', label: 'Suivi du Temps', icon: '⏱️', adminOnly: false, permission: 'time_tracking' },
     { path: '/profits', label: 'Profits', icon: '💰', adminOnly: false, requireManagerOrAdmin: true },
     { path: '/projects', label: 'Projets', icon: '🏗️', adminOnly: true },
     { path: '/debts', label: 'Dettes', icon: '💳', adminOnly: true },
@@ -109,6 +109,7 @@ export default function Layout({ children }) {
             {navItems.map((item) => {
               if (item.adminOnly && !isAdmin) return null;
               if (item.requireManagerOrAdmin && !isManagerOrAdmin) return null;
+              if (item.permission && !hasPermission(item.permission)) return null;
 
               return (
                 <Link
@@ -200,6 +201,7 @@ export default function Layout({ children }) {
               {navItems.map((item) => {
                 if (item.adminOnly && !isAdmin) return null;
                 if (item.requireManagerOrAdmin && !isManagerOrAdmin) return null;
+                if (item.permission && !hasPermission(item.permission)) return null;
 
                 return (
                   <Link

@@ -3,6 +3,7 @@ module Api
     class TimeEntriesController < ApplicationController
       include MultiTenantable
 
+      before_action -> { require_permission(:time_tracking) }
       before_action :set_time_entry, only: [:show, :update, :destroy, :stop]
 
       def index

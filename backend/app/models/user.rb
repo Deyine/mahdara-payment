@@ -36,4 +36,14 @@ class User < ApplicationRecord
   def can_read?
     admin? || super_admin? || manager?
   end
+
+  def has_permission?(feature)
+    return true if admin? || super_admin?
+
+    permissions.is_a?(Hash) && permissions[feature.to_s] == true
+  end
+
+  def time_tracking?
+    has_permission?(:time_tracking)
+  end
 end

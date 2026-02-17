@@ -247,7 +247,7 @@ class Api::UsersController < ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:name, :username, :password, :role, :active)
+    params.require(:user).permit(:name, :username, :password, :role, :active, permissions: {})
   end
 
   def user_json(user)
@@ -257,6 +257,7 @@ class Api::UsersController < ApplicationController
       username: user.username,
       role: user.role,
       active: user.active,
+      permissions: user.permissions || {},
       created_at: user.created_at,
       updated_at: user.updated_at
     }

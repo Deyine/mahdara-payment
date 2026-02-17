@@ -19,7 +19,8 @@ module Api
             name: user.name,
             username: user.username,
             role: user.role,
-            tenant_id: user.tenant_id
+            tenant_id: user.tenant_id,
+            permissions: user.permissions || {}
           }
         }, status: :ok
       else

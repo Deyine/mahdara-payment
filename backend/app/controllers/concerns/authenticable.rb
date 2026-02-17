@@ -41,4 +41,10 @@ module Authenticable
       render json: { error: 'Super Admin access required' }, status: :forbidden
     end
   end
+
+  def require_permission(feature)
+    unless current_user&.has_permission?(feature)
+      render json: { error: 'Access denied: missing permission' }, status: :forbidden
+    end
+  end
 end
