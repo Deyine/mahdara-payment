@@ -57,7 +57,7 @@ module Api
         if @project.soft_delete!
           render json: { message: 'Project deleted successfully' }
         else
-          render json: { error: 'Error deleting project' }, status: :unprocessable_entity
+          render json: { error: @project.errors.full_messages.first || 'Error deleting project' }, status: :unprocessable_entity
         end
       end
 

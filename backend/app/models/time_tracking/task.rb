@@ -68,6 +68,10 @@ module TimeTracking
 
     # Soft deletion
     def soft_delete!
+      if time_entries.where(deleted_at: nil).exists?
+        errors.add(:base, 'Cannot delete a task that has time entries')
+        return false
+      end
       update(deleted_at: Time.current)
     end
 

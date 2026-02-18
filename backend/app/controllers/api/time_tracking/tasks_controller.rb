@@ -62,7 +62,7 @@ module Api
         if @task.soft_delete!
           render json: { message: 'Task deleted successfully' }
         else
-          render json: { error: 'Error deleting task' }, status: :unprocessable_entity
+          render json: { error: @task.errors.full_messages.first || 'Error deleting task' }, status: :unprocessable_entity
         end
       end
 
