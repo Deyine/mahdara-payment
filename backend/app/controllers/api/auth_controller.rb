@@ -11,6 +11,11 @@ module Api
           return render json: { error: 'Account is inactive. Please contact an administrator.' }, status: :forbidden
         end
 
+        # Block operators from logging into the bestcar app
+        if user.operator? && params[:app] == 'bestcar'
+          return render json: { error: 'Invalid credentials' }, status: :unauthorized
+        end
+
         token = JsonWebToken.encode(user_id: user.id)
         render json: {
           token: token,

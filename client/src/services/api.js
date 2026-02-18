@@ -35,7 +35,7 @@ api.interceptors.response.use(
 
 // Authentication
 export const authAPI = {
-  login: (username, password) => api.post('/auth/login', { username, password }),
+  login: (username, password) => api.post('/auth/login', { username, password, app: 'bestcar' }),
 };
 
 // Dashboard

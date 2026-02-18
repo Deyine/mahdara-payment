@@ -34,23 +34,6 @@ function PrivateRoute({ children, requireAdmin = false }) {
     return <Navigate to="/login" />;
   }
 
-  if (user.role === 'operator') {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#f8fafc' }}>
-        <div style={{ textAlign: 'center', color: '#64748b', maxWidth: '400px', padding: '40px' }}>
-          <p style={{ fontSize: '18px', fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>Accès non autorisé</p>
-          <p style={{ marginBottom: '20px' }}>Votre compte n'a pas accès à cette application. Veuillez utiliser l'application de suivi du temps.</p>
-          <button
-            onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/login'; }}
-            style={{ padding: '8px 16px', backgroundColor: '#167bff', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
-          >
-            Se déconnecter
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   if (requireAdmin && user.role !== 'admin' && user.role !== 'super_admin') {
     return <Navigate to="/" />;
   }
