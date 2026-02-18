@@ -5,6 +5,7 @@ module Api
 
       skip_before_action :require_car_access
       before_action -> { require_permission(:time_tracking) }
+      before_action :require_non_operator, only: [:create, :update, :destroy]
       before_action :set_time_entry, only: [:show, :update, :destroy]
 
       def index
@@ -81,6 +82,12 @@ module Api
 
       def time_entry_params
         params.require(:time_entry).permit(:title, :task_id, :duration_minutes, :entry_date, :notes)
+      end
+
+      def require_non_operator
+        if current_user&.operator?
+          render json: { error: 'Forbidden' }, status: :forbidden
+        end
       end
     end
   end

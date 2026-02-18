@@ -66,6 +66,7 @@ export function AuthProvider({ children }) {
     isManager: user?.role === 'manager',
     isOperator: user?.role === 'operator',
     canWrite: user?.role === 'admin' || user?.role === 'super_admin',
+    canManageProjects: user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'operator',
     canRead: user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'manager',
     hasPermission: (feature) => {
       if (!user) return false;

@@ -87,7 +87,7 @@ module Api
       end
 
       def require_admin
-        unless current_user&.admin? || current_user&.super_admin?
+        unless current_user&.admin? || current_user&.super_admin? || current_user&.operator?
           render json: { error: 'Forbidden' }, status: :forbidden
         end
       end

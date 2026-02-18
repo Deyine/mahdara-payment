@@ -7,7 +7,7 @@ import { useDialog } from '../context/DialogContext';
 export default function TaskDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isOperator } = useAuth();
   const { showAlert, showConfirm } = useDialog();
 
   const [task, setTask] = useState(null);
@@ -120,6 +120,7 @@ export default function TaskDetail() {
   };
 
   const canEditEntry = (entry) => {
+    if (isOperator) return false;
     return user?.id === entry.user_id || user?.role === 'admin' || user?.role === 'super_admin';
   };
 
@@ -203,7 +204,7 @@ export default function TaskDetail() {
       )}
 
       {/* Log time button / form */}
-      <div className="mb-6">
+      {!isOperator && <div className="mb-6">
         {!showEntryForm ? (
           <button
             onClick={() => setShowEntryForm(true)}
@@ -337,7 +338,7 @@ export default function TaskDetail() {
             </form>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Time Entries List */}
       <div className="bg-white rounded-lg shadow-sm" style={{ border: '1px solid #e2e8f0' }}>

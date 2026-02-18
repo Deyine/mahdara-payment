@@ -7,7 +7,7 @@ import { useDialog } from '../context/DialogContext';
 export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { canWrite } = useAuth();
+  const { canManageProjects: canWrite } = useAuth();
   const { showAlert, showConfirm } = useDialog();
 
   const [project, setProject] = useState(null);

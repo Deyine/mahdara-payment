@@ -16,7 +16,7 @@ export default function Projects() {
   });
 
   const navigate = useNavigate();
-  const { canWrite } = useAuth();
+  const { canManageProjects: canWrite } = useAuth();
   const { showAlert, showConfirm } = useDialog();
 
   useEffect(() => {
