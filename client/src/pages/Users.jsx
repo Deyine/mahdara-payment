@@ -20,6 +20,7 @@ export default function Users() {
 
   const ROLES = [
     { value: 'manager', label: 'Manager', description: 'Lecture seule' },
+    { value: 'operator', label: 'Opérateur', description: 'Suivi du temps uniquement' },
     { value: 'admin', label: 'Admin', description: 'Accès complet au tenant', requiresSuperAdmin: true },
   ];
 
@@ -153,6 +154,8 @@ export default function Users() {
         return { label: 'Admin', color: '#167bff' };
       case 'manager':
         return { label: 'Manager', color: '#10b981' };
+      case 'operator':
+        return { label: 'Opérateur', color: '#f59e0b' };
       default:
         return { label: role, color: '#64748b' };
     }
@@ -489,6 +492,21 @@ export default function Users() {
                         </span>
                       </span>
                     </label>
+                  </div>
+                </div>
+              )}
+
+              {formData.role === 'operator' && (
+                <div style={{ marginBottom: '20px' }}>
+                  <div style={{
+                    padding: '12px',
+                    borderRadius: '6px',
+                    border: '1px solid #fde68a',
+                    backgroundColor: '#fffbeb'
+                  }}>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#92400e' }}>
+                      Un opérateur a uniquement accès à l'application de suivi du temps. Il n'a pas accès à la gestion des véhicules.
+                    </p>
                   </div>
                 </div>
               )}

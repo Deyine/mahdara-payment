@@ -3,6 +3,7 @@ module Api
     class ProjectsController < ApplicationController
       include MultiTenantable
 
+      skip_before_action :require_car_access
       before_action -> { require_permission(:time_tracking) }
       before_action :set_project, only: [:show, :update, :destroy]
       before_action :set_project_with_deleted, only: [:restore]

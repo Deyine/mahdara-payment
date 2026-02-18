@@ -3,6 +3,7 @@ module Api
     class TasksController < ApplicationController
       include MultiTenantable
 
+      skip_before_action :require_car_access
       before_action -> { require_permission(:time_tracking) }
       before_action :set_task, only: [:show, :update, :destroy, :complete]
       before_action :require_admin, except: [:index, :show]

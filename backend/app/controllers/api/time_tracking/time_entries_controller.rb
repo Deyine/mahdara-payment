@@ -3,6 +3,7 @@ module Api
     class TimeEntriesController < ApplicationController
       include MultiTenantable
 
+      skip_before_action :require_car_access
       before_action -> { require_permission(:time_tracking) }
       before_action :set_time_entry, only: [:show, :update, :destroy]
 

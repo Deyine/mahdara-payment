@@ -4,7 +4,7 @@ class User < ApplicationRecord
 
   has_secure_password
 
-  ROLES = %w[admin super_admin manager].freeze
+  ROLES = %w[admin super_admin manager operator].freeze
 
   validates :name, presence: true
   validates :username, presence: true, uniqueness: true
@@ -14,6 +14,7 @@ class User < ApplicationRecord
   scope :admins, -> { where(role: 'admin') }
   scope :super_admins, -> { where(role: 'super_admin') }
   scope :managers, -> { where(role: 'manager') }
+  scope :operators, -> { where(role: 'operator') }
   scope :active, -> { where(active: true) }
   scope :inactive, -> { where(active: false) }
 
@@ -29,6 +30,10 @@ class User < ApplicationRecord
     role == 'manager'
   end
 
+  def operator?
+    role == 'operator'
+  end
+
   def can_write?
     admin? || super_admin?
   end
@@ -39,6 +44,7 @@ class User < ApplicationRecord
 
   def has_permission?(feature)
     return true if admin? || super_admin?
+    return feature.to_s == 'time_tracking' if operator?
 
     permissions.is_a?(Hash) && permissions[feature.to_s] == true
   end

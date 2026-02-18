@@ -70,6 +70,7 @@ export function AuthProvider({ children }) {
     hasPermission: (feature) => {
       if (!user) return false;
       if (user.role === 'admin' || user.role === 'super_admin') return true;
+      if (user.role === 'operator') return feature === 'time_tracking';
       return user.permissions?.[feature] === true;
     },
   };
