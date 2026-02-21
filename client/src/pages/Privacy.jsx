@@ -14,7 +14,7 @@ export default function Privacy() {
       <p>The App reads your device's language setting (French or Arabic) solely to display the interface in your preferred language. This information is not transmitted to our servers or stored anywhere.</p>
 
       <h2>4. Network Requests</h2>
-      <p>The App connects to our servers at <code>api.bestcar-mr.com</code> to fetch publicly available vehicle listings. These requests do not include any personal identifiers.</p>
+      <p>The App connects to our servers to fetch publicly available vehicle listings. These requests do not include any personal identifiers.</p>
 
       <h2>5. Phone Dialer</h2>
       <p>The App provides clickable phone numbers that open your device's native dialer. We do not intercept, record, or transmit any call data.</p>
