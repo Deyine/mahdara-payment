@@ -19,6 +19,7 @@ import Debts from './pages/Debts';
 import Projects from './pages/Projects';
 import ProjectExpenseCategories from './pages/ProjectExpenseCategories';
 import SharedCar from './pages/SharedCar';
+import Privacy from './pages/Privacy';
 function PrivateRoute({ children, requireAdmin = false }) {
   const { user, loading } = useAuth();
 
@@ -52,6 +53,7 @@ function AppRoutes() {
       />
       {/* Public route - no authentication required */}
       <Route path="/share/:token" element={<SharedCar />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route
         path="/"
         element={
