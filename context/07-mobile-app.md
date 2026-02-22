@@ -692,24 +692,59 @@ import { Linking } from 'react-native';
 
 ## Deployment
 
-### Building for App Stores
+### Local Builds (no EAS, free)
+
+Builds are done locally using `mobile/build.sh`. No EAS cloud required.
 
 ```bash
-# iOS build (requires Apple Developer account)
-eas build --platform ios
-
-# Android build (generates APK or AAB)
-eas build --platform android
+cd mobile
+./build.sh android   # → AAB for Play Store
+./build.sh ios       # → IPA for App Store
 ```
 
-### Update Production API
+The script handles:
 
-Change `services/api.js`:
+1. Switches to Java 17 (via sdkman)
+2. Runs `expo prebuild --platform android --clean`
+3. Auto-patches signing config into the regenerated `build.gradle`
+4. Runs `./gradlew bundleRelease`
+
+**Prerequisite**: Java 17 via sdkman — `sdk use java 17.0.10-tem`
+
+### Android Release
+
+| Field       | Value                                     |
+|-------------|-------------------------------------------|
+| Package     | `com.nv.bestcar`                          |
+| versionCode | 1 (increment for each Play Store update)  |
+| Keystore    | `keys/bestcar-release.keystore`           |
+| Key alias   | `bestcar-key`                             |
+| Key password| `bestcar2024`                             |
+
+Build output: `android/app/build/outputs/bundle/release/app-release.aab`
+
+Signing config is auto-patched by `build.sh` after every `prebuild --clean`.
+Full signing details in `mobile/SIGNING.md`.
+
+**R8 + resource shrinking enabled** — reduces AAB size significantly.
+
+### Play Store Assets
+
+| Asset                         | Location                          |
+|-------------------------------|-----------------------------------|
+| App icon (1024×1024)          | `mobile/assets/icon.png`          |
+| Adaptive icon (1024×1024)     | `mobile/assets/adaptive-icon.png` |
+| Splash icon (1024×1024)       | `mobile/assets/splash-icon.png`   |
+| Play Store icon (512×512)     | `design/play-store-icon-512.png`  |
+| Upload certificate (PEM)      | `keys/upload_certificate.pem`     |
+
+### Production API
+
+Production URL is already forced in `services/api.js`:
+
 ```javascript
-const BASE_URL = PROD_URL; // Force production
+const BASE_URL = PROD_URL; // https://api.bestcar-mr.com/api
 ```
-
-Or use environment-based configuration with `app.config.js`.
 
 ## Troubleshooting
 
