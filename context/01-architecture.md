@@ -147,15 +147,18 @@ t.timestamps
 t.string :name, null: false
 t.string :username, null: false, index: { unique: true }
 t.string :password_digest, null: false
-t.string :role, null: false  # 'admin', 'super_admin', or 'manager'
+t.string :role, null: false  # 'admin', 'super_admin', 'manager', or 'operator'
 t.references :tenant, null: false, foreign_key: true, type: :uuid
+t.jsonb :permissions, default: {}, null: false
+t.boolean :active, default: true, null: false
 t.timestamps
 ```
 
 **Roles**:
 - `admin`: Full CRUD access within tenant
 - `super_admin`: System-wide access, can manage tenants
-- `manager`: Read-only access to all data within tenant
+- `manager`: Read-only access to all data within tenant; optional `time_tracking` permission via `permissions` column
+- `operator`: Time tracking app only — can create/edit/delete projects and tasks, cannot enter time entries, cannot access bestcar app at all
 
 ### car_models
 ```ruby

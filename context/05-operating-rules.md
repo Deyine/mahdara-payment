@@ -1059,125 +1059,81 @@ setAllCarModels(response.data);
 ### Rule 12: Role-Based Permissions
 
 **Roles**:
-- **Super Admin**: System-wide access, can manage all tenants, can create both Admin and Manager users
+- **Super Admin**: System-wide access, can manage all tenants
 - **Admin**: Full CRUD access within their tenant
-- **Manager**: Read-only access to all data within their tenant (NEW)
+- **Manager**: Read-only access to all data within their tenant; optional `time_tracking` permission via `permissions` JSONB column
+- **Operator**: Time tracking app only — blocked from bestcar app at login level
 
-**Endpoint Access Matrix**:
+**Endpoint Access Matrix** (bestcar / car management):
 
-| Endpoint | Admin | Super Admin | Manager |
-|----------|-------|-------------|---------|
-| GET /cars | ✅ | ✅* | ✅ |
-| POST/PUT/DELETE /cars | ✅ | ✅* | ❌ |
-| GET /car_models | ✅ | ✅* | ✅ |
-| POST/PUT/DELETE /car_models | ✅ | ✅* | ❌ |
-| GET /expense_categories | ✅ | ✅* | ✅ |
-| POST/PUT/DELETE /expense_categories | ✅ | ✅* | ❌ |
-| GET /expenses | ✅ | ✅* | ✅ |
-| POST/PUT/DELETE /expenses | ✅ | ✅* | ❌ |
-| GET /payments | ✅ | ✅* | ✅ |
-| POST/PUT/DELETE /payments | ✅ | ✅* | ❌ |
-| GET /rental_transactions | ✅ | ✅* | ✅ |
-| POST/PUT/DELETE /rental_transactions | ✅ | ✅* | ❌ |
-| GET /dashboard/statistics | ✅ | ✅* | ✅ |
-| GET /tenants | ❌ | ✅ | ❌ |
-| POST/PUT/DELETE /tenants | ❌ | ✅ | ❌ |
+| Endpoint | Admin | Super Admin | Manager | Operator |
+|----------|-------|-------------|---------|----------|
+| GET /cars | ✅ | ✅* | ✅ | ❌ |
+| POST/PUT/DELETE /cars | ✅ | ✅* | ❌ | ❌ |
+| GET /dashboard/statistics | ✅ | ✅* | ✅ | ❌ |
+| GET /tenants | ❌ | ✅ | ❌ | ❌ |
+| POST/PUT/DELETE /tenants | ❌ | ✅ | ❌ | ❌ |
 
 *Super Admin sees their own tenant's data (not cross-tenant)
 
-**Backend Implementation** (`app/controllers/concerns/authenticable.rb`):
+**Operator login blocking** (`app/controllers/api/auth_controller.rb`):
 ```ruby
-def require_admin
-  unless current_user&.admin? || current_user&.super_admin?
-    render json: { error: 'Forbidden' }, status: :forbidden
-  end
+# bestcar client sends app: 'bestcar' on login
+if user.operator? && params[:app] == 'bestcar'
+  return render json: { error: 'Invalid credentials' }, status: :unauthorized
 end
+```
 
-def require_super_admin
-  unless current_user&.super_admin?
-    render json: { error: 'Forbidden' }, status: :forbidden
-  end
-end
+**Car access guard** (`app/controllers/application_controller.rb`):
+```ruby
+before_action :require_car_access  # blocks operators from all car management
 
-# Usage in controllers
-before_action :require_admin, except: [:index, :show]
-before_action :require_super_admin  # TenantsController only
+# In time_tracking controllers:
+skip_before_action :require_car_access
 ```
 
 **User Model Roles** (`app/models/user.rb`):
 ```ruby
-ROLES = %w[admin super_admin manager].freeze
+ROLES = %w[admin super_admin manager operator].freeze
 
-def admin?
-  role == 'admin'
+def operator?
+  role == 'operator'
 end
 
-def super_admin?
-  role == 'super_admin'
-end
-
-def manager?
-  role == 'manager'
-end
-
-def can_write?
-  admin? || super_admin?
-end
-
-def can_read?
-  admin? || super_admin? || manager?
+def has_permission?(feature)
+  return true if admin? || super_admin?
+  return feature.to_s == 'time_tracking' if operator?
+  permissions.is_a?(Hash) && permissions[feature.to_s] == true
 end
 ```
 
-**Frontend Authorization** (`client/src/context/AuthContext.jsx`):
-```jsx
-const { user, canWrite } = useAuth();
-
-// Hide UI elements for users without write access
-{canWrite && (
-  <button onClick={handleDelete}>Supprimer</button>
-)}
-
-// Completely restrict routes
-<Route
-  path="/settings"
-  element={<PrivateRoute requireAdmin><Settings /></PrivateRoute>}
-/>
-```
-
-**AuthContext Helpers**:
+**AuthContext Helpers** (both client and time-tracking-client):
 ```jsx
 const value = {
-  user,
   isAdmin: user?.role === 'admin' || user?.role === 'super_admin',
-  isSuperAdmin: user?.role === 'super_admin',
-  isManager: user?.role === 'manager',
+  isOperator: user?.role === 'operator',
   canWrite: user?.role === 'admin' || user?.role === 'super_admin',
-  canRead: user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'manager',
+  canManageProjects: user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'operator',
+  hasPermission: (feature) => {
+    if (user.role === 'admin' || user.role === 'super_admin') return true;
+    if (user.role === 'operator') return feature === 'time_tracking';
+    return user.permissions?.[feature] === true;
+  },
 };
-```
-
-**Role Display** (`client/src/components/Layout.jsx`):
-```jsx
-{user?.role === 'super_admin' ? 'Super Admin' :
- user?.role === 'admin' ? 'Administrateur' :
- user?.role === 'manager' ? 'Manager' : 'Opérateur'}
 ```
 
 **Manager Role Characteristics**:
 - ✅ Can view all sections: Dashboard, Cars, Expenses, Payments, Rental Transactions
-- ✅ Can see all car details, photos, invoices, financial data
 - ❌ Cannot create, edit, or delete any data
 - ❌ Cannot access Settings pages
-- ❌ All action buttons (Add, Edit, Delete, Upload) are hidden in UI
-- ❌ API write operations return 403 Forbidden
+- Optional `time_tracking` permission (checkbox in user form) to access time tracking app
 
-**Why This Matters**:
-- Prevents accidental data modification by read-only users
-- Backend enforces security (frontend only for UX)
-- Super admins can manage system infrastructure
-- Managers can monitor operations without making changes
-- Clear separation of concerns: viewing vs. editing permissions
+**Operator Role Characteristics**:
+- ❌ Cannot log in to bestcar app (rejected at login with generic error)
+- ✅ Can log in to time-tracking app
+- ✅ Can create, edit, delete projects and tasks
+- ❌ Cannot create, edit, or delete time entries
+- Time tracking permission is always granted by role (no checkbox needed)
 
 ---
 
@@ -1691,52 +1647,53 @@ end
 **CRITICAL**: Different permission model than car management.
 
 **Project & Task Permissions**:
-- **Read**: All authenticated users (admin, super_admin, manager)
-- **Write** (create, update, delete): Admin only
-- **Restore**: Admin only
+- **Read**: All authenticated users with time_tracking permission
+- **Write** (create, update, delete): Admin, super_admin, and **operator**
+- **Restore**: Admin and super_admin only
 
 **Time Entry Permissions**:
-- **Read**: All authenticated users see their own entries (managers), admin sees all
-- **Create** (start timer): All authenticated users
-- **Update**: Entry owner or admin
-- **Delete**: Entry owner or admin
-- **Stop**: Entry owner only
+
+- **Read**: All authenticated users see their own entries (non-admin), admin sees all
+- **Create / Update / Delete**: Admin and manager only — **operators are blocked**
+
+**Deletion Protection**:
+
+- A task cannot be soft-deleted if it has active time entries
+- A project cannot be soft-deleted if any of its active tasks have active time entries
+- `soft_delete!` adds an error and returns `false` — controller surfaces the message
 
 **Implementation**:
 ```ruby
-# ProjectsController
-before_action :require_admin, except: [:index, :show]
-
-# TasksController
+# ProjectsController & TasksController
+# require_admin allows admin, super_admin, operator
 before_action :require_admin, except: [:index, :show]
 
 # TimeEntriesController
-def index
-  entries_scope = tenant_scope(::TimeTracking::TimeEntry)
+before_action :require_non_operator, only: [:create, :update, :destroy]
 
-  # Managers only see their own entries
-  unless current_user.admin? || current_user.super_admin?
-    entries_scope = entries_scope.for_user(current_user.id)
+# Task model
+def soft_delete!
+  if time_entries.where(deleted_at: nil).exists?
+    errors.add(:base, 'Cannot delete a task that has time entries')
+    return false
   end
-
-  @entries = entries_scope.includes(:task, :user).all
+  update(deleted_at: Time.current)
 end
 
-def stop
-  # Only owner can stop their timer
-  unless @entry.user_id == current_user.id
-    render json: { error: 'Forbidden' }, status: :forbidden
-    return
+# Project model
+def soft_delete!
+  if tasks.active.joins(:time_entries).where(time_tracking_time_entries: { deleted_at: nil }).exists?
+    errors.add(:base, 'Cannot delete a project that contains tasks with time entries')
+    return false
   end
-
-  # Stop logic...
+  update(deleted_at: Time.current)
 end
 ```
 
-**Why Different**:
-- Projects/tasks are organizational (admin manages)
-- Time tracking is personal (all users track their own time)
-- Supports collaborative time tracking within projects
+**Frontend (`time-tracking-client`)**:
+
+- `canManageProjects` — true for admin, super_admin, operator (controls project/task write buttons)
+- `isOperator` — used to hide time entry form and delete buttons in TaskDetail
 
 ---
 
@@ -1872,16 +1829,20 @@ end
 2. ✅ Multi-tenant scoped (same patterns as car management)
 3. ✅ Soft deletion for all entities
 4. ✅ One running timer per user at a time
-5. ✅ Admin manages projects/tasks, all users track time
+5. ✅ Admin/operator manage projects/tasks; only admin/manager can log time entries
 6. ✅ Task position auto-incremented on creation
 7. ✅ Time totals calculated from completed entries only
+8. ✅ Tasks with time entries cannot be deleted
+9. ✅ Projects with tasks that have time entries cannot be deleted
 
 ### Authorization
-1. ✅ Admin role required for: create, update, delete operations
+
+1. ✅ Admin role required for: create, update, delete operations (bestcar)
 2. ✅ Super admin role required for: tenant management
 3. ✅ Read access available to all authenticated users
 4. ✅ Frontend hides UI, backend enforces security
-5. ✅ Time tracking: admin for structure, all users for personal time
+5. ✅ Operator role: time tracking app only, blocked at login for bestcar app
+6. ✅ Operators can manage projects/tasks but cannot enter time entries
 
 ### Data Integrity
 1. ✅ All tenant-scoped queries use tenant_scope(Model)
