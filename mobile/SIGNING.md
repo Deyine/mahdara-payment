@@ -2,14 +2,14 @@
 
 ## Keystore Info
 
-| Field          | Value                    |
-|----------------|--------------------------|
-| File           | `android/app/bestcar-release.keystore` |
-| Store password | `bestcar2024`            |
-| Key alias      | `bestcar-key`            |
-| Key password   | `bestcar2024`            |
-| Algorithm      | RSA 2048-bit             |
-| Validity       | 10 000 days              |
+| Field          | Value                                           |
+|----------------|-------------------------------------------------|
+| File           | `keys/bestcar-release.keystore` (project root)  |
+| Store password | `bestcar2024`                                   |
+| Key alias      | `bestcar-key`                                   |
+| Key password   | `bestcar2024`                                   |
+| Algorithm      | RSA 2048-bit                                    |
+| Validity       | 10 000 days                                     |
 
 ## Build Output
 
