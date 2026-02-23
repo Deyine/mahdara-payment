@@ -2,7 +2,7 @@
 
 ## Context Folder Usage
 
-The `context/` folder contains structured documentation organized into 6 focused files:
+The `context/` folder contains structured documentation organized into 7 focused files:
 
 - **00-project-identity.md** - What Glamova is, business domain, users, problems solved
 - **01-architecture.md** - Tech stack, database schema, project structure, deployment
@@ -10,6 +10,7 @@ The `context/` folder contains structured documentation organized into 6 focused
 - **03-api-contracts.md** - Complete API documentation with endpoints, requests, responses
 - **04-boundaries.md** - Frontend ↔ Backend integration patterns and data flow
 - **05-operating-rules.md** - Business logic, workflows, and operational constraints
+- **06-time-tracking-frontend.md** - Time tracking standalone app (time-tracking-client/)
 
 ### Loading Strategy
 
@@ -18,7 +19,7 @@ The `context/` folder contains structured documentation organized into 6 focused
 Instead, follow this approach:
 
 1. **At the start of a new session**, ASK the user which context file(s) they need:
-   - "Which context should I load for this task? (00-identity, 01-architecture, 02-conventions, 03-api, 04-boundaries, 05-rules)"
+   - "Which context should I load for this task? (00-identity, 01-architecture, 02-conventions, 03-api, 04-boundaries, 05-rules, 06-time-tracking-frontend)"
 
 2. **Wait for the user to specify** the relevant file(s) based on their task
 
@@ -37,6 +38,10 @@ Suggest appropriate contexts based on the task type:
 
 - `03-api-contracts.md` (endpoint documentation)
 - `05-operating-rules.md` (business logic)
+
+**For Time Tracking work** (any feature area) → Also load:
+
+- `06-time-tracking-frontend.md` (standalone app structure, routing, permissions)
 
 **For Database/Models** → Load:
 

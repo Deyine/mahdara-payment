@@ -16,10 +16,10 @@ module Api
           entries_scope = entries_scope.for_task(params[:task_id])
         end
 
-        # Filter by user (managers can see all, others only their own)
+        # Filter by user (admin/operator see all, others only their own)
         if params[:user_id].present? && (current_user.admin? || current_user.super_admin?)
           entries_scope = entries_scope.for_user(params[:user_id])
-        elsif !current_user.admin? && !current_user.super_admin?
+        elsif !current_user.admin? && !current_user.super_admin? && !current_user.operator?
           entries_scope = entries_scope.for_user(current_user.id)
         end
 
