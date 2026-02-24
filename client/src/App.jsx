@@ -11,6 +11,7 @@ import ManagerProfits from './pages/ManagerProfits';
 import Settings from './pages/Settings';
 import CarModels from './pages/CarModels';
 import ExpenseCategories from './pages/ExpenseCategories';
+import ExpenseCategoryStats from './pages/ExpenseCategoryStats';
 import Sellers from './pages/Sellers';
 import PaymentMethods from './pages/PaymentMethods';
 import Tags from './pages/Tags';
@@ -121,6 +122,7 @@ function AppRoutes() {
         <Route index element={<Navigate to="/settings/car-models" replace />} />
         <Route path="car-models" element={<CarModels />} />
         <Route path="expense-categories" element={<ExpenseCategories />} />
+        <Route path="expense-categories/:id/stats" element={<ExpenseCategoryStats />} />
         <Route path="sellers" element={<Sellers />} />
         <Route path="payment-methods" element={<PaymentMethods />} />
         <Route path="tags" element={<Tags />} />

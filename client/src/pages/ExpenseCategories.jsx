@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDialog } from '../context/DialogContext';
 import { expenseCategoriesAPI } from '../services/api';
 
 export default function ExpenseCategories() {
+  const navigate = useNavigate();
   const { showAlert, showConfirm } = useDialog();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -184,6 +186,21 @@ export default function ExpenseCategories() {
                     </span>
                   </td>
                   <td style={{ padding: '12px', textAlign: 'right' }}>
+                    <button
+                      onClick={() => navigate(`/settings/expense-categories/${category.id}/stats`)}
+                      style={{
+                        marginRight: '8px',
+                        padding: '6px 12px',
+                        borderRadius: '4px',
+                        border: '1px solid #6b7280',
+                        backgroundColor: 'white',
+                        color: '#6b7280',
+                        cursor: 'pointer',
+                        fontSize: '13px'
+                      }}
+                    >
+                      Prix moyens
+                    </button>
                     <button
                       onClick={() => handleEdit(category)}
                       style={{

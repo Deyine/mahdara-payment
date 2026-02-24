@@ -3,7 +3,7 @@ class Api::ExpenseCategoriesController < ApplicationController
 
   before_action :authenticate_user!
   before_action :require_admin, except: [:index, :active]
-  before_action :set_expense_category, only: [:show, :update, :destroy]
+  before_action :set_expense_category, only: [:show, :update, :destroy, :stats]
 
   def index
     @expense_categories = tenant_scope(ExpenseCategory).all
@@ -17,6 +17,44 @@ class Api::ExpenseCategoriesController < ApplicationController
 
   def show
     render json: @expense_category
+  end
+
+  def stats
+    rows = tenant_scope(Expense)
+      .joins(car: :car_model)
+      .where(expense_category_id: @expense_category.id)
+      .where(cars: { deleted_at: nil })
+      .group('car_models.id', 'car_models.name')
+      .order('AVG(expenses.amount) DESC')
+      .select(
+        'car_models.id as model_id',
+        'car_models.name as model_name',
+        'COUNT(expenses.id) as count',
+        'AVG(expenses.amount) as average_amount',
+        'MIN(expenses.amount) as min_amount',
+        'MAX(expenses.amount) as max_amount',
+        'SUM(expenses.amount) as total_amount'
+      )
+
+    stats = rows.map do |row|
+      {
+        car_model: { id: row.model_id, name: row.model_name },
+        count: row.count.to_i,
+        average_amount: row.average_amount.to_f.round(2),
+        min_amount: row.min_amount.to_f.round(2),
+        max_amount: row.max_amount.to_f.round(2),
+        total_amount: row.total_amount.to_f.round(2)
+      }
+    end
+
+    render json: {
+      category: {
+        id: @expense_category.id,
+        name: @expense_category.name,
+        expense_type: @expense_category.expense_type
+      },
+      stats: stats
+    }
   end
 
   def create

@@ -42,6 +42,9 @@ Rails.application.routes.draw do
       collection do
         get 'active'
       end
+      member do
+        get 'stats'
+      end
     end
 
     # Sellers

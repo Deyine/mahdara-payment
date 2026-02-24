@@ -134,6 +134,7 @@ export const expenseCategoriesAPI = {
   create: (data) => api.post('/expense_categories', { expense_category: data }),
   update: (id, data) => api.put(`/expense_categories/${id}`, { expense_category: data }),
   delete: (id) => api.delete(`/expense_categories/${id}`),
+  stats: (id) => api.get(`/expense_categories/${id}/stats`),
 };
 
 // Sellers

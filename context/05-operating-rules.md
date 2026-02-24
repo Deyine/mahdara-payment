@@ -1653,7 +1653,7 @@ end
 
 **Time Entry Permissions**:
 
-- **Read**: All authenticated users see their own entries (non-admin), admin sees all
+- **Read**: Admin, super_admin, and operator see all entries; managers see only their own
 - **Create / Update / Delete**: Admin and manager only — **operators are blocked**
 
 **Deletion Protection**:
