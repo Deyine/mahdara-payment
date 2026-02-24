@@ -25,11 +25,12 @@ class Api::ExpenseCategoriesController < ApplicationController
       .joins(car: :car_model)
       .where(expense_category_id: @expense_category.id)
       .where(cars: { deleted_at: nil })
-      .group('car_models.id', 'car_models.name')
-      .order('AVG(expenses.amount) DESC')
+      .group('car_models.id', 'car_models.name', 'cars.year')
+      .order('car_models.name ASC', 'cars.year DESC')
       .select(
         'car_models.id as cm_id',
         'car_models.name as cm_name',
+        'cars.year as car_year',
         'COUNT(expenses.id) as count',
         'AVG(expenses.amount) as average_amount',
         'MIN(expenses.amount) as min_amount',
@@ -39,7 +40,7 @@ class Api::ExpenseCategoriesController < ApplicationController
 
     stats = rows.map do |row|
       {
-        car_model: { id: row.cm_id, name: row.cm_name },
+        car_model: { id: row.cm_id, name: row.cm_name, year: row.car_year.to_i },
         count: row.count.to_i,
         average_amount: row.average_amount.to_f.round(2),
         min_amount: row.min_amount.to_f.round(2),

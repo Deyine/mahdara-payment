@@ -101,7 +101,7 @@ export default function ExpenseCategoryStats() {
             <thead>
               <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: '#374151' }}>
-                  Modèle
+                  Modèle / Année
                 </th>
                 <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#374151' }}>
                   Occurrences
@@ -127,7 +127,7 @@ export default function ExpenseCategoryStats() {
                   style={{ borderBottom: index < stats.length - 1 ? '1px solid #e5e7eb' : 'none' }}
                 >
                   <td style={{ padding: '12px 16px', fontSize: '14px', fontWeight: '500' }}>
-                    {row.car_model.name}
+                    {row.car_model.name} <span style={{ color: '#6b7280', fontWeight: '400' }}>{row.car_model.year}</span>
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'right', fontSize: '14px', color: '#6b7280' }}>
                     {row.count}
