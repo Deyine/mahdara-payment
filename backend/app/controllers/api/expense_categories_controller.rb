@@ -28,8 +28,8 @@ class Api::ExpenseCategoriesController < ApplicationController
       .group('car_models.id', 'car_models.name')
       .order('AVG(expenses.amount) DESC')
       .select(
-        'car_models.id as model_id',
-        'car_models.name as model_name',
+        'car_models.id as cm_id',
+        'car_models.name as cm_name',
         'COUNT(expenses.id) as count',
         'AVG(expenses.amount) as average_amount',
         'MIN(expenses.amount) as min_amount',
@@ -39,7 +39,7 @@ class Api::ExpenseCategoriesController < ApplicationController
 
     stats = rows.map do |row|
       {
-        car_model: { id: row.model_id, name: row.model_name },
+        car_model: { id: row.cm_id, name: row.cm_name },
         count: row.count.to_i,
         average_amount: row.average_amount.to_f.round(2),
         min_amount: row.min_amount.to_f.round(2),
