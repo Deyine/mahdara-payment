@@ -21,6 +21,7 @@ class Api::ExpenseCategoriesController < ApplicationController
 
   def stats
     rows = tenant_scope(Expense)
+      .unscope(:order)
       .joins(car: :car_model)
       .where(expense_category_id: @expense_category.id)
       .where(cars: { deleted_at: nil })
