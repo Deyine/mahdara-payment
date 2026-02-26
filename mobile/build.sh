@@ -43,6 +43,18 @@ content = content.replace(
     "            signingConfig signingConfigs.release\n            def enableShrinkResources"
 )
 
+# Enable R8 minification
+content = content.replace(
+    "def enableProguardInReleaseBuilds = false",
+    "def enableProguardInReleaseBuilds = true"
+)
+
+# Enable resource shrinking
+content = content.replace(
+    "def enableShrinkResources = false",
+    "def enableShrinkResources = true"
+)
+
 with open('android/app/build.gradle', 'w') as f:
     f.write(content)
 PYEOF
