@@ -18,8 +18,9 @@ if [ "$PLATFORM" = "android" ]; then
   echo "→ Running expo prebuild..."
   npx expo prebuild --platform android --clean
 
-  echo "→ Patching signing config..."
+  echo "→ Patching signing config and build flags..."
   python3 - <<'PYEOF'
+# ── Patch build.gradle: signing config ──────────────────────────────────────
 with open('android/app/build.gradle', 'r') as f:
     content = f.read()
 
@@ -43,20 +44,34 @@ content = content.replace(
     "            signingConfig signingConfigs.release\n            def enableShrinkResources"
 )
 
-# Enable R8 minification
-content = content.replace(
-    "def enableProguardInReleaseBuilds = false",
-    "def enableProguardInReleaseBuilds = true"
-)
-
-# Enable resource shrinking
-content = content.replace(
-    "def enableShrinkResources = false",
-    "def enableShrinkResources = true"
-)
-
 with open('android/app/build.gradle', 'w') as f:
     f.write(content)
+
+# ── Patch gradle.properties: enable R8, shrink resources, arm-only ───────────
+with open('android/gradle.properties', 'r') as f:
+    props = f.read()
+
+replacements = {
+    # Enable R8 minification (replaces ProGuard)
+    'android.enableMinifyInReleaseBuilds=false': 'android.enableMinifyInReleaseBuilds=true',
+    # Enable resource shrinking
+    'android.enableShrinkResourcesInReleaseBuilds=false': 'android.enableShrinkResourcesInReleaseBuilds=true',
+    # Strip x86/x86_64 (emulator only) — Play Store delivers the right ABI anyway
+    'reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64': 'reactNativeArchitectures=armeabi-v7a,arm64-v8a',
+}
+
+for old, new in replacements.items():
+    props = props.replace(old, new)
+
+# Append flags if they weren't already present
+if 'android.enableMinifyInReleaseBuilds' not in props:
+    props += '\nandroid.enableMinifyInReleaseBuilds=true'
+if 'android.enableShrinkResourcesInReleaseBuilds' not in props:
+    props += '\nandroid.enableShrinkResourcesInReleaseBuilds=true'
+
+with open('android/gradle.properties', 'w') as f:
+    f.write(props)
+
 PYEOF
 
   echo "→ Building release AAB..."
