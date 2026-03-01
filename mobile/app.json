@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "BestCar Catalogue",
-    "slug": "bestcar-catalogue",
+    "name": "BestCar",
+    "slug": "bestcar",
     "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nv.bestcar"
     },
     "android": {
       "package": "com.nv.bestcar",
