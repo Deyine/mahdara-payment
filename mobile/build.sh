@@ -91,7 +91,7 @@ elif [ "$PLATFORM" = "ios" ]; then
   echo "→ Installing CocoaPods..."
   cd ios && pod install && cd ..
 
-  WORKSPACE=$(ls ios/*.xcworkspace | head -1)
+  WORKSPACE=$(ls -d ios/*.xcworkspace | head -1)
   SCHEME=$(basename "$WORKSPACE" .xcworkspace)
   ARCHIVE_PATH="ios/build/$SCHEME.xcarchive"
   EXPORT_PATH="ios/build/export"
