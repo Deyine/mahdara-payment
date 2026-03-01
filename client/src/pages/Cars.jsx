@@ -867,8 +867,9 @@ export default function Cars() {
 
                   {/* Desktop Actions */}
                   <div className="hidden sm:flex" style={{ width: '80px', justifyContent: 'center', gap: '6px' }}>
-                    <button
-                      onClick={() => handleView(car)}
+                    <a
+                      href={`/cars/${car.id}`}
+                      onClick={(e) => { e.preventDefault(); handleView(car); }}
                       style={{
                         padding: '6px 10px',
                         borderRadius: '5px',
@@ -877,11 +878,13 @@ export default function Cars() {
                         color: 'white',
                         cursor: 'pointer',
                         fontSize: '12px',
-                        fontWeight: '500'
+                        fontWeight: '500',
+                        textDecoration: 'none',
+                        display: 'inline-block'
                       }}
                     >
                       Voir
-                    </button>
+                    </a>
                     {canWrite && !car.deleted && (
                       <button
                         onClick={() => handleDelete(car.id)}
@@ -1270,8 +1273,9 @@ export default function Cars() {
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                <button
-                  onClick={() => handleView(car)}
+                <a
+                  href={`/cars/${car.id}`}
+                  onClick={(e) => { e.preventDefault(); handleView(car); }}
                   style={{
                     flex: 1,
                     padding: '8px',
@@ -1280,11 +1284,14 @@ export default function Cars() {
                     backgroundColor: '#167bff',
                     color: 'white',
                     cursor: 'pointer',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    textDecoration: 'none',
+                    display: 'block',
+                    textAlign: 'center'
                   }}
                 >
                   Voir Détails
-                </button>
+                </a>
                 {canWrite && (
                   car.deleted ? (
                     <button
