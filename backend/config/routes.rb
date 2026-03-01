@@ -23,8 +23,10 @@ Rails.application.routes.draw do
         post 'return_rental', to: 'cars#return_rental'
         post 'salvage_photos', to: 'cars#add_salvage_photos'
         delete 'salvage_photos/:photo_id', to: 'cars#delete_salvage_photo'
+        post 'reorder_salvage_photos', to: 'cars#reorder_salvage_photos'
         post 'after_repair_photos', to: 'cars#add_after_repair_photos'
         delete 'after_repair_photos/:photo_id', to: 'cars#delete_after_repair_photo'
+        post 'reorder_after_repair_photos', to: 'cars#reorder_after_repair_photos'
         post 'invoices', to: 'cars#add_invoices'
         delete 'invoices/:invoice_id', to: 'cars#delete_invoice'
       end

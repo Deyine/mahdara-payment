@@ -78,6 +78,7 @@ export const carsAPI = {
     });
   },
   deleteSalvagePhoto: (carId, photoId) => api.delete(`/cars/${carId}/salvage_photos/${photoId}`),
+  reorderSalvagePhotos: (carId, order) => api.post(`/cars/${carId}/reorder_salvage_photos`, { order }),
 
   addAfterRepairPhotos: (carId, files) => {
     const formData = new FormData();
@@ -87,6 +88,7 @@ export const carsAPI = {
     });
   },
   deleteAfterRepairPhoto: (carId, photoId) => api.delete(`/cars/${carId}/after_repair_photos/${photoId}`),
+  reorderAfterRepairPhotos: (carId, order) => api.post(`/cars/${carId}/reorder_after_repair_photos`, { order }),
 
   // Invoice management
   addInvoices: (carId, files) => {

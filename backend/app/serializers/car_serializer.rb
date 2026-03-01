@@ -80,7 +80,7 @@ class CarSerializer
   end
 
   def salvage_photos_data
-    @car.salvage_photos.map do |photo|
+    photos = @car.salvage_photos.map do |photo|
       {
         id: photo.id,
         url: Rails.application.routes.url_helpers.rails_blob_url(photo, only_path: false),
@@ -89,10 +89,14 @@ class CarSerializer
         content_type: photo.content_type
       }
     end
+    order = @car.salvage_photos_order.presence
+    return photos unless order
+    order_index = order.each_with_index.to_h { |id, i| [id, i] }
+    photos.sort_by { |p| order_index.fetch(p[:id], Float::INFINITY) }
   end
 
   def after_repair_photos_data
-    @car.after_repair_photos.map do |photo|
+    photos = @car.after_repair_photos.map do |photo|
       {
         id: photo.id,
         url: Rails.application.routes.url_helpers.rails_blob_url(photo, only_path: false),
@@ -101,6 +105,10 @@ class CarSerializer
         content_type: photo.content_type
       }
     end
+    order = @car.after_repair_photos_order.presence
+    return photos unless order
+    order_index = order.each_with_index.to_h { |id, i| [id, i] }
+    photos.sort_by { |p| order_index.fetch(p[:id], Float::INFINITY) }
   end
 
   def invoices_data

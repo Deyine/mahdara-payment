@@ -2,8 +2,8 @@ class Api::CarsController < ApplicationController
   include MultiTenantable
 
   before_action :authenticate_user!
-  before_action :require_admin, except: [:index, :show, :add_salvage_photos, :delete_salvage_photo, :add_after_repair_photos, :delete_after_repair_photo, :add_invoices, :delete_invoice]
-  before_action :set_car, only: [:show, :update, :destroy, :sell, :unsell, :rent, :return_rental, :add_salvage_photos, :delete_salvage_photo, :add_after_repair_photos, :delete_after_repair_photo, :add_invoices, :delete_invoice]
+  before_action :require_admin, except: [:index, :show, :add_salvage_photos, :delete_salvage_photo, :reorder_salvage_photos, :add_after_repair_photos, :delete_after_repair_photo, :reorder_after_repair_photos, :add_invoices, :delete_invoice]
+  before_action :set_car, only: [:show, :update, :destroy, :sell, :unsell, :rent, :return_rental, :add_salvage_photos, :delete_salvage_photo, :reorder_salvage_photos, :add_after_repair_photos, :delete_after_repair_photo, :reorder_after_repair_photos, :add_invoices, :delete_invoice]
   before_action :set_car_with_deleted, only: [:restore]
 
   def index
@@ -84,10 +84,22 @@ class Api::CarsController < ApplicationController
   # Delete a specific salvage photo (operators can access)
   def delete_salvage_photo
     photo = @car.salvage_photos.find(params[:photo_id])
+    photo_id = photo.id
     photo.purge
+    new_order = (@car.salvage_photos_order || []).reject { |id| id == photo_id }
+    @car.update_columns(salvage_photos_order: new_order)
     render json: { message: 'Photo deleted successfully' }
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Photo not found' }, status: :not_found
+  end
+
+  # Reorder salvage photos (operators can access)
+  def reorder_salvage_photos
+    order = params[:order] || []
+    @car.update!(salvage_photos_order: order)
+    render json: CarSerializer.new(@car).as_json
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { error: e.message }, status: :unprocessable_entity
   end
 
   # Add after-repair photos (operators can access)
@@ -108,10 +120,22 @@ class Api::CarsController < ApplicationController
   # Delete a specific after-repair photo (operators can access)
   def delete_after_repair_photo
     photo = @car.after_repair_photos.find(params[:photo_id])
+    photo_id = photo.id
     photo.purge
+    new_order = (@car.after_repair_photos_order || []).reject { |id| id == photo_id }
+    @car.update_columns(after_repair_photos_order: new_order)
     render json: { message: 'Photo deleted successfully' }
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Photo not found' }, status: :not_found
+  end
+
+  # Reorder after-repair photos (operators can access)
+  def reorder_after_repair_photos
+    order = params[:order] || []
+    @car.update!(after_repair_photos_order: order)
+    render json: CarSerializer.new(@car).as_json
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { error: e.message }, status: :unprocessable_entity
   end
 
   # Add invoices (operators can access)

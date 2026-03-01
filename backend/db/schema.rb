@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_17_151419) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_01_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -106,6 +106,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_17_151419) do
     t.decimal "profit_share_percentage", precision: 5, scale: 2, default: "0.0"
     t.boolean "published", default: false, null: false
     t.decimal "listing_price", precision: 10, scale: 2
+    t.jsonb "salvage_photos_order", default: []
+    t.jsonb "after_repair_photos_order", default: []
     t.index ["car_model_id"], name: "index_cars_on_car_model_id"
     t.index ["deleted_at"], name: "index_cars_on_deleted_at"
     t.index ["profit_share_user_id"], name: "index_cars_on_profit_share_user_id"

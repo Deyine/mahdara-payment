@@ -13,11 +13,13 @@ import FullscreenPhotoViewer from './FullscreenPhotoViewer';
  * - Click to view fullscreen
  * - Delete individual photos
  * - 5MB per photo validation
+ * - Drag-and-drop reordering (when onReorder is provided and canWrite)
  */
 export default function PhotoGallery({
   photos = [],
   onUpload,
   onDelete,
+  onReorder,
   title = "Photos",
   emptyMessage = "Aucune photo"
 }) {
@@ -29,6 +31,16 @@ export default function PhotoGallery({
   const swiperRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+
+  // Local photos state for optimistic drag-and-drop reordering
+  const [localPhotos, setLocalPhotos] = useState(photos);
+  const draggedIdRef = useRef(null);
+  const [dragOverId, setDragOverId] = useState(null);
+
+  // Sync local photos when parent updates
+  useEffect(() => {
+    setLocalPhotos(photos);
+  }, [photos]);
 
   // Check scroll position to show/hide navigation arrows
   const checkScrollPosition = () => {
@@ -45,7 +57,7 @@ export default function PhotoGallery({
     const handleResize = () => checkScrollPosition();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [photos]);
+  }, [localPhotos]);
 
   // Keyboard navigation for swiper
   useEffect(() => {
@@ -213,11 +225,71 @@ export default function PhotoGallery({
     }
   };
 
+  // Drag-and-drop handlers
+  const handleDragStart = (e, photoId) => {
+    draggedIdRef.current = photoId;
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e, photoId) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (photoId !== draggedIdRef.current) {
+      setDragOverId(photoId);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverId(null);
+  };
+
+  const handleDrop = async (e, targetId) => {
+    e.preventDefault();
+    setDragOverId(null);
+
+    const draggedId = draggedIdRef.current;
+    draggedIdRef.current = null;
+
+    if (!draggedId || draggedId === targetId) return;
+
+    const currentPhotos = [...localPhotos];
+    const draggedIndex = currentPhotos.findIndex(p => p.id === draggedId);
+    const targetIndex = currentPhotos.findIndex(p => p.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    // Optimistic reorder
+    const reordered = [...currentPhotos];
+    const [removed] = reordered.splice(draggedIndex, 1);
+    reordered.splice(targetIndex, 0, removed);
+    setLocalPhotos(reordered);
+
+    try {
+      await onReorder(reordered.map(p => p.id));
+    } catch (error) {
+      // Revert on failure
+      setLocalPhotos(currentPhotos);
+      await showAlert('Erreur lors de la réorganisation', 'error');
+    }
+  };
+
+  const handleDragEnd = () => {
+    draggedIdRef.current = null;
+    setDragOverId(null);
+  };
+
+  const canReorder = canWrite && typeof onReorder === 'function';
+
   return (
     <div>
       {/* Section Header */}
       <h3 className="text-lg font-bold mb-4" style={{ color: '#1e293b' }}>
-        {title} ({photos.length})
+        {title} ({localPhotos.length})
+        {canReorder && localPhotos.length > 1 && (
+          <span className="text-sm font-normal ml-2" style={{ color: '#94a3b8' }}>
+            — glissez pour réordonner
+          </span>
+        )}
       </h3>
 
       {/* Upload Section */}
@@ -294,7 +366,7 @@ export default function PhotoGallery({
       )}
 
       {/* Photo Swiper with Navigation */}
-      {photos.length === 0 ? (
+      {localPhotos.length === 0 ? (
         <div
           className="rounded-lg p-8 text-center"
           style={{ backgroundColor: '#f1f5f9', border: '2px dashed #cbd5e1' }}
@@ -393,13 +465,22 @@ export default function PhotoGallery({
               paddingTop: '4px'
             }}
           >
-            {photos.map((photo) => (
+            {localPhotos.map((photo) => (
               <div
                 key={photo.id}
                 className="photo-swiper-item relative group rounded-lg overflow-hidden flex-shrink-0"
+                draggable={canReorder}
+                onDragStart={canReorder ? (e) => handleDragStart(e, photo.id) : undefined}
+                onDragOver={canReorder ? (e) => handleDragOver(e, photo.id) : undefined}
+                onDragLeave={canReorder ? handleDragLeave : undefined}
+                onDrop={canReorder ? (e) => handleDrop(e, photo.id) : undefined}
+                onDragEnd={canReorder ? handleDragEnd : undefined}
                 style={{
-                  border: '1px solid #e2e8f0',
-                  width: '200px'
+                  border: dragOverId === photo.id ? '2px dashed #167bff' : '1px solid #e2e8f0',
+                  width: '200px',
+                  cursor: canReorder ? 'grab' : 'default',
+                  opacity: draggedIdRef.current === photo.id ? 0.5 : 1,
+                  transition: 'border-color 0.15s, opacity 0.15s'
                 }}
               >
                 <img
@@ -409,11 +490,25 @@ export default function PhotoGallery({
                   style={{
                     width: '200px',
                     height: '150px',
-                    objectFit: 'cover'
+                    objectFit: 'cover',
+                    pointerEvents: canReorder ? 'none' : 'auto'
                   }}
-                  onClick={() => setFullscreenIndex(photos.findIndex(p => p.id === photo.id))}
-                  title="Cliquez pour voir en plein écran"
+                  onClick={canReorder ? undefined : () => setFullscreenIndex(localPhotos.findIndex(p => p.id === photo.id))}
+                  title={canReorder ? undefined : "Cliquez pour voir en plein écran"}
                 />
+
+                {/* Click overlay for fullscreen when reorder is active */}
+                {canReorder && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0, left: 0, right: 0,
+                      height: '150px',
+                      cursor: 'grab'
+                    }}
+                    onClick={() => setFullscreenIndex(localPhotos.findIndex(p => p.id === photo.id))}
+                  />
+                )}
 
                 {/* Delete Button (shows on hover) */}
                 {canWrite && (
@@ -423,7 +518,7 @@ export default function PhotoGallery({
                       handleDelete(photo);
                     }}
                     className="absolute top-2 right-2 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ backgroundColor: 'rgba(239, 68, 68, 0.9)', color: 'white' }}
+                    style={{ backgroundColor: 'rgba(239, 68, 68, 0.9)', color: 'white', zIndex: 5 }}
                     title="Supprimer"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -450,7 +545,7 @@ export default function PhotoGallery({
       {/* Fullscreen Photo Viewer */}
       {fullscreenIndex !== null && (
         <FullscreenPhotoViewer
-          photos={photos}
+          photos={localPhotos}
           initialIndex={fullscreenIndex}
           onClose={() => setFullscreenIndex(null)}
         />
