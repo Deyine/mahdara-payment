@@ -11,6 +11,8 @@ export default function Debts() {
   const [showModal, setShowModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [editingDebt, setEditingDebt] = useState(null);
+  const [viewMode, setViewMode] = useState('list');
+  const [expandedPersons, setExpandedPersons] = useState(new Set());
   const [summary, setSummary] = useState({
     total_we_lent: 0,
     total_we_borrowed: 0,
@@ -248,6 +250,36 @@ export default function Debts() {
     return true;
   });
 
+  const debtors = Object.values(
+    debts.reduce((acc, debt) => {
+      const key = debt.debtor_name;
+      if (!acc[key]) {
+        acc[key] = { name: debt.debtor_name, user: debt.user || null, debts: [], total_we_lent: 0, total_we_borrowed: 0 };
+      }
+      acc[key].debts.push(debt);
+      if (debt.direction === 'we_lent') acc[key].total_we_lent += Number(debt.amount);
+      else acc[key].total_we_borrowed += Number(debt.amount);
+      return acc;
+    }, {})
+  ).map(d => ({ ...d, net_balance: d.total_we_lent - d.total_we_borrowed }))
+    .sort((a, b) => b.net_balance - a.net_balance);
+
+  const filteredDebtors = debtors.filter(debtor => {
+    if (filter === 'all') return true;
+    if (filter === 'we_lent') return debtor.net_balance > 0;
+    if (filter === 'we_borrowed') return debtor.net_balance < 0;
+    return true;
+  });
+
+  const togglePerson = (name) => {
+    setExpandedPersons(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
   const getDirectionLabel = (direction) => {
     return direction === 'we_lent' ? 'Créance' : 'Dette';
   };
@@ -316,41 +348,68 @@ export default function Debts() {
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 mb-4 border-b" style={{ borderColor: '#e2e8f0' }}>
-        <button
-          onClick={() => setFilter('all')}
-          className="px-4 py-2 font-medium transition-colors"
-          style={{
-            color: filter === 'all' ? '#167bff' : '#64748b',
-            borderBottom: filter === 'all' ? '2px solid #167bff' : '2px solid transparent'
-          }}
-        >
-          Tout ({debts.length})
-        </button>
-        <button
-          onClick={() => setFilter('we_lent')}
-          className="px-4 py-2 font-medium transition-colors"
-          style={{
-            color: filter === 'we_lent' ? '#10b981' : '#64748b',
-            borderBottom: filter === 'we_lent' ? '2px solid #10b981' : '2px solid transparent'
-          }}
-        >
-          Créances ({debts.filter(d => d.direction === 'we_lent').length})
-        </button>
-        <button
-          onClick={() => setFilter('we_borrowed')}
-          className="px-4 py-2 font-medium transition-colors"
-          style={{
-            color: filter === 'we_borrowed' ? '#dc2626' : '#64748b',
-            borderBottom: filter === 'we_borrowed' ? '2px solid #dc2626' : '2px solid transparent'
-          }}
-        >
-          Dettes ({debts.filter(d => d.direction === 'we_borrowed').length})
-        </button>
+      {/* Filter Tabs + View Toggle */}
+      <div className="flex items-center justify-between mb-4 border-b" style={{ borderColor: '#e2e8f0' }}>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setFilter('all')}
+            className="px-4 py-2 font-medium transition-colors"
+            style={{
+              color: filter === 'all' ? '#167bff' : '#64748b',
+              borderBottom: filter === 'all' ? '2px solid #167bff' : '2px solid transparent'
+            }}
+          >
+            Tout ({debts.length})
+          </button>
+          <button
+            onClick={() => setFilter('we_lent')}
+            className="px-4 py-2 font-medium transition-colors"
+            style={{
+              color: filter === 'we_lent' ? '#10b981' : '#64748b',
+              borderBottom: filter === 'we_lent' ? '2px solid #10b981' : '2px solid transparent'
+            }}
+          >
+            Créances ({debts.filter(d => d.direction === 'we_lent').length})
+          </button>
+          <button
+            onClick={() => setFilter('we_borrowed')}
+            className="px-4 py-2 font-medium transition-colors"
+            style={{
+              color: filter === 'we_borrowed' ? '#dc2626' : '#64748b',
+              borderBottom: filter === 'we_borrowed' ? '2px solid #dc2626' : '2px solid transparent'
+            }}
+          >
+            Dettes ({debts.filter(d => d.direction === 'we_borrowed').length})
+          </button>
+        </div>
+        <div className="flex gap-1 mb-1">
+          <button
+            onClick={() => setViewMode('list')}
+            title="Vue liste"
+            className="px-3 py-1.5 rounded text-sm font-medium transition-colors"
+            style={{
+              backgroundColor: viewMode === 'list' ? '#167bff' : '#f1f5f9',
+              color: viewMode === 'list' ? 'white' : '#64748b'
+            }}
+          >
+            ≡ Liste
+          </button>
+          <button
+            onClick={() => setViewMode('by_person')}
+            title="Vue par personne"
+            className="px-3 py-1.5 rounded text-sm font-medium transition-colors"
+            style={{
+              backgroundColor: viewMode === 'by_person' ? '#167bff' : '#f1f5f9',
+              color: viewMode === 'by_person' ? 'white' : '#64748b'
+            }}
+          >
+            👤 Par personne
+          </button>
+        </div>
       </div>
 
-      {/* Debts Table */}
+      {/* List View */}
+      {viewMode === 'list' && (
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -449,6 +508,141 @@ export default function Debts() {
           </table>
         </div>
       </div>
+      )}
+
+      {/* By Person View */}
+      {viewMode === 'by_person' && (
+        <div className="space-y-3">
+          {filteredDebtors.length === 0 ? (
+            <div className="bg-white rounded-lg shadow px-4 py-8 text-center" style={{ color: '#64748b' }}>
+              Aucune dette enregistrée
+            </div>
+          ) : (
+            filteredDebtors.map(debtor => (
+              <div key={debtor.name} className="bg-white rounded-lg shadow overflow-hidden">
+                <div
+                  className="flex items-center justify-between px-4 py-4 cursor-pointer hover:bg-gray-50"
+                  onClick={() => togglePerson(debtor.name)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+                      style={{ backgroundColor: '#167bff' }}
+                    >
+                      {debtor.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="font-semibold" style={{ color: '#1e293b' }}>
+                        {debtor.name}
+                        {debtor.user && (
+                          <span className="text-xs font-normal ml-2" style={{ color: '#64748b' }}>
+                            (@{debtor.user.username})
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs" style={{ color: '#94a3b8' }}>
+                        {debtor.debts.length} entrée{debtor.debts.length > 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 sm:gap-6">
+                    {debtor.total_we_lent > 0 && (
+                      <div className="text-right hidden sm:block">
+                        <div className="text-xs" style={{ color: '#64748b' }}>Prêté</div>
+                        <div className="font-semibold text-sm" style={{ color: '#10b981' }}>
+                          {formatCurrency(debtor.total_we_lent)} MRU
+                        </div>
+                      </div>
+                    )}
+                    {debtor.total_we_borrowed > 0 && (
+                      <div className="text-right hidden sm:block">
+                        <div className="text-xs" style={{ color: '#64748b' }}>Dû</div>
+                        <div className="font-semibold text-sm" style={{ color: '#dc2626' }}>
+                          {formatCurrency(debtor.total_we_borrowed)} MRU
+                        </div>
+                      </div>
+                    )}
+                    <div className="text-right">
+                      <div className="text-xs" style={{ color: '#64748b' }}>Solde</div>
+                      <div className="font-bold" style={{ color: debtor.net_balance >= 0 ? '#10b981' : '#dc2626' }}>
+                        {debtor.net_balance >= 0 ? '+' : ''}{formatCurrency(debtor.net_balance)} MRU
+                      </div>
+                    </div>
+                    <div className="text-sm" style={{ color: '#94a3b8' }}>
+                      {expandedPersons.has(debtor.name) ? '▲' : '▼'}
+                    </div>
+                  </div>
+                </div>
+                {expandedPersons.has(debtor.name) && (
+                  <div className="border-t" style={{ borderColor: '#e2e8f0' }}>
+                    <table className="w-full">
+                      <thead style={{ backgroundColor: '#f8fafc' }}>
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium" style={{ color: '#64748b' }}>Direction</th>
+                          <th className="px-4 py-2 text-right text-xs font-medium" style={{ color: '#64748b' }}>Montant</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium hidden md:table-cell" style={{ color: '#64748b' }}>Date</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium hidden lg:table-cell" style={{ color: '#64748b' }}>Notes</th>
+                          {canWrite && <th className="px-4 py-2 text-center text-xs font-medium" style={{ color: '#64748b' }}>Actions</th>}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y" style={{ borderColor: '#e2e8f0' }}>
+                        {debtor.debts.map(debt => (
+                          <tr key={debt.id}>
+                            <td className="px-4 py-2">
+                              <span
+                                className="px-2 py-1 rounded text-xs font-medium"
+                                style={{
+                                  backgroundColor: debt.direction === 'we_lent' ? '#d1fae5' : '#fee2e2',
+                                  color: getDirectionColor(debt.direction)
+                                }}
+                              >
+                                {getDirectionLabel(debt.direction)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-right">
+                              <span className="font-semibold" style={{ color: getDirectionColor(debt.direction) }}>
+                                {formatCurrency(debt.amount)} MRU
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 hidden md:table-cell">
+                              <span className="text-sm" style={{ color: '#64748b' }}>
+                                {new Date(debt.debt_date).toLocaleDateString('fr-FR')}
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 hidden lg:table-cell">
+                              <span className="text-sm" style={{ color: '#64748b' }}>
+                                {debt.notes || '--'}
+                              </span>
+                            </td>
+                            {canWrite && (
+                              <td className="px-4 py-2">
+                                <div className="flex items-center justify-center gap-2">
+                                  <button
+                                    onClick={() => handleOpenModal(debt)}
+                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                  >
+                                    Modifier
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(debt.id)}
+                                    className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                  >
+                                    Supprimer
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       {/* Create/Edit Modal */}
       {showModal && (
