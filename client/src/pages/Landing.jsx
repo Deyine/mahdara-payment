@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaGooglePlay, FaApple } from 'react-icons/fa';
+import { FaGooglePlay, FaApple, FaFacebook } from 'react-icons/fa';
 
 const PLAY_STORE_URL = '#'; // TODO: replace with Google Play Store URL
 const APP_STORE_URL = '#';  // TODO: replace with App Store URL
@@ -281,8 +281,20 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="py-5 px-6 text-center text-xs" style={{ backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', color: '#94a3b8' }}>
-        © 2026 BestCar · Importation, Vente et Location de Voitures
+      <footer className="py-5 px-6 text-xs" style={{ backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', color: '#94a3b8' }}>
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <span>© 2026 BestCar · Importation, Vente et Location de Voitures</span>
+          <a
+            href="https://www.facebook.com/profile.php?id=61556019583684"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 transition-colors hover:text-blue-600"
+            style={{ color: '#94a3b8', textDecoration: 'none' }}
+          >
+            <FaFacebook size={16} />
+            <span>Suivez-nous sur Facebook</span>
+          </a>
+        </div>
       </footer>
     </div>
   );
