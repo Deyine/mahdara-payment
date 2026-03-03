@@ -9,6 +9,53 @@ const APP_SCREENS = [
   '/app-screen-3.jpg',
 ];
 
+function StoreBadges({ justify = 'center' }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: justify }}>
+      <a
+        href={PLAY_STORE_URL}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          backgroundColor: '#000', color: '#fff',
+          padding: '10px 20px', borderRadius: '12px',
+          textDecoration: 'none', border: '1px solid #333',
+          transition: 'opacity 0.2s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+        onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+      >
+        <svg style={{ width: '22px', height: '22px', flexShrink: 0 }} viewBox="0 0 24 24" fill="white">
+          <path d="M3.18 23.76a2 2 0 0 0 2.17-.22l12.18-7.04-2.73-2.73-11.62 10zm16.14-10.81L16.4 11.1 13.5 14l2.82 2.82 2.99-1.72a1.65 1.65 0 0 0 .01-2.87zM2.06.34A1.65 1.65 0 0 0 1.5 1.67v20.66a1.65 1.65 0 0 0 .56 1.33l.07.06L13.08 14v-.27L2.13.28zm10.01 10.72L3.18.22A2 2 0 0 0 1.01 0l11.56 11.06z"/>
+        </svg>
+        <div style={{ lineHeight: 1.2 }}>
+          <div style={{ fontSize: '10px', opacity: 0.7, letterSpacing: '0.05em' }}>GET IT ON</div>
+          <div style={{ fontSize: '15px', fontWeight: 700 }}>Google Play</div>
+        </div>
+      </a>
+      <a
+        href={APP_STORE_URL}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          backgroundColor: '#000', color: '#fff',
+          padding: '10px 20px', borderRadius: '12px',
+          textDecoration: 'none', border: '1px solid #333',
+          transition: 'opacity 0.2s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+        onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+      >
+        <svg style={{ width: '22px', height: '22px', flexShrink: 0 }} viewBox="0 0 24 24" fill="white">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.15-2.22 1.3-2.2 3.88.03 3.07 2.69 4.1 2.72 4.11l-.07.14zM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+        </svg>
+        <div style={{ lineHeight: 1.2 }}>
+          <div style={{ fontSize: '10px', opacity: 0.7, letterSpacing: '0.05em' }}>DOWNLOAD ON THE</div>
+          <div style={{ fontSize: '15px', fontWeight: 700 }}>App Store</div>
+        </div>
+      </a>
+    </div>
+  );
+}
+
 function PhoneMockup() {
   const [current, setCurrent] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -162,7 +209,7 @@ export default function Landing() {
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(135deg, rgba(15,23,42,0.93) 0%, rgba(15,23,42,0.80) 60%, rgba(15,23,42,0.70) 100%)',
+          background: 'linear-gradient(135deg, rgba(15,23,42,0.97) 0%, rgba(15,23,42,0.92) 60%, rgba(15,23,42,0.85) 100%)',
         }} />
         <div className="max-w-6xl mx-auto px-6 py-16 w-full flex flex-col md:flex-row items-center gap-12" style={{ position: 'relative', zIndex: 1 }}>
           {/* Left: Text + Badges */}
@@ -174,28 +221,7 @@ export default function Landing() {
               Parcourez notre catalogue de véhicules importés, consultez les photos avant et après réparation, et contactez-nous directement.
             </p>
             {/* Download Badges */}
-            <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-              <a
-                href={PLAY_STORE_URL}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
-                style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
-              >
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M3.18 23.76a2 2 0 0 0 2.17-.22l12.18-7.04-2.73-2.73-11.62 10zm16.14-10.81L16.4 11.1 13.5 14l2.82 2.82 2.99-1.72a1.65 1.65 0 0 0 .01-2.87zM2.06.34A1.65 1.65 0 0 0 1.5 1.67v20.66a1.65 1.65 0 0 0 .56 1.33l.07.06L13.08 14v-.27L2.13.28zm10.01 10.72L3.18.22A2 2 0 0 0 1.01 0l11.56 11.06z"/>
-                </svg>
-                Google Play
-              </a>
-              <a
-                href={APP_STORE_URL}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
-                style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
-              >
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.15-2.22 1.3-2.2 3.88.03 3.07 2.69 4.1 2.72 4.11l-.07.14zM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                </svg>
-                App Store
-              </a>
-            </div>
+            <StoreBadges justify="center" />
           </div>
 
           {/* Right: Phone Mockup with real screenshots */}
@@ -253,28 +279,7 @@ export default function Landing() {
           <p className="text-sm mb-8" style={{ color: '#64748b' }}>
             Téléchargez l'application gratuitement et accédez à tout le catalogue BestCar.
           </p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <a
-              href={PLAY_STORE_URL}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-80"
-              style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3.18 23.76a2 2 0 0 0 2.17-.22l12.18-7.04-2.73-2.73-11.62 10zm16.14-10.81L16.4 11.1 13.5 14l2.82 2.82 2.99-1.72a1.65 1.65 0 0 0 .01-2.87zM2.06.34A1.65 1.65 0 0 0 1.5 1.67v20.66a1.65 1.65 0 0 0 .56 1.33l.07.06L13.08 14v-.27L2.13.28zm10.01 10.72L3.18.22A2 2 0 0 0 1.01 0l11.56 11.06z"/>
-              </svg>
-              Google Play
-            </a>
-            <a
-              href={APP_STORE_URL}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-80"
-              style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.15-2.22 1.3-2.2 3.88.03 3.07 2.69 4.1 2.72 4.11l-.07.14zM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-              </svg>
-              App Store
-            </a>
-          </div>
+          <StoreBadges />
         </div>
       </section>
 
