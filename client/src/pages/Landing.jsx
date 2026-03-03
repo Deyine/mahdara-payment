@@ -206,115 +206,82 @@ export default function Landing() {
       </section>
 
       {/* Features */}
-      <section className="py-20 px-6" style={{ backgroundColor: '#0a0f1a' }}>
-        <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* Big card — full width */}
-            <div
-              className="md:col-span-2 rounded-2xl p-8 flex flex-col"
-              style={{
-                background: 'linear-gradient(160deg, #1a1f2e 0%, #111827 100%)',
-                border: '1px solid #1e2d40',
-              }}
-            >
-              <div
-                className="w-10 h-1 rounded-full mb-8"
-                style={{ backgroundColor: '#e61536' }}
-              />
-              <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: '#e61536' }}>
-                Catalogue
-              </p>
-              <h3 className="font-black mb-4" style={{ color: '#ffffff', fontSize: '1.75rem', lineHeight: 1.2 }}>
-                Tous les véhicules,<br />au même endroit
-              </h3>
-              <p className="text-sm leading-relaxed" style={{ color: '#64748b', maxWidth: '480px' }}>
-                Importés, disponibles à la vente ou à la location. Prix en MRU, photos complètes, fiche détaillée pour chaque modèle.
-              </p>
-            </div>
-
-            {/* Card 2 */}
-            <div
-              className="rounded-2xl p-7"
-              style={{
-                background: 'linear-gradient(135deg, #1a1f2e 0%, #111827 100%)',
-                border: '1px solid #1e2d40',
-              }}
-            >
-              <div
-                className="w-8 h-1 rounded-full mb-6"
-                style={{ backgroundColor: '#e61536' }}
-              />
-              <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: '#e61536' }}>
-                Transparence
-              </p>
-              <h3 className="text-xl font-black mb-3" style={{ color: '#ffffff', lineHeight: 1.2 }}>
-                Photos avant<br />et après réparation
-              </h3>
-              <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>
-                Chaque véhicule est documenté à l'arrivée et après remise en état. Vous voyez exactement ce que vous achetez.
-              </p>
-            </div>
-
-            {/* Card 3 */}
-            <div
-              className="rounded-2xl p-7"
-              style={{
-                background: 'linear-gradient(135deg, #1e0a0e 0%, #1a0f13 100%)',
-                border: '1px solid #3d1520',
-              }}
-            >
-              <div
-                className="w-8 h-1 rounded-full mb-6"
-                style={{ backgroundColor: '#e61536' }}
-              />
-              <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: '#e61536' }}>
-                Contact
-              </p>
-              <h3 className="text-xl font-black mb-3" style={{ color: '#ffffff', lineHeight: 1.2 }}>
-                Appelez<br />en un tap
-              </h3>
-              <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>
-                Depuis la fiche du véhicule, contactez notre équipe directement sans quitter l'application.
-              </p>
-            </div>
+      <section className="py-24 px-6" style={{ backgroundColor: '#ffffff' }}>
+        <div className="max-w-4xl mx-auto">
+          <p className="text-xs font-semibold tracking-widest uppercase mb-4 text-center" style={{ color: '#e61536' }}>
+            Pourquoi BestCar
+          </p>
+          <h2 className="text-3xl font-black text-center mb-16" style={{ color: '#0f172a' }}>
+            Tout ce qu'il faut pour bien acheter
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {[
+              {
+                label: 'Catalogue',
+                title: 'Tous les véhicules disponibles',
+                desc: 'Vente et location, avec prix en MRU, photos et fiche complète pour chaque modèle.',
+              },
+              {
+                label: 'Transparence',
+                title: 'Photos avant et après réparation',
+                desc: 'Chaque voiture est documentée à l\'arrivée et après remise en état. Vous voyez exactement ce que vous achetez.',
+              },
+              {
+                label: 'Contact',
+                title: 'Appelez en un tap',
+                desc: 'Depuis la fiche du véhicule, contactez notre équipe directement sans quitter l\'application.',
+              },
+            ].map((item) => (
+              <div key={item.label}>
+                <div className="w-8 h-0.5 mb-5" style={{ backgroundColor: '#e61536' }} />
+                <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: '#94a3b8' }}>
+                  {item.label}
+                </p>
+                <h3 className="text-lg font-bold mb-3" style={{ color: '#0f172a' }}>{item.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>{item.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Download CTA */}
-      <section className="py-16 px-6 text-center" style={{ backgroundColor: '#e61536' }}>
-        <h2 className="text-3xl font-black mb-3" style={{ color: '#ffffff' }}>
-          Téléchargez l'application
-        </h2>
-        <p className="mb-8 text-lg" style={{ color: 'rgba(255,255,255,0.85)' }}>
-          Disponible gratuitement sur iOS et Android
-        </p>
-        <div className="flex flex-wrap gap-3 justify-center">
-          <a
-            href={PLAY_STORE_URL}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
-            style={{ backgroundColor: '#ffffff', color: '#e61536' }}
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M3.18 23.76a2 2 0 0 0 2.17-.22l12.18-7.04-2.73-2.73-11.62 10zm16.14-10.81L16.4 11.1 13.5 14l2.82 2.82 2.99-1.72a1.65 1.65 0 0 0 .01-2.87zM2.06.34A1.65 1.65 0 0 0 1.5 1.67v20.66a1.65 1.65 0 0 0 .56 1.33l.07.06L13.08 14v-.27L2.13.28zm10.01 10.72L3.18.22A2 2 0 0 0 1.01 0l11.56 11.06z"/>
-            </svg>
-            Google Play
-          </a>
-          <a
-            href={APP_STORE_URL}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
-            style={{ backgroundColor: '#ffffff', color: '#e61536' }}
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.15-2.22 1.3-2.2 3.88.03 3.07 2.69 4.1 2.72 4.11l-.07.14zM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-            </svg>
-            App Store
-          </a>
+      <section className="py-20 px-6" style={{ backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+        <div className="max-w-xl mx-auto text-center">
+          <img src="/bestcar-logo.png" alt="BestCar" style={{ height: '36px', width: 'auto', margin: '0 auto 24px' }} />
+          <h2 className="text-2xl font-black mb-2" style={{ color: '#0f172a' }}>
+            Disponible sur iOS et Android
+          </h2>
+          <p className="text-sm mb-8" style={{ color: '#64748b' }}>
+            Téléchargez l'application gratuitement et accédez à tout le catalogue BestCar.
+          </p>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <a
+              href={PLAY_STORE_URL}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-80"
+              style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3.18 23.76a2 2 0 0 0 2.17-.22l12.18-7.04-2.73-2.73-11.62 10zm16.14-10.81L16.4 11.1 13.5 14l2.82 2.82 2.99-1.72a1.65 1.65 0 0 0 .01-2.87zM2.06.34A1.65 1.65 0 0 0 1.5 1.67v20.66a1.65 1.65 0 0 0 .56 1.33l.07.06L13.08 14v-.27L2.13.28zm10.01 10.72L3.18.22A2 2 0 0 0 1.01 0l11.56 11.06z"/>
+              </svg>
+              Google Play
+            </a>
+            <a
+              href={APP_STORE_URL}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-80"
+              style={{ backgroundColor: '#0f172a', color: '#ffffff' }}
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.15-2.22 1.3-2.2 3.88.03 3.07 2.69 4.1 2.72 4.11l-.07.14zM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+              </svg>
+              App Store
+            </a>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-6 px-6 text-center text-sm" style={{ backgroundColor: '#0f172a', color: '#64748b' }}>
+      <footer className="py-5 px-6 text-center text-xs" style={{ backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', color: '#94a3b8' }}>
         © 2026 BestCar · Importation, Vente et Location de Voitures
       </footer>
     </div>
