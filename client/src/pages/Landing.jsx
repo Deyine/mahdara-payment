@@ -118,18 +118,18 @@ function PhoneMockup() {
       {/* Dots */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '14px' }}>
         {APP_SCREENS.map((_, i) => (
-          <button
+          <div
             key={i}
             onClick={() => goTo(i)}
+            role="button"
             aria-label={`Screen ${i + 1}`}
             style={{
               width: i === current ? '20px' : '8px',
               height: '8px',
               borderRadius: '4px',
               background: i === current ? '#e61536' : 'rgba(255,255,255,0.35)',
-              border: 'none',
               cursor: 'pointer',
-              padding: 0,
+              flexShrink: 0,
               transition: 'width 0.3s ease, background 0.3s ease',
             }}
           />
