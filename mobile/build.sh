@@ -103,6 +103,7 @@ elif [ "$PLATFORM" = "ios" ]; then
     -configuration Release \
     -archivePath "$ARCHIVE_PATH" \
     -destination "generic/platform=iOS" \
+    -allowProvisioningUpdates \
     DEVELOPMENT_TEAM=28734NKN95 \
     CODE_SIGN_STYLE=Automatic \
     archive
