@@ -11,22 +11,22 @@ const APP_SCREENS = [
 ];
 
 const T = {
-  en: {
-    heroTitle: 'The best way to buy your next car',
-    heroSubtitle: 'Browse our catalog of imported vehicles, view before and after repair photos, and contact us directly.',
-    whyLabel: 'Why BestCar',
-    whyTitle: 'Everything you need to buy right',
+  fr: {
+    heroTitle: 'La meilleure façon d\'acheter votre prochaine voiture',
+    heroSubtitle: 'Parcourez notre catalogue de véhicules importés, consultez les photos avant et après réparation, et contactez-nous directement.',
+    whyLabel: 'Pourquoi BestCar',
+    whyTitle: 'Tout ce qu\'il faut pour bien acheter',
     features: [
-      { label: 'Catalog', title: 'All available vehicles', desc: 'Sale and rental, with prices in MRU, photos and complete listing for each model.' },
-      { label: 'Transparency', title: 'Before & after repair photos', desc: 'Each vehicle is documented on arrival and after refurbishment. You see exactly what you\'re buying.' },
-      { label: 'Contact', title: 'Call in one tap', desc: 'From the vehicle page, contact our team directly without leaving the app.' },
+      { label: 'Catalogue', title: 'Tous les véhicules disponibles', desc: 'Vente et location, avec prix en MRU, photos et fiche complète pour chaque modèle.' },
+      { label: 'Transparence', title: 'Photos avant et après réparation', desc: 'Chaque voiture est documentée à l\'arrivée et après remise en état. Vous voyez exactement ce que vous achetez.' },
+      { label: 'Contact', title: 'Appelez en un tap', desc: 'Depuis la fiche du véhicule, contactez notre équipe directement sans quitter l\'application.' },
     ],
-    ctaTitle: 'Available on iOS & Android',
-    ctaSubtitle: 'Download the app for free and access the full BestCar catalog.',
-    footer: '© 2026 BestCar · Import, Sale and Rental of Cars',
-    facebook: 'Follow us on Facebook',
-    getItOn: 'GET IT ON',
-    downloadOn: 'DOWNLOAD ON THE',
+    ctaTitle: 'Disponible sur iOS et Android',
+    ctaSubtitle: 'Téléchargez l\'application gratuitement et accédez à tout le catalogue BestCar.',
+    footer: '© 2026 BestCar · Importation, Vente et Location de Voitures',
+    facebook: 'Suivez-nous sur Facebook',
+    getItOn: 'DISPONIBLE SUR',
+    downloadOn: 'TÉLÉCHARGER SUR',
   },
   ar: {
     heroTitle: 'أفضل طريقة لشراء سيارتك القادمة',
@@ -199,7 +199,7 @@ function PhoneMockup() {
 }
 
 export default function Landing() {
-  const [lang, setLang] = useState('en');
+  const [lang, setLang] = useState('fr');
   const t = T[lang];
   const isAr = lang === 'ar';
 
@@ -213,7 +213,7 @@ export default function Landing() {
       <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-sm">
         <img src="/bestcar-logo.png" alt="BestCar" style={{ height: '32px', width: 'auto' }} />
         <button
-          onClick={() => setLang(isAr ? 'en' : 'ar')}
+          onClick={() => setLang(isAr ? 'fr' : 'ar')}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             background: 'none', border: '1px solid #e2e8f0',
@@ -222,7 +222,7 @@ export default function Landing() {
           }}
         >
           <FaGlobe size={14} />
-          {isAr ? 'English' : 'عربي'}
+          {isAr ? 'Français' : 'عربي'}
         </button>
       </nav>
 
