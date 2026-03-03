@@ -103,13 +103,15 @@ elif [ "$PLATFORM" = "ios" ]; then
     -configuration Release \
     -archivePath "$ARCHIVE_PATH" \
     -destination "generic/platform=iOS" \
+    DEVELOPMENT_TEAM=28734NKN95 \
+    CODE_SIGN_STYLE=Automatic \
     archive
 
   echo "→ Exporting IPA..."
   xcodebuild \
     -exportArchive \
     -archivePath "$ARCHIVE_PATH" \
-    -exportOptionsPlist ios/ExportOptions.plist \
+    -exportOptionsPlist ExportOptions.plist \
     -exportPath "$EXPORT_PATH"
 
   echo ""
