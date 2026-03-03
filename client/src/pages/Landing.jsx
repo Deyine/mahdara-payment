@@ -39,7 +39,7 @@ function PhoneMockup() {
   };
 
   return (
-    <div className="flex-shrink-0 flex flex-col items-center gap-4">
+    <div className="flex-shrink-0">
       {/* Phone frame */}
       <div
         style={{
@@ -100,6 +100,36 @@ function PhoneMockup() {
               }}
             />
           ))}
+
+          {/* Dots — inside the screen at the bottom */}
+          <div style={{
+            position: 'absolute',
+            bottom: '14px',
+            left: 0,
+            right: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '6px',
+            zIndex: 10,
+          }}>
+            {APP_SCREENS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i)}
+                aria-label={`Screen ${i + 1}`}
+                style={{
+                  width: i === current ? '18px' : '6px',
+                  height: '6px',
+                  borderRadius: '3px',
+                  background: i === current ? '#ffffff' : 'rgba(255,255,255,0.4)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  transition: 'width 0.3s ease, background 0.3s ease',
+                }}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Side button */}
@@ -112,27 +142,6 @@ function PhoneMockup() {
           background: '#374151',
           borderRadius: '0 2px 2px 0',
         }} />
-      </div>
-
-      {/* Dots */}
-      <div className="flex gap-2">
-        {APP_SCREENS.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goTo(i)}
-            aria-label={`Screen ${i + 1}`}
-            style={{
-              width: i === current ? '20px' : '8px',
-              height: '8px',
-              borderRadius: '4px',
-              background: i === current ? '#e61536' : 'rgba(255,255,255,0.35)',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              transition: 'width 0.3s ease, background 0.3s ease',
-            }}
-          />
-        ))}
       </div>
     </div>
   );
