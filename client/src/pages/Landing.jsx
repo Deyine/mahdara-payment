@@ -24,8 +24,11 @@ function StoreBadges({ justify = 'center' }) {
         onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
         onMouseLeave={e => e.currentTarget.style.opacity = '1'}
       >
-        <svg style={{ width: '22px', height: '22px', flexShrink: 0 }} viewBox="0 0 24 24" fill="white">
-          <path d="M3.18 23.76a2 2 0 0 0 2.17-.22l12.18-7.04-2.73-2.73-11.62 10zm16.14-10.81L16.4 11.1 13.5 14l2.82 2.82 2.99-1.72a1.65 1.65 0 0 0 .01-2.87zM2.06.34A1.65 1.65 0 0 0 1.5 1.67v20.66a1.65 1.65 0 0 0 .56 1.33l.07.06L13.08 14v-.27L2.13.28zm10.01 10.72L3.18.22A2 2 0 0 0 1.01 0l11.56 11.06z"/>
+        <svg style={{ width: '22px', height: '22px', flexShrink: 0 }} viewBox="0 0 24 24">
+          <path d="M3.61 1.814a1 1 0 0 0-.61.92v18.532a1 1 0 0 0 .61.92L13.793 12z" fill="#4285F4"/>
+          <path d="M3 22.186L13.793 12 5.158 3.365z" fill="#34A853"/>
+          <path d="M3 1.814L13.793 12l-8.635 8.635z" fill="#EA4335"/>
+          <path d="M20.698 10.187l-2.302-1.334-4.603 3.147 4.603 3.147 2.37-1.37a1.2 1.2 0 0 0 0-2.09z" fill="#FBBC04"/>
         </svg>
         <div style={{ lineHeight: 1.2 }}>
           <div style={{ fontSize: '10px', opacity: 0.7, letterSpacing: '0.05em' }}>GET IT ON</div>
