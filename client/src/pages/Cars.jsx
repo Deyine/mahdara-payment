@@ -280,7 +280,7 @@ export default function Cars() {
           )}
           {canWrite && (
             <button
-              onClick={() => navigate('/cars/import')}
+              onClick={() => navigate('/admin/cars/import')}
               className="px-4 py-2 rounded-lg font-bold transition-colors text-sm sm:text-base flex-1 sm:flex-none"
               style={{
                 backgroundColor: '#10b981',

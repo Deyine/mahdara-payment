@@ -10,22 +10,23 @@ export default function Layout({ children }) {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/admin/login');
   };
 
   const isActive = (path) => {
+    if (path === '/admin') return location.pathname === '/admin';
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
   const isManagerOrAdmin = user?.role === 'manager' || user?.role === 'admin' || user?.role === 'super_admin';
 
   const navItems = [
-    { path: '/', label: 'Tableau de Bord', icon: '📊', adminOnly: false },
-    { path: '/cars', label: 'Véhicules', icon: '🚗', adminOnly: false },
-    { path: '/profits', label: 'Profits', icon: '💰', adminOnly: false, requireManagerOrAdmin: true },
-    { path: '/projects', label: 'Projets', icon: '🏗️', adminOnly: true },
-    { path: '/debts', label: 'Dettes', icon: '💳', adminOnly: true },
-    { path: '/settings', label: 'Paramètres', icon: '⚙️', adminOnly: true },
+    { path: '/admin', label: 'Tableau de Bord', icon: '📊', adminOnly: false },
+    { path: '/admin/cars', label: 'Véhicules', icon: '🚗', adminOnly: false },
+    { path: '/admin/profits', label: 'Profits', icon: '💰', adminOnly: false, requireManagerOrAdmin: true },
+    { path: '/admin/projects', label: 'Projets', icon: '🏗️', adminOnly: true },
+    { path: '/admin/debts', label: 'Dettes', icon: '💳', adminOnly: true },
+    { path: '/admin/settings', label: 'Paramètres', icon: '⚙️', adminOnly: true },
   ];
 
   const handleNavClick = () => {

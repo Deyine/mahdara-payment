@@ -631,7 +631,7 @@ export default function ImportCars() {
       );
 
       if (failCount === 0) {
-        navigate('/cars');
+        navigate('/admin/cars');
       } else {
         // Remove successful imports from list
         setParsedCars(prev => prev.filter(car => !car.isValid || errors.some(e => e.includes(car.model))));
@@ -661,7 +661,7 @@ export default function ImportCars() {
             </p>
           </div>
           <button
-            onClick={() => navigate('/cars')}
+            onClick={() => navigate('/admin/cars')}
             className="px-4 py-2 rounded-lg font-medium transition-colors"
             style={{ backgroundColor: '#fafbfc', border: '1px solid #e2e8f0', color: '#475569' }}
             onMouseEnter={(e) => e.target.style.backgroundColor = '#f1f5f9'}

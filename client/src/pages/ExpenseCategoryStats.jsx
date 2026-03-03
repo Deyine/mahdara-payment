@@ -52,7 +52,7 @@ export default function ExpenseCategoryStats() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
         <button
-          onClick={() => navigate('/settings/expense-categories')}
+          onClick={() => navigate('/admin/settings/expense-categories')}
           style={{
             padding: '6px 12px',
             borderRadius: '6px',

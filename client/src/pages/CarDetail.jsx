@@ -69,7 +69,7 @@ export default function CarDetail() {
       setPayments(carResponse.data.payments || []);
     } catch (error) {
       await showAlert('Erreur lors du chargement des détails', 'error');
-      navigate('/cars');
+      navigate('/admin/cars');
     } finally {
       setLoading(false);
     }
@@ -344,7 +344,7 @@ export default function CarDetail() {
     try {
       await carsAPI.delete(id);
       await showAlert('Véhicule supprimé avec succès', 'success');
-      navigate('/cars');
+      navigate('/admin/cars');
     } catch (error) {
       await showAlert(
         error.response?.data?.error || 'Erreur lors de la suppression',
@@ -380,7 +380,7 @@ export default function CarDetail() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div className="flex items-start gap-3 sm:gap-4 w-full sm:w-auto">
             <button
-              onClick={() => navigate('/cars')}
+              onClick={() => navigate('/admin/cars')}
               className="p-2 rounded-lg transition-colors flex-shrink-0"
               style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}
               onMouseEnter={(e) => e.target.style.backgroundColor = '#f1f5f9'}

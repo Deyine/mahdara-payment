@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DialogProvider } from './context/DialogContext';
 import Layout from './components/Layout';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Cars from './pages/Cars';
@@ -21,6 +22,7 @@ import Projects from './pages/Projects';
 import ProjectExpenseCategories from './pages/ProjectExpenseCategories';
 import SharedCar from './pages/SharedCar';
 import Privacy from './pages/Privacy';
+
 function PrivateRoute({ children, requireAdmin = false }) {
   const { user, loading } = useAuth();
 
@@ -33,11 +35,11 @@ function PrivateRoute({ children, requireAdmin = false }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/admin/login" />;
   }
 
   if (requireAdmin && user.role !== 'admin' && user.role !== 'super_admin') {
-    return <Navigate to="/" />;
+    return <Navigate to="/admin" />;
   }
 
   return <Layout>{children}</Layout>;
@@ -48,15 +50,19 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route
-        path="/login"
-        element={user ? <Navigate to="/" /> : <Login />}
-      />
-      {/* Public route - no authentication required */}
+      {/* Public landing page */}
+      <Route path="/" element={<Landing />} />
+      {/* Public routes */}
       <Route path="/share/:token" element={<SharedCar />} />
       <Route path="/privacy" element={<Privacy />} />
+      {/* Admin login */}
       <Route
-        path="/"
+        path="/admin/login"
+        element={user ? <Navigate to="/admin" /> : <Login />}
+      />
+      {/* Admin protected routes */}
+      <Route
+        path="/admin"
         element={
           <PrivateRoute>
             <Dashboard />
@@ -64,7 +70,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/cars"
+        path="/admin/cars"
         element={
           <PrivateRoute>
             <Cars />
@@ -72,7 +78,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/cars/import"
+        path="/admin/cars/import"
         element={
           <PrivateRoute requireAdmin>
             <ImportCars />
@@ -80,7 +86,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/cars/:id"
+        path="/admin/cars/:id"
         element={
           <PrivateRoute>
             <CarDetail />
@@ -88,7 +94,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/profits"
+        path="/admin/profits"
         element={
           <PrivateRoute>
             <ManagerProfits />
@@ -96,7 +102,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/projects"
+        path="/admin/projects"
         element={
           <PrivateRoute requireAdmin>
             <Projects />
@@ -104,7 +110,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/debts"
+        path="/admin/debts"
         element={
           <PrivateRoute requireAdmin>
             <Debts />
@@ -112,14 +118,14 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/settings"
+        path="/admin/settings"
         element={
           <PrivateRoute requireAdmin>
             <Settings />
           </PrivateRoute>
         }
       >
-        <Route index element={<Navigate to="/settings/car-models" replace />} />
+        <Route index element={<Navigate to="/admin/settings/car-models" replace />} />
         <Route path="car-models" element={<CarModels />} />
         <Route path="expense-categories" element={<ExpenseCategories />} />
         <Route path="expense-categories/:id/stats" element={<ExpenseCategoryStats />} />
