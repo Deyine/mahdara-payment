@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaGooglePlay, FaApple, FaFacebook } from 'react-icons/fa';
+import { FaGooglePlay, FaApple, FaFacebook, FaGlobe } from 'react-icons/fa';
 
 const PLAY_STORE_URL = '#'; // TODO: replace with Google Play Store URL
 const APP_STORE_URL = '#';  // TODO: replace with App Store URL
@@ -10,7 +10,44 @@ const APP_SCREENS = [
   '/app-screen-3.jpg',
 ];
 
-function StoreBadges({ justify = 'center' }) {
+const T = {
+  en: {
+    heroTitle: 'The best way to buy your next car',
+    heroSubtitle: 'Browse our catalog of imported vehicles, view before and after repair photos, and contact us directly.',
+    whyLabel: 'Why BestCar',
+    whyTitle: 'Everything you need to buy right',
+    features: [
+      { label: 'Catalog', title: 'All available vehicles', desc: 'Sale and rental, with prices in MRU, photos and complete listing for each model.' },
+      { label: 'Transparency', title: 'Before & after repair photos', desc: 'Each vehicle is documented on arrival and after refurbishment. You see exactly what you\'re buying.' },
+      { label: 'Contact', title: 'Call in one tap', desc: 'From the vehicle page, contact our team directly without leaving the app.' },
+    ],
+    ctaTitle: 'Available on iOS & Android',
+    ctaSubtitle: 'Download the app for free and access the full BestCar catalog.',
+    footer: '© 2026 BestCar · Import, Sale and Rental of Cars',
+    facebook: 'Follow us on Facebook',
+    getItOn: 'GET IT ON',
+    downloadOn: 'DOWNLOAD ON THE',
+  },
+  ar: {
+    heroTitle: 'أفضل طريقة لشراء سيارتك القادمة',
+    heroSubtitle: 'تصفح كتالوج سياراتنا المستوردة، شاهد صور ما قبل وما بعد الإصلاح، وتواصل معنا مباشرة.',
+    whyLabel: 'لماذا بيست كار',
+    whyTitle: 'كل ما تحتاجه للشراء بثقة',
+    features: [
+      { label: 'الكتالوج', title: 'جميع السيارات المتاحة', desc: 'للبيع والإيجار، مع الأسعار بالأوقية وصور كاملة وبطاقة تفصيلية لكل موديل.' },
+      { label: 'الشفافية', title: 'صور قبل وبعد الإصلاح', desc: 'كل سيارة موثقة عند الوصول وبعد الإصلاح. ترى بالضبط ما تشتريه.' },
+      { label: 'التواصل', title: 'اتصل بضغطة واحدة', desc: 'من صفحة السيارة، تواصل مع فريقنا مباشرة دون مغادرة التطبيق.' },
+    ],
+    ctaTitle: 'متاح على iOS و Android',
+    ctaSubtitle: 'حمّل التطبيق مجاناً وتصفح كامل كتالوج BestCar.',
+    footer: '© 2026 BestCar · استيراد وبيع وتأجير السيارات',
+    facebook: 'تابعنا على فيسبوك',
+    getItOn: 'احصل عليه من',
+    downloadOn: 'حمّل من',
+  },
+};
+
+function StoreBadges({ justify = 'center', t }) {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: justify }}>
       <a
@@ -27,7 +64,7 @@ function StoreBadges({ justify = 'center' }) {
       >
         <FaGooglePlay style={{ width: '22px', height: '22px', flexShrink: 0 }} />
         <div style={{ lineHeight: 1.2 }}>
-          <div style={{ fontSize: '10px', opacity: 0.7, letterSpacing: '0.05em' }}>GET IT ON</div>
+          <div style={{ fontSize: '10px', opacity: 0.7, letterSpacing: '0.05em' }}>{t.getItOn}</div>
           <div style={{ fontSize: '15px', fontWeight: 700 }}>Google Play</div>
         </div>
       </a>
@@ -45,7 +82,7 @@ function StoreBadges({ justify = 'center' }) {
       >
         <FaApple style={{ width: '22px', height: '22px', flexShrink: 0 }} />
         <div style={{ lineHeight: 1.2 }}>
-          <div style={{ fontSize: '10px', opacity: 0.7, letterSpacing: '0.05em' }}>DOWNLOAD ON THE</div>
+          <div style={{ fontSize: '10px', opacity: 0.7, letterSpacing: '0.05em' }}>{t.downloadOn}</div>
           <div style={{ fontSize: '15px', fontWeight: 700 }}>App Store</div>
         </div>
       </a>
@@ -103,26 +140,15 @@ function PhoneMockup() {
       >
         {/* Notch */}
         <div style={{
-          position: 'absolute',
-          top: '12px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '72px',
-          height: '20px',
-          background: '#111827',
-          borderRadius: '0 0 14px 14px',
-          zIndex: 10,
+          position: 'absolute', top: '12px', left: '50%',
+          transform: 'translateX(-50%)', width: '72px', height: '20px',
+          background: '#111827', borderRadius: '0 0 14px 14px', zIndex: 10,
         }} />
 
         {/* Screen */}
         <div style={{
-          width: '100%',
-          height: '100%',
-          borderRadius: '30px',
-          overflow: 'hidden',
-          position: 'relative',
-          background: '#000',
-          cursor: 'grab',
+          width: '100%', height: '100%', borderRadius: '30px',
+          overflow: 'hidden', position: 'relative', background: '#000', cursor: 'grab',
         }}>
           {APP_SCREENS.map((src, i) => (
             <img
@@ -131,12 +157,8 @@ function PhoneMockup() {
               alt={`App screen ${i + 1}`}
               draggable={false}
               style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: 'top',
+                position: 'absolute', inset: 0, width: '100%', height: '100%',
+                objectFit: 'cover', objectPosition: 'top',
                 transition: 'opacity 0.5s ease, transform 0.5s ease',
                 opacity: i === current ? 1 : 0,
                 transform: i === current ? 'scale(1)' : 'scale(1.03)',
@@ -144,17 +166,12 @@ function PhoneMockup() {
               }}
             />
           ))}
-
         </div>
 
         {/* Side button */}
         <div style={{
-          position: 'absolute',
-          right: '-3px',
-          top: '100px',
-          width: '3px',
-          height: '60px',
-          background: '#374151',
+          position: 'absolute', right: '-3px', top: '100px',
+          width: '3px', height: '60px', background: '#374151',
           borderRadius: '0 2px 2px 0',
         }} />
       </div>
@@ -168,12 +185,10 @@ function PhoneMockup() {
             role="button"
             aria-label={`Screen ${i + 1}`}
             style={{
-              width: i === current ? '20px' : '8px',
-              height: '8px',
+              width: i === current ? '20px' : '8px', height: '8px',
               borderRadius: '4px',
               background: i === current ? '#e61536' : 'rgba(255,255,255,0.35)',
-              cursor: 'pointer',
-              flexShrink: 0,
+              cursor: 'pointer', flexShrink: 0,
               transition: 'width 0.3s ease, background 0.3s ease',
             }}
           />
@@ -184,11 +199,31 @@ function PhoneMockup() {
 }
 
 export default function Landing() {
+  const [lang, setLang] = useState('en');
+  const t = T[lang];
+  const isAr = lang === 'ar';
+
   return (
-    <div className="min-h-screen flex flex-col" style={{ fontFamily: 'system-ui, sans-serif' }}>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ fontFamily: isAr ? '"Segoe UI", Tahoma, Arial, sans-serif' : 'system-ui, sans-serif' }}
+      dir={isAr ? 'rtl' : 'ltr'}
+    >
       {/* Navbar */}
-      <nav className="flex items-center px-6 py-4 bg-white shadow-sm">
+      <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-sm">
         <img src="/bestcar-logo.png" alt="BestCar" style={{ height: '32px', width: 'auto' }} />
+        <button
+          onClick={() => setLang(isAr ? 'en' : 'ar')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            background: 'none', border: '1px solid #e2e8f0',
+            borderRadius: '8px', padding: '6px 12px',
+            cursor: 'pointer', color: '#64748b', fontSize: '13px', fontWeight: 600,
+          }}
+        >
+          <FaGlobe size={14} />
+          {isAr ? 'English' : 'عربي'}
+        </button>
       </nav>
 
       {/* Hero */}
@@ -202,26 +237,26 @@ export default function Landing() {
           position: 'relative',
         }}
       >
-        {/* Dark overlay so text stays readable */}
         <div style={{
-          position: 'absolute',
-          inset: 0,
+          position: 'absolute', inset: 0,
           background: 'linear-gradient(135deg, rgba(15,23,42,0.82) 0%, rgba(15,23,42,0.65) 60%, rgba(15,23,42,0.50) 100%)',
         }} />
-        <div className="max-w-6xl mx-auto px-6 py-16 w-full flex flex-col md:flex-row items-center gap-12" style={{ position: 'relative', zIndex: 1 }}>
-          {/* Left: Text + Badges */}
-          <div className="flex-1 text-center md:text-left">
-<h1 className="text-4xl md:text-5xl font-black leading-tight mb-4" style={{ color: '#ffffff' }}>
-              La meilleure façon d'acheter votre prochaine voiture
+        <div
+          className="max-w-6xl mx-auto px-6 py-16 w-full flex flex-col md:flex-row items-center gap-12"
+          style={{ position: 'relative', zIndex: 1 }}
+        >
+          <div className="flex-1 text-center md:text-left" style={{ textAlign: isAr ? 'right' : undefined }}>
+            <h1
+              className="text-4xl md:text-5xl font-black leading-tight mb-4"
+              style={{ color: '#ffffff', lineHeight: isAr ? 1.5 : undefined }}
+            >
+              {t.heroTitle}
             </h1>
             <p className="text-lg mb-8" style={{ color: '#94a3b8' }}>
-              Parcourez notre catalogue de véhicules importés, consultez les photos avant et après réparation, et contactez-nous directement.
+              {t.heroSubtitle}
             </p>
-            {/* Download Badges */}
-            <StoreBadges justify="center" />
+            <StoreBadges justify={isAr ? 'flex-end' : 'center'} t={t} />
           </div>
-
-          {/* Right: Phone Mockup with real screenshots */}
           <PhoneMockup />
         </div>
       </section>
@@ -229,30 +264,17 @@ export default function Landing() {
       {/* Features */}
       <section className="py-24 px-6" style={{ backgroundColor: '#ffffff' }}>
         <div className="max-w-4xl mx-auto">
-          <p className="text-sm font-semibold tracking-widest uppercase mb-4 text-center" style={{ color: '#e61536' }}>
-            Pourquoi BestCar
+          <p
+            className="text-sm font-semibold tracking-widest uppercase mb-4 text-center"
+            style={{ color: '#e61536' }}
+          >
+            {t.whyLabel}
           </p>
           <h2 className="text-3xl font-black text-center mb-16" style={{ color: '#0f172a' }}>
-            Tout ce qu'il faut pour bien acheter
+            {t.whyTitle}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {[
-              {
-                label: 'Catalogue',
-                title: 'Tous les véhicules disponibles',
-                desc: 'Vente et location, avec prix en MRU, photos et fiche complète pour chaque modèle.',
-              },
-              {
-                label: 'Transparence',
-                title: 'Photos avant et après réparation',
-                desc: 'Chaque voiture est documentée à l\'arrivée et après remise en état. Vous voyez exactement ce que vous achetez.',
-              },
-              {
-                label: 'Contact',
-                title: 'Appelez en un tap',
-                desc: 'Depuis la fiche du véhicule, contactez notre équipe directement sans quitter l\'application.',
-              },
-            ].map((item) => (
+            {t.features.map((item) => (
               <div key={item.label}>
                 <div className="w-8 h-0.5 mb-5" style={{ backgroundColor: '#e61536' }} />
                 <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: '#94a3b8' }}>
@@ -271,28 +293,30 @@ export default function Landing() {
         <div className="max-w-xl mx-auto text-center">
           <img src="/bestcar-logo.png" alt="BestCar" style={{ height: '36px', width: 'auto', margin: '0 auto 24px' }} />
           <h2 className="text-2xl font-black mb-2" style={{ color: '#0f172a' }}>
-            Disponible sur iOS et Android
+            {t.ctaTitle}
           </h2>
           <p className="text-sm mb-8" style={{ color: '#64748b' }}>
-            Téléchargez l'application gratuitement et accédez à tout le catalogue BestCar.
+            {t.ctaSubtitle}
           </p>
-          <StoreBadges />
+          <StoreBadges t={t} />
         </div>
       </section>
 
       {/* Footer */}
       <footer className="py-5 px-6 text-xs" style={{ backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0', color: '#94a3b8' }}>
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <span>© 2026 BestCar · Importation, Vente et Location de Voitures</span>
+          <span>{t.footer}</span>
           <a
             href="https://www.facebook.com/profile.php?id=61556019583684"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 transition-colors hover:text-blue-600"
+            className="flex items-center gap-2"
             style={{ color: '#94a3b8', textDecoration: 'none' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#1877f2'}
+            onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
           >
             <FaFacebook size={16} />
-            <span>Suivez-nous sur Facebook</span>
+            <span>{t.facebook}</span>
           </a>
         </div>
       </footer>
