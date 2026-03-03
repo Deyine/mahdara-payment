@@ -1,25 +1,151 @@
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 const PLAY_STORE_URL = '#'; // TODO: replace with Google Play Store URL
 const APP_STORE_URL = '#';  // TODO: replace with App Store URL
+
+const APP_SCREENS = [
+  '/app-screen-1.jpg',
+  '/app-screen-2.jpg',
+  '/app-screen-3.jpg',
+];
+
+function PhoneMockup() {
+  const [current, setCurrent] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [dragStartX, setDragStartX] = useState(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % APP_SCREENS.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const goTo = (index) => setCurrent(index);
+
+  const handlePointerDown = (e) => {
+    setDragging(true);
+    setDragStartX(e.clientX ?? e.touches?.[0]?.clientX);
+  };
+
+  const handlePointerUp = (e) => {
+    if (!dragging || dragStartX === null) return;
+    const endX = e.clientX ?? e.changedTouches?.[0]?.clientX;
+    const delta = (dragStartX ?? 0) - (endX ?? 0);
+    if (delta > 40) setCurrent((prev) => (prev + 1) % APP_SCREENS.length);
+    else if (delta < -40) setCurrent((prev) => (prev - 1 + APP_SCREENS.length) % APP_SCREENS.length);
+    setDragging(false);
+    setDragStartX(null);
+  };
+
+  return (
+    <div className="flex-shrink-0 flex flex-col items-center gap-4">
+      {/* Phone frame */}
+      <div
+        style={{
+          width: '240px',
+          height: '490px',
+          background: '#111827',
+          borderRadius: '40px',
+          padding: '12px',
+          boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 0 2px #374151',
+          position: 'relative',
+          userSelect: 'none',
+        }}
+        onMouseDown={handlePointerDown}
+        onMouseUp={handlePointerUp}
+        onTouchStart={handlePointerDown}
+        onTouchEnd={handlePointerUp}
+      >
+        {/* Notch */}
+        <div style={{
+          position: 'absolute',
+          top: '12px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '72px',
+          height: '20px',
+          background: '#111827',
+          borderRadius: '0 0 14px 14px',
+          zIndex: 10,
+        }} />
+
+        {/* Screen */}
+        <div style={{
+          width: '100%',
+          height: '100%',
+          borderRadius: '30px',
+          overflow: 'hidden',
+          position: 'relative',
+          background: '#000',
+          cursor: 'grab',
+        }}>
+          {APP_SCREENS.map((src, i) => (
+            <img
+              key={src}
+              src={src}
+              alt={`App screen ${i + 1}`}
+              draggable={false}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'top',
+                transition: 'opacity 0.5s ease, transform 0.5s ease',
+                opacity: i === current ? 1 : 0,
+                transform: i === current ? 'scale(1)' : 'scale(1.03)',
+                pointerEvents: 'none',
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Side button */}
+        <div style={{
+          position: 'absolute',
+          right: '-3px',
+          top: '100px',
+          width: '3px',
+          height: '60px',
+          background: '#374151',
+          borderRadius: '0 2px 2px 0',
+        }} />
+      </div>
+
+      {/* Dots */}
+      <div className="flex gap-2">
+        {APP_SCREENS.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => goTo(i)}
+            aria-label={`Screen ${i + 1}`}
+            style={{
+              width: i === current ? '20px' : '8px',
+              height: '8px',
+              borderRadius: '4px',
+              background: i === current ? '#e61536' : 'rgba(255,255,255,0.35)',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              transition: 'width 0.3s ease, background 0.3s ease',
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Landing() {
   return (
     <div className="min-h-screen flex flex-col" style={{ fontFamily: 'system-ui, sans-serif' }}>
       {/* Navbar */}
-      <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-sm">
+      <nav className="flex items-center px-6 py-4 bg-white shadow-sm">
         <span className="text-2xl font-black tracking-tight" style={{ color: '#e61536' }}>
           BESTCAR
         </span>
-        <Link
-          to="/admin/login"
-          className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          style={{ backgroundColor: '#f1f5f9', color: '#1e293b' }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
-        >
-          Espace Admin →
-        </Link>
       </nav>
 
       {/* Hero */}
@@ -61,57 +187,8 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Right: Phone Mockup */}
-          <div className="flex-shrink-0 flex justify-center">
-            <div
-              className="relative rounded-3xl overflow-hidden shadow-2xl"
-              style={{
-                width: '220px',
-                height: '460px',
-                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-                border: '2px solid #334155',
-              }}
-            >
-              {/* Phone notch */}
-              <div className="absolute top-0 left-0 right-0 flex justify-center pt-3 z-10">
-                <div className="w-20 h-5 rounded-full" style={{ backgroundColor: '#0f172a' }} />
-              </div>
-              {/* Screen content preview */}
-              <div className="absolute inset-0 flex flex-col pt-12 px-3 pb-4">
-                {/* App header */}
-                <div className="text-center py-3">
-                  <span className="text-xl font-black" style={{ color: '#e61536' }}>BESTCAR</span>
-                </div>
-                {/* Search bar */}
-                <div className="rounded-full px-3 py-2 mb-3 text-xs" style={{ backgroundColor: '#1e293b', color: '#64748b' }}>
-                  Rechercher un véhicule...
-                </div>
-                {/* Car cards grid */}
-                <div className="grid grid-cols-2 gap-2 flex-1 overflow-hidden">
-                  {[
-                    { color: '#334155', label: 'Toyota\nCamry' },
-                    { color: '#1e3a5f', label: 'Honda\nCivic' },
-                    { color: '#1e293b', label: 'BMW\nSérie 3' },
-                    { color: '#292524', label: 'Mercedes\nC-Class' },
-                  ].map((card, i) => (
-                    <div
-                      key={i}
-                      className="rounded-lg flex flex-col justify-between p-2"
-                      style={{ backgroundColor: card.color, minHeight: '80px' }}
-                    >
-                      <div className="w-full rounded flex-1" style={{ backgroundColor: '#475569', minHeight: '44px' }} />
-                      <div className="mt-1">
-                        <div className="text-white font-semibold whitespace-pre-line" style={{ fontSize: '8px', lineHeight: '1.2' }}>
-                          {card.label}
-                        </div>
-                        <div style={{ color: '#94a3b8', fontSize: '7px' }}>xxx MRU</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Right: Phone Mockup with real screenshots */}
+          <PhoneMockup />
         </div>
       </section>
 
