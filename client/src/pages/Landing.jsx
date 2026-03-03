@@ -167,10 +167,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto px-6 py-16 w-full flex flex-col md:flex-row items-center gap-12" style={{ position: 'relative', zIndex: 1 }}>
           {/* Left: Text + Badges */}
           <div className="flex-1 text-center md:text-left">
-            <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-6" style={{ backgroundColor: '#1e293b', color: '#e61536' }}>
-              Mauritanie · Import · Vente · Location
-            </div>
-            <h1 className="text-4xl md:text-5xl font-black leading-tight mb-4" style={{ color: '#ffffff' }}>
+<h1 className="text-4xl md:text-5xl font-black leading-tight mb-4" style={{ color: '#ffffff' }}>
               La meilleure façon d'acheter votre prochaine voiture
             </h1>
             <p className="text-lg mb-8" style={{ color: '#94a3b8' }}>
