@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { FaGooglePlay, FaApple } from 'react-icons/fa';
 
 const PLAY_STORE_URL = '#'; // TODO: replace with Google Play Store URL
 const APP_STORE_URL = '#';  // TODO: replace with App Store URL
@@ -24,12 +25,7 @@ function StoreBadges({ justify = 'center' }) {
         onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
         onMouseLeave={e => e.currentTarget.style.opacity = '1'}
       >
-        <svg style={{ width: '22px', height: '22px', flexShrink: 0 }} viewBox="0 0 24 24">
-          <path d="M2.06.34A1.65 1.65 0 0 0 1.5 1.67v20.66a1.65 1.65 0 0 0 .56 1.33l.07.06L13.08 14v-.27L2.13.28z" fill="#4285F4"/>
-          <path d="M12.07 11.06L3.18.22A2 2 0 0 0 1.01 0l11.56 11.06z" fill="#EA4335"/>
-          <path d="M3.18 23.76a2 2 0 0 0 2.17-.22l12.18-7.04-2.73-2.73-11.62 10z" fill="#34A853"/>
-          <path d="M19.32 12.95L16.4 11.1 13.5 14l2.82 2.82 2.99-1.72a1.65 1.65 0 0 0 .01-2.87z" fill="#FBBC04"/>
-        </svg>
+        <FaGooglePlay style={{ width: '22px', height: '22px', flexShrink: 0 }} />
         <div style={{ lineHeight: 1.2 }}>
           <div style={{ fontSize: '10px', opacity: 0.7, letterSpacing: '0.05em' }}>GET IT ON</div>
           <div style={{ fontSize: '15px', fontWeight: 700 }}>Google Play</div>
@@ -47,9 +43,7 @@ function StoreBadges({ justify = 'center' }) {
         onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
         onMouseLeave={e => e.currentTarget.style.opacity = '1'}
       >
-        <svg style={{ width: '22px', height: '22px', flexShrink: 0 }} viewBox="0 0 24 24" fill="white">
-          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.15-2.22 1.3-2.2 3.88.03 3.07 2.69 4.1 2.72 4.11l-.07.14zM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-        </svg>
+        <FaApple style={{ width: '22px', height: '22px', flexShrink: 0 }} />
         <div style={{ lineHeight: 1.2 }}>
           <div style={{ fontSize: '10px', opacity: 0.7, letterSpacing: '0.05em' }}>DOWNLOAD ON THE</div>
           <div style={{ fontSize: '15px', fontWeight: 700 }}>App Store</div>
