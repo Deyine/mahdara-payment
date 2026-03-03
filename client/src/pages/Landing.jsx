@@ -149,8 +149,23 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <section className="flex-1 flex items-center" style={{ backgroundColor: '#0f172a', minHeight: '520px' }}>
-        <div className="max-w-6xl mx-auto px-6 py-16 w-full flex flex-col md:flex-row items-center gap-12">
+      <section
+        className="flex-1 flex items-center"
+        style={{
+          minHeight: '520px',
+          backgroundImage: 'url(/hero-bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          position: 'relative',
+        }}
+      >
+        {/* Dark overlay so text stays readable */}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(135deg, rgba(15,23,42,0.93) 0%, rgba(15,23,42,0.80) 60%, rgba(15,23,42,0.70) 100%)',
+        }} />
+        <div className="max-w-6xl mx-auto px-6 py-16 w-full flex flex-col md:flex-row items-center gap-12" style={{ position: 'relative', zIndex: 1 }}>
           {/* Left: Text + Badges */}
           <div className="flex-1 text-center md:text-left">
             <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-6" style={{ backgroundColor: '#1e293b', color: '#e61536' }}>
