@@ -208,40 +208,42 @@ export default function Landing() {
       </section>
 
       {/* Features */}
-      <section className="py-16 px-6" style={{ backgroundColor: '#f8fafc' }}>
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12" style={{ color: '#1e293b' }}>
-            Tout ce dont vous avez besoin
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: '🚗',
-                title: 'Catalogue de véhicules',
-                desc: 'Parcourez tous nos véhicules importés disponibles à la vente ou à la location, avec photos et détails complets.',
-              },
-              {
-                icon: '📸',
-                title: 'Photos avant/après',
-                desc: "Consultez l'état réel de chaque véhicule avec des photos avant et après réparation pour acheter en toute confiance.",
-              },
-              {
-                icon: '📞',
-                title: 'Contact direct',
-                desc: 'Appelez-nous en un seul tap directement depuis la fiche du véhicule. Notre équipe est disponible pour vous accompagner.',
-              },
-            ].map((feature) => (
-              <div
-                key={feature.title}
-                className="bg-white rounded-2xl p-6 shadow-sm"
-                style={{ border: '1px solid #e2e8f0' }}
+      <section className="py-20 px-6" style={{ backgroundColor: '#ffffff' }}>
+        <div className="max-w-3xl mx-auto">
+          {[
+            {
+              num: '01',
+              title: 'Catalogue de véhicules',
+              desc: 'Tous nos véhicules importés en un seul endroit — prix en MRU, disponibilité, et fiches détaillées.',
+            },
+            {
+              num: '02',
+              title: 'Photos avant et après réparation',
+              desc: "Chaque voiture est documentée à l'arrivée et après réparation. Vous voyez exactement ce que vous achetez.",
+            },
+            {
+              num: '03',
+              title: 'Appelez en un tap',
+              desc: 'Depuis la fiche du véhicule, contactez directement notre équipe sans quitter l\'application.',
+            },
+          ].map((item, i, arr) => (
+            <div
+              key={item.num}
+              className="flex items-start gap-8 py-10"
+              style={{ borderBottom: i < arr.length - 1 ? '1px solid #e2e8f0' : 'none' }}
+            >
+              <span
+                className="font-black shrink-0"
+                style={{ color: '#e61536', fontSize: '2.5rem', lineHeight: 1, minWidth: '3.5rem' }}
               >
-                <div className="text-4xl mb-4">{feature.icon}</div>
-                <h3 className="text-lg font-bold mb-2" style={{ color: '#1e293b' }}>{feature.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>{feature.desc}</p>
+                {item.num}
+              </span>
+              <div>
+                <h3 className="text-xl font-bold mb-2" style={{ color: '#0f172a' }}>{item.title}</h3>
+                <p className="text-base leading-relaxed" style={{ color: '#64748b' }}>{item.desc}</p>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </section>
 
