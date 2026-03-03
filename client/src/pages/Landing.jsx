@@ -208,7 +208,7 @@ export default function Landing() {
       {/* Features */}
       <section className="py-24 px-6" style={{ backgroundColor: '#ffffff' }}>
         <div className="max-w-4xl mx-auto">
-          <p className="text-xs font-semibold tracking-widest uppercase mb-4 text-center" style={{ color: '#e61536' }}>
+          <p className="text-sm font-semibold tracking-widest uppercase mb-4 text-center" style={{ color: '#e61536' }}>
             Pourquoi BestCar
           </p>
           <h2 className="text-3xl font-black text-center mb-16" style={{ color: '#0f172a' }}>
