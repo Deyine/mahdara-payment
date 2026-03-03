@@ -50,7 +50,7 @@ export default function ManagerProfits() {
   };
 
   const handleCarClick = (carId) => {
-    navigate(`/cars/${carId}`);
+    navigate(`/admin/cars/${carId}`);
   };
 
   const handleOpenCashoutModal = (managerData) => {

@@ -127,7 +127,7 @@ export default function Cars() {
 
   const handleView = (car) => {
     // Navigate to the dedicated detail page
-    navigate(`/cars/${car.id}`);
+    navigate(`/admin/cars/${car.id}`);
   };
 
   const handleSubmit = async (e) => {
