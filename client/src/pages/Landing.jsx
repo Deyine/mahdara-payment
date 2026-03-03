@@ -143,9 +143,7 @@ export default function Landing() {
     <div className="min-h-screen flex flex-col" style={{ fontFamily: 'system-ui, sans-serif' }}>
       {/* Navbar */}
       <nav className="flex items-center px-6 py-4 bg-white shadow-sm">
-        <span className="text-2xl font-black tracking-tight" style={{ color: '#e61536' }}>
-          BESTCAR
-        </span>
+        <img src="/bestcar-logo.png" alt="BestCar" style={{ height: '32px', width: 'auto' }} />
       </nav>
 
       {/* Hero */}
