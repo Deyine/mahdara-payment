@@ -256,20 +256,6 @@ export default function Landing() {
               {t.heroSubtitle}
             </p>
             <StoreBadges justify={isAr ? 'flex-end' : 'center'} t={t} />
-
-            {/* Facebook Page Widget */}
-            <div style={{ marginTop: '20px' }}>
-              <iframe
-                src={`https://www.facebook.com/plugins/page.php?href=${encodeURIComponent('https://www.facebook.com/profile.php?id=61556019583684')}&tabs&width=280&height=80&small_header=true&adapt_container_width=false&hide_cover=true&show_facepile=true`}
-                width="280"
-                height="80"
-                style={{ border: 'none', overflow: 'hidden', borderRadius: '10px', display: 'block' }}
-                scrolling="no"
-                frameBorder="0"
-                allowFullScreen
-                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-              />
-            </div>
           </div>
           <PhoneMockup />
         </div>
@@ -278,6 +264,20 @@ export default function Landing() {
       {/* Features */}
       <section className="py-24 px-6" style={{ backgroundColor: '#ffffff' }}>
         <div className="max-w-4xl mx-auto">
+          {/* Facebook Page Widget */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px' }}>
+            <iframe
+              src={`https://www.facebook.com/plugins/page.php?href=${encodeURIComponent('https://www.facebook.com/profile.php?id=61556019583684')}&tabs&width=280&height=80&small_header=true&adapt_container_width=false&hide_cover=true&show_facepile=true`}
+              width="280"
+              height="80"
+              style={{ border: 'none', overflow: 'hidden', borderRadius: '10px', display: 'block' }}
+              scrolling="no"
+              frameBorder="0"
+              allowFullScreen
+              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+            />
+          </div>
+
           <p
             className="text-sm font-semibold tracking-widest uppercase mb-4 text-center"
             style={{ color: '#e61536' }}
