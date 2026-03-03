@@ -208,42 +208,78 @@ export default function Landing() {
       </section>
 
       {/* Features */}
-      <section className="py-20 px-6" style={{ backgroundColor: '#ffffff' }}>
-        <div className="max-w-3xl mx-auto">
-          {[
-            {
-              num: '01',
-              title: 'Catalogue de véhicules',
-              desc: 'Tous nos véhicules importés en un seul endroit — prix en MRU, disponibilité, et fiches détaillées.',
-            },
-            {
-              num: '02',
-              title: 'Photos avant et après réparation',
-              desc: "Chaque voiture est documentée à l'arrivée et après réparation. Vous voyez exactement ce que vous achetez.",
-            },
-            {
-              num: '03',
-              title: 'Appelez en un tap',
-              desc: 'Depuis la fiche du véhicule, contactez directement notre équipe sans quitter l\'application.',
-            },
-          ].map((item, i, arr) => (
+      <section className="py-20 px-6" style={{ backgroundColor: '#0a0f1a' }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Big card — full width */}
             <div
-              key={item.num}
-              className="flex items-start gap-8 py-10"
-              style={{ borderBottom: i < arr.length - 1 ? '1px solid #e2e8f0' : 'none' }}
+              className="md:col-span-2 rounded-2xl p-8 flex flex-col"
+              style={{
+                background: 'linear-gradient(160deg, #1a1f2e 0%, #111827 100%)',
+                border: '1px solid #1e2d40',
+              }}
             >
-              <span
-                className="font-black shrink-0"
-                style={{ color: '#e61536', fontSize: '2.5rem', lineHeight: 1, minWidth: '3.5rem' }}
-              >
-                {item.num}
-              </span>
-              <div>
-                <h3 className="text-xl font-bold mb-2" style={{ color: '#0f172a' }}>{item.title}</h3>
-                <p className="text-base leading-relaxed" style={{ color: '#64748b' }}>{item.desc}</p>
-              </div>
+              <div
+                className="w-10 h-1 rounded-full mb-8"
+                style={{ backgroundColor: '#e61536' }}
+              />
+              <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: '#e61536' }}>
+                Catalogue
+              </p>
+              <h3 className="font-black mb-4" style={{ color: '#ffffff', fontSize: '1.75rem', lineHeight: 1.2 }}>
+                Tous les véhicules,<br />au même endroit
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: '#64748b', maxWidth: '480px' }}>
+                Importés, disponibles à la vente ou à la location. Prix en MRU, photos complètes, fiche détaillée pour chaque modèle.
+              </p>
             </div>
-          ))}
+
+            {/* Card 2 */}
+            <div
+              className="rounded-2xl p-7"
+              style={{
+                background: 'linear-gradient(135deg, #1a1f2e 0%, #111827 100%)',
+                border: '1px solid #1e2d40',
+              }}
+            >
+              <div
+                className="w-8 h-1 rounded-full mb-6"
+                style={{ backgroundColor: '#e61536' }}
+              />
+              <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: '#e61536' }}>
+                Transparence
+              </p>
+              <h3 className="text-xl font-black mb-3" style={{ color: '#ffffff', lineHeight: 1.2 }}>
+                Photos avant<br />et après réparation
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>
+                Chaque véhicule est documenté à l'arrivée et après remise en état. Vous voyez exactement ce que vous achetez.
+              </p>
+            </div>
+
+            {/* Card 3 */}
+            <div
+              className="rounded-2xl p-7"
+              style={{
+                background: 'linear-gradient(135deg, #1e0a0e 0%, #1a0f13 100%)',
+                border: '1px solid #3d1520',
+              }}
+            >
+              <div
+                className="w-8 h-1 rounded-full mb-6"
+                style={{ backgroundColor: '#e61536' }}
+              />
+              <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: '#e61536' }}>
+                Contact
+              </p>
+              <h3 className="text-xl font-black mb-3" style={{ color: '#ffffff', lineHeight: 1.2 }}>
+                Appelez<br />en un tap
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>
+                Depuis la fiche du véhicule, contactez notre équipe directement sans quitter l'application.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
