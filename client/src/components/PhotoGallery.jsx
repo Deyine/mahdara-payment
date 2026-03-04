@@ -19,6 +19,7 @@ export default function PhotoGallery({
   photos = [],
   onUpload,
   onDelete,
+  onClearAll,
   onReorder,
   title = "Photos",
   emptyMessage = "Aucune photo"
@@ -205,6 +206,26 @@ export default function PhotoGallery({
     setPreviews([]);
   };
 
+  // Clear all photos
+  const handleClearAll = async () => {
+    const confirmed = await showConfirm(
+      `Êtes-vous sûr de vouloir supprimer toutes les ${localPhotos.length} photos ?`,
+      'Supprimer toutes les photos'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await onClearAll(localPhotos.map(p => p.id));
+      await showAlert('Toutes les photos ont été supprimées', 'success');
+    } catch (error) {
+      await showAlert(
+        error.response?.data?.error || 'Erreur lors de la suppression',
+        'error'
+      );
+    }
+  };
+
   // Delete a photo
   const handleDelete = async (photo) => {
     const confirmed = await showConfirm(
@@ -283,14 +304,28 @@ export default function PhotoGallery({
   return (
     <div>
       {/* Section Header */}
-      <h3 className="text-lg font-bold mb-4" style={{ color: '#1e293b' }}>
-        {title} ({localPhotos.length})
-        {canReorder && localPhotos.length > 1 && (
-          <span className="text-sm font-normal ml-2" style={{ color: '#94a3b8' }}>
-            — glissez pour réordonner
-          </span>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-bold" style={{ color: '#1e293b' }}>
+          {title} ({localPhotos.length})
+          {canReorder && localPhotos.length > 1 && (
+            <span className="text-sm font-normal ml-2" style={{ color: '#94a3b8' }}>
+              — glissez pour réordonner
+            </span>
+          )}
+        </h3>
+        {canWrite && localPhotos.length > 0 && typeof onClearAll === 'function' && (
+          <button
+            onClick={handleClearAll}
+            className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            style={{ backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+            title="Supprimer toutes les photos"
+          >
+            Tout supprimer
+          </button>
         )}
-      </h3>
+      </div>
 
       {/* Upload Section */}
       {canWrite && (

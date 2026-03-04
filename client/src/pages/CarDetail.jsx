@@ -104,6 +104,13 @@ export default function CarDetail() {
     await fetchCarDetails();
   };
 
+  const handleClearAllSalvagePhotos = async (photoIds) => {
+    for (const photoId of photoIds) {
+      await carsAPI.deleteSalvagePhoto(id, photoId);
+    }
+    await fetchCarDetails();
+  };
+
   const handleReorderSalvagePhotos = async (order) => {
     await carsAPI.reorderSalvagePhotos(id, order);
     await fetchCarDetails();
@@ -116,6 +123,13 @@ export default function CarDetail() {
 
   const handleDeleteAfterRepairPhoto = async (photoId) => {
     await carsAPI.deleteAfterRepairPhoto(id, photoId);
+    await fetchCarDetails();
+  };
+
+  const handleClearAllAfterRepairPhotos = async (photoIds) => {
+    for (const photoId of photoIds) {
+      await carsAPI.deleteAfterRepairPhoto(id, photoId);
+    }
     await fetchCarDetails();
   };
 
@@ -664,6 +678,7 @@ export default function CarDetail() {
             photos={car.salvage_photos || []}
             onUpload={handleUploadSalvagePhotos}
             onDelete={handleDeleteSalvagePhoto}
+            onClearAll={handleClearAllSalvagePhotos}
             onReorder={handleReorderSalvagePhotos}
             title="Photos d'État Initial (Salvage)"
             emptyMessage="Aucune photo d'état initial. Téléchargez des photos montrant l'état du véhicule à l'achat."
@@ -676,6 +691,7 @@ export default function CarDetail() {
             photos={car.after_repair_photos || []}
             onUpload={handleUploadAfterRepairPhotos}
             onDelete={handleDeleteAfterRepairPhoto}
+            onClearAll={handleClearAllAfterRepairPhotos}
             onReorder={handleReorderAfterRepairPhotos}
             title="Photos Après Réparations"
             emptyMessage="Aucune photo après réparations. Téléchargez des photos montrant le véhicule après les travaux."
