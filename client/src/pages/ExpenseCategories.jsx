@@ -187,7 +187,7 @@ export default function ExpenseCategories() {
                   </td>
                   <td style={{ padding: '12px', textAlign: 'right' }}>
                     <button
-                      onClick={() => navigate(`/settings/expense-categories/${category.id}/stats`)}
+                      onClick={() => navigate(`/admin/settings/expense-categories/${category.id}/stats`)}
                       style={{
                         marginRight: '8px',
                         padding: '6px 12px',
