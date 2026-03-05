@@ -8,13 +8,13 @@ export default function Settings() {
   };
 
   const settingsMenuItems = [
-    { path: '/settings/car-models', label: 'Modèles de Véhicules', icon: '🚗' },
-    { path: '/settings/expense-categories', label: 'Catégories de Dépenses', icon: '💰' },
-    { path: '/settings/sellers', label: 'Vendeurs', icon: '🏢' },
-    { path: '/settings/payment-methods', label: 'Modes de Paiement', icon: '💳' },
-    { path: '/settings/tags', label: 'Tags', icon: '🏷️' },
-    { path: '/settings/project-expense-categories', label: 'Catégories Dépenses Projet', icon: '📊' },
-    { path: '/settings/users', label: 'Utilisateurs', icon: '👤' },
+    { path: '/admin/settings/car-models', label: 'Modèles de Véhicules', icon: '🚗' },
+    { path: '/admin/settings/expense-categories', label: 'Catégories de Dépenses', icon: '💰' },
+    { path: '/admin/settings/sellers', label: 'Vendeurs', icon: '🏢' },
+    { path: '/admin/settings/payment-methods', label: 'Modes de Paiement', icon: '💳' },
+    { path: '/admin/settings/tags', label: 'Tags', icon: '🏷️' },
+    { path: '/admin/settings/project-expense-categories', label: 'Catégories Dépenses Projet', icon: '📊' },
+    { path: '/admin/settings/users', label: 'Utilisateurs', icon: '👤' },
   ];
 
   return (
