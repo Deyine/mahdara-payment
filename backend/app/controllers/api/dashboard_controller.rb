@@ -5,7 +5,7 @@ class Api::DashboardController < ApplicationController
 
   def statistics
     # Load all active (non-deleted) cars with associations to avoid N+1
-    all_cars = tenant_scope(Car).includes(:expenses, :payments, :car_model)
+    all_cars = tenant_scope(Car).includes(:expenses, :payments, :car_model, :tags)
 
     # Current inventory: cars not yet sold (active + rental)
     current_cars = all_cars.where(status: %w[active rental]).to_a
@@ -37,10 +37,12 @@ class Api::DashboardController < ApplicationController
         { month: month.strftime('%Y-%m'), total: total.round(2) }
       end
 
+      first_tag = car.tags.first
       {
         car_id: car.id,
         car_label: "#{car.car_model.name} #{car.year}",
         ref: car.ref,
+        first_tag: first_tag ? { name: first_tag.name, color: first_tag.color } : nil,
         sale_price: car.sale_price.to_f,
         total_paid: car.total_paid,
         remaining: car.remaining_balance,

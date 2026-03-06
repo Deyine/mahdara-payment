@@ -34,12 +34,18 @@ function CustomTooltip({ active, payload, label }) {
 function PaymentTracker({ cars }) {
   const [view, setView] = useState('chart');
 
+  const carKey = (car) => {
+    let k = car.car_label;
+    if (car.ref) k += ` #${car.ref}`;
+    if (car.first_tag) k += ` · ${car.first_tag.name}`;
+    return k;
+  };
+
   // Build recharts data: one object per month with car keys
   const chartData = cars[0].monthly_payments.map((mp, mIdx) => {
     const point = { month: formatMonth(mp.month) };
     cars.forEach((car) => {
-      const key = car.ref ? `${car.car_label} #${car.ref}` : car.car_label;
-      point[key] = car.monthly_payments[mIdx].total;
+      point[carKey(car)] = car.monthly_payments[mIdx].total;
     });
     return point;
   });
@@ -106,20 +112,17 @@ function PaymentTracker({ cars }) {
                 iconType="circle"
                 iconSize={8}
               />
-              {cars.map((car, idx) => {
-                const key = car.ref ? `${car.car_label} #${car.ref}` : car.car_label;
-                return (
-                  <Line
-                    key={car.car_id}
-                    type="monotone"
-                    dataKey={key}
-                    stroke={CAR_COLORS[idx % CAR_COLORS.length]}
-                    strokeWidth={2.5}
-                    dot={{ r: 4, strokeWidth: 2, fill: '#fff' }}
-                    activeDot={{ r: 6, strokeWidth: 0 }}
-                  />
-                );
-              })}
+              {cars.map((car, idx) => (
+                <Line
+                  key={car.car_id}
+                  type="monotone"
+                  dataKey={carKey(car)}
+                  stroke={CAR_COLORS[idx % CAR_COLORS.length]}
+                  strokeWidth={2.5}
+                  dot={{ r: 4, strokeWidth: 2, fill: '#fff' }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -147,12 +150,26 @@ function PaymentTracker({ cars }) {
                   key={car.car_id}
                   style={{ borderBottom: idx < cars.length - 1 ? '1px solid #f1f5f9' : 'none' }}
                 >
-                  <td className="px-4 py-3 flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: CAR_COLORS[idx % CAR_COLORS.length] }} />
-                    <span className="font-medium" style={{ color: '#1e293b' }}>{car.car_label}</span>
-                    {car.ref && (
-                      <span className="text-xs" style={{ color: '#94a3b8' }}>#{car.ref}</span>
-                    )}
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: CAR_COLORS[idx % CAR_COLORS.length] }} />
+                      <span className="font-medium" style={{ color: '#1e293b' }}>{car.car_label}</span>
+                      {car.ref && (
+                        <span className="text-xs" style={{ color: '#94a3b8' }}>#{car.ref}</span>
+                      )}
+                      {car.first_tag && (
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-full font-medium"
+                          style={{
+                            backgroundColor: car.first_tag.color ? `${car.first_tag.color}22` : '#f1f5f9',
+                            color: car.first_tag.color || '#64748b',
+                            border: `1px solid ${car.first_tag.color ? `${car.first_tag.color}55` : '#e2e8f0'}`,
+                          }}
+                        >
+                          {car.first_tag.name}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   {car.monthly_payments.map((mp) => (
                     <td key={mp.month} className="text-center px-3 py-3">
