@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
 import { dashboardAPI } from '../services/api';
 import { formatNumber } from '../utils/formatters';
 
@@ -7,6 +10,181 @@ const formatMonth = (monthStr) => {
   const date = new Date(year, month - 1, 1);
   return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
 };
+
+const CAR_COLORS = ['#167bff', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#f97316'];
+
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg shadow-lg px-4 py-3" style={{ backgroundColor: '#1e293b', border: '1px solid #334155' }}>
+      <p className="text-xs font-semibold mb-2 capitalize" style={{ color: '#94a3b8' }}>{label}</p>
+      {payload.map((entry) => (
+        <div key={entry.dataKey} className="flex items-center gap-2 text-xs mb-1">
+          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+          <span style={{ color: '#e2e8f0' }}>{entry.name}:</span>
+          <span className="font-semibold" style={{ color: '#fff' }}>
+            {formatNumber(entry.value)} MRU
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PaymentTracker({ cars }) {
+  const [view, setView] = useState('chart');
+
+  // Build recharts data: one object per month with car keys
+  const chartData = cars[0].monthly_payments.map((mp, mIdx) => {
+    const point = { month: formatMonth(mp.month) };
+    cars.forEach((car) => {
+      const key = car.ref ? `${car.car_label} #${car.ref}` : car.car_label;
+      point[key] = car.monthly_payments[mIdx].total;
+    });
+    return point;
+  });
+
+  return (
+    <div className="mb-10">
+      {/* Header + toggle */}
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h2 className="text-lg font-semibold mb-1" style={{ color: '#475569' }}>
+            Suivi des Paiements
+          </h2>
+          <p className="text-sm" style={{ color: '#94a3b8' }}>
+            Véhicules vendus non entièrement payés — 6 derniers mois
+          </p>
+        </div>
+
+        {/* Pill toggle */}
+        <div className="flex rounded-full p-0.5" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', boxShadow: '0 2px 8px rgba(102,126,234,0.4)' }}>
+          <button
+            onClick={() => setView('chart')}
+            className="text-xs font-semibold px-4 py-1.5 rounded-full transition-all duration-200"
+            style={view === 'chart'
+              ? { backgroundColor: '#fff', color: '#667eea' }
+              : { backgroundColor: 'transparent', color: 'rgba(255,255,255,0.8)' }
+            }
+          >
+            Graphique
+          </button>
+          <button
+            onClick={() => setView('table')}
+            className="text-xs font-semibold px-4 py-1.5 rounded-full transition-all duration-200"
+            style={view === 'table'
+              ? { backgroundColor: '#fff', color: '#667eea' }
+              : { backgroundColor: 'transparent', color: 'rgba(255,255,255,0.8)' }
+            }
+          >
+            Tableau
+          </button>
+        </div>
+      </div>
+
+      {view === 'chart' ? (
+        <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0' }}>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={chartData} margin={{ top: 8, right: 24, left: 8, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis
+                dataKey="month"
+                tick={{ fontSize: 12, fill: '#94a3b8' }}
+                axisLine={{ stroke: '#e2e8f0' }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: '#94a3b8' }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v) => formatNumber(v, 0)}
+                width={70}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend
+                wrapperStyle={{ fontSize: 12, paddingTop: 16 }}
+                iconType="circle"
+                iconSize={8}
+              />
+              {cars.map((car, idx) => {
+                const key = car.ref ? `${car.car_label} #${car.ref}` : car.car_label;
+                return (
+                  <Line
+                    key={car.car_id}
+                    type="monotone"
+                    dataKey={key}
+                    stroke={CAR_COLORS[idx % CAR_COLORS.length]}
+                    strokeWidth={2.5}
+                    dot={{ r: 4, strokeWidth: 2, fill: '#fff' }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                  />
+                );
+              })}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm overflow-x-auto" style={{ border: '1px solid #e2e8f0' }}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                <th className="text-left px-4 py-3 font-medium" style={{ color: '#475569', minWidth: '160px' }}>
+                  Véhicule
+                </th>
+                {cars[0].monthly_payments.map((mp) => (
+                  <th key={mp.month} className="text-center px-3 py-3 font-medium capitalize" style={{ color: '#475569', minWidth: '90px' }}>
+                    {formatMonth(mp.month)}
+                  </th>
+                ))}
+                <th className="text-right px-4 py-3 font-medium" style={{ color: '#f59e0b', minWidth: '120px' }}>
+                  Reste dû
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {cars.map((car, idx) => (
+                <tr
+                  key={car.car_id}
+                  style={{ borderBottom: idx < cars.length - 1 ? '1px solid #f1f5f9' : 'none' }}
+                >
+                  <td className="px-4 py-3 flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: CAR_COLORS[idx % CAR_COLORS.length] }} />
+                    <span className="font-medium" style={{ color: '#1e293b' }}>{car.car_label}</span>
+                    {car.ref && (
+                      <span className="text-xs" style={{ color: '#94a3b8' }}>#{car.ref}</span>
+                    )}
+                  </td>
+                  {car.monthly_payments.map((mp) => (
+                    <td key={mp.month} className="text-center px-3 py-3">
+                      {mp.total > 0 ? (
+                        <span
+                          className="inline-block px-2 py-1 rounded text-xs font-medium"
+                          style={{ backgroundColor: '#d1fae5', color: '#065f46' }}
+                        >
+                          {formatNumber(mp.total)}
+                        </span>
+                      ) : (
+                        <span
+                          className="inline-block px-2 py-1 rounded text-xs font-medium"
+                          style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}
+                        >
+                          —
+                        </span>
+                      )}
+                    </td>
+                  ))}
+                  <td className="text-right px-4 py-3 font-semibold" style={{ color: '#f59e0b' }}>
+                    {formatNumber(car.remaining)} MRU
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -91,161 +269,9 @@ export default function Dashboard() {
         </div>
 
         {/* Section: Suivi des paiements */}
-        {stats?.unpaid_cars_payments?.length > 0 && (() => {
-          const cars = stats.unpaid_cars_payments;
-          const months = cars[0].monthly_payments.map(mp => mp.month);
-          const maxAmount = Math.max(1, ...cars.flatMap(c => c.monthly_payments.map(mp => mp.total)));
-          const colors = ['#167bff', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#f97316'];
-          const yTicks = [0, 0.25, 0.5, 0.75, 1].reverse();
-
-          return (
-          <div className="mb-10">
-            <h2 className="text-lg font-semibold mb-1" style={{ color: '#475569' }}>
-              Suivi des Paiements
-            </h2>
-            <p className="text-sm mb-4" style={{ color: '#94a3b8' }}>
-              Véhicules vendus non entièrement payés — paiements reçus par mois (6 derniers mois)
-            </p>
-
-            {/* Bar chart */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-4" style={{ border: '1px solid #e2e8f0' }}>
-              {/* Legend */}
-              <div className="flex flex-wrap gap-4 mb-5">
-                {cars.map((car, idx) => (
-                  <div key={car.car_id} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: colors[idx % colors.length] }} />
-                    <span className="text-xs" style={{ color: '#475569' }}>
-                      {car.car_label}{car.ref ? ` #${car.ref}` : ''}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Chart area */}
-              <div className="flex gap-2" style={{ height: '200px' }}>
-                {/* Y-axis labels */}
-                <div className="flex flex-col justify-between text-right pr-2" style={{ minWidth: '60px' }}>
-                  {yTicks.map(t => (
-                    <span key={t} className="text-xs leading-none" style={{ color: '#94a3b8' }}>
-                      {t === 0 ? '0' : formatNumber(maxAmount * t, 0)}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Bars + grid */}
-                <div className="flex-1 flex flex-col">
-                  {/* Grid lines + bars */}
-                  <div className="relative flex-1">
-                    {/* Horizontal grid lines */}
-                    {yTicks.map(t => (
-                      <div
-                        key={t}
-                        className="absolute w-full"
-                        style={{
-                          bottom: `${t * 100}%`,
-                          borderTop: `1px dashed ${t === 0 ? '#cbd5e1' : '#f1f5f9'}`,
-                        }}
-                      />
-                    ))}
-
-                    {/* Bar groups */}
-                    <div className="absolute inset-0 flex items-end gap-3 px-1">
-                      {months.map((month, mIdx) => (
-                        <div key={month} className="flex-1 flex items-end gap-0.5 h-full">
-                          {cars.map((car, cIdx) => {
-                            const mp = car.monthly_payments[mIdx];
-                            const heightPct = (mp.total / maxAmount) * 100;
-                            return (
-                              <div
-                                key={car.car_id}
-                                className="flex-1 rounded-t-sm"
-                                title={`${car.car_label}${car.ref ? ' #' + car.ref : ''}: ${formatNumber(mp.total)} MRU`}
-                                style={{
-                                  height: mp.total > 0 ? `${heightPct}%` : '3px',
-                                  backgroundColor: mp.total > 0 ? colors[cIdx % colors.length] : '#f1f5f9',
-                                  transition: 'height 0.3s ease',
-                                  cursor: 'default',
-                                }}
-                              />
-                            );
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* X-axis month labels */}
-                  <div className="flex gap-3 px-1 pt-2">
-                    {months.map(month => (
-                      <div key={month} className="flex-1 text-center text-xs capitalize" style={{ color: '#94a3b8' }}>
-                        {formatMonth(month)}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Table */}
-            <div className="bg-white rounded-lg shadow-sm overflow-x-auto" style={{ border: '1px solid #e2e8f0' }}>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                    <th className="text-left px-4 py-3 font-medium" style={{ color: '#475569', minWidth: '160px' }}>
-                      Véhicule
-                    </th>
-                    {stats.unpaid_cars_payments[0].monthly_payments.map((mp) => (
-                      <th key={mp.month} className="text-center px-3 py-3 font-medium capitalize" style={{ color: '#475569', minWidth: '90px' }}>
-                        {formatMonth(mp.month)}
-                      </th>
-                    ))}
-                    <th className="text-right px-4 py-3 font-medium" style={{ color: '#f59e0b', minWidth: '120px' }}>
-                      Reste dû
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stats.unpaid_cars_payments.map((car, idx) => (
-                    <tr
-                      key={car.car_id}
-                      style={{ borderBottom: idx < stats.unpaid_cars_payments.length - 1 ? '1px solid #f1f5f9' : 'none' }}
-                    >
-                      <td className="px-4 py-3">
-                        <span className="font-medium" style={{ color: '#1e293b' }}>{car.car_label}</span>
-                        {car.ref && (
-                          <span className="ml-2 text-xs" style={{ color: '#94a3b8' }}>#{car.ref}</span>
-                        )}
-                      </td>
-                      {car.monthly_payments.map((mp) => (
-                        <td key={mp.month} className="text-center px-3 py-3">
-                          {mp.total > 0 ? (
-                            <span
-                              className="inline-block px-2 py-1 rounded text-xs font-medium"
-                              style={{ backgroundColor: '#d1fae5', color: '#065f46' }}
-                            >
-                              {formatNumber(mp.total)}
-                            </span>
-                          ) : (
-                            <span
-                              className="inline-block px-2 py-1 rounded text-xs font-medium"
-                              style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}
-                            >
-                              —
-                            </span>
-                          )}
-                        </td>
-                      ))}
-                      <td className="text-right px-4 py-3 font-semibold" style={{ color: '#f59e0b' }}>
-                        {formatNumber(car.remaining)} MRU
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          );
-        })()}
+        {stats?.unpaid_cars_payments?.length > 0 && (
+          <PaymentTracker cars={stats.unpaid_cars_payments} />
+        )}
 
         {/* Section: Historique */}
         <div>
