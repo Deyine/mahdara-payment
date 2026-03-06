@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { dashboardAPI } from '../services/api';
 import { formatNumber } from '../utils/formatters';
@@ -89,42 +89,39 @@ function PaymentTracker({ cars }) {
       </div>
 
       {view === 'chart' ? (
-        <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0' }}>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={chartData} margin={{ top: 8, right: 24, left: 8, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 12, fill: '#94a3b8' }}
-                axisLine={{ stroke: '#e2e8f0' }}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: '#94a3b8' }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v) => formatNumber(v, 0)}
-                width={70}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend
-                wrapperStyle={{ fontSize: 12, paddingTop: 16 }}
-                iconType="circle"
-                iconSize={8}
-              />
-              {cars.map((car, idx) => (
-                <Line
-                  key={car.car_id}
-                  type="monotone"
-                  dataKey={carKey(car)}
-                  stroke={CAR_COLORS[idx % CAR_COLORS.length]}
-                  strokeWidth={2.5}
-                  dot={{ r: 4, strokeWidth: 2, fill: '#fff' }}
-                  activeDot={{ r: 6, strokeWidth: 0 }}
+        <div className="bg-white rounded-lg shadow-sm p-4 overflow-x-auto" style={{ border: '1px solid #e2e8f0' }}>
+          <div style={{ minWidth: 520 }}>
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 12, fill: '#94a3b8' }}
+                  axisLine={{ stroke: '#e2e8f0' }}
+                  tickLine={false}
                 />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
+                <YAxis
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => formatNumber(v, 0)}
+                  width={70}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                {cars.map((car, idx) => (
+                  <Line
+                    key={car.car_id}
+                    type="monotone"
+                    dataKey={carKey(car)}
+                    stroke={CAR_COLORS[idx % CAR_COLORS.length]}
+                    strokeWidth={2.5}
+                    dot={{ r: 4, strokeWidth: 2, fill: '#fff' }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm overflow-x-auto" style={{ border: '1px solid #e2e8f0' }}>
