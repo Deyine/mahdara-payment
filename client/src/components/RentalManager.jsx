@@ -131,6 +131,13 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
     return date.toLocaleDateString('fr-FR');
   };
 
+  const calculateEndDate = (startDateString, days) => {
+    if (!startDateString || !days) return '-';
+    const date = new Date(startDateString);
+    date.setDate(date.getDate() + parseInt(days) - 1);
+    return date.toLocaleDateString('fr-FR');
+  };
+
   const calculatedAmount = formData.days && formData.daily_rate
     ? parseFloat(formData.days) * parseFloat(formData.daily_rate)
     : 0;
@@ -243,10 +250,14 @@ export default function RentalManager({ car, rentalTransactions, onRentalTransac
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs sm:text-sm">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs sm:text-sm">
                   <div>
-                    <span style={{ color: '#64748b' }}>Date:</span>
+                    <span style={{ color: '#64748b' }}>Début:</span>
                     <span className="ml-1 font-medium">{formatDate(rental.rental_date)}</span>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b' }}>Fin:</span>
+                    <span className="ml-1 font-medium">{calculateEndDate(rental.rental_date, rental.days)}</span>
                   </div>
                   <div>
                     <span style={{ color: '#64748b' }}>Durée:</span>
