@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import { dashboardAPI } from '../services/api';
 import { formatNumber } from '../utils/formatters';
 
+const formatMonth = (monthStr) => {
+  const [year, month] = monthStr.split('-');
+  const date = new Date(year, month - 1, 1);
+  return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+};
+
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -83,6 +89,74 @@ export default function Dashboard() {
 
           </div>
         </div>
+
+        {/* Section: Suivi des paiements */}
+        {stats?.unpaid_cars_payments?.length > 0 && (
+          <div className="mb-10">
+            <h2 className="text-lg font-semibold mb-1" style={{ color: '#475569' }}>
+              Suivi des Paiements
+            </h2>
+            <p className="text-sm mb-4" style={{ color: '#94a3b8' }}>
+              Véhicules vendus non entièrement payés — paiements reçus par mois (6 derniers mois)
+            </p>
+            <div className="bg-white rounded-lg shadow-sm overflow-x-auto" style={{ border: '1px solid #e2e8f0' }}>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                    <th className="text-left px-4 py-3 font-medium" style={{ color: '#475569', minWidth: '160px' }}>
+                      Véhicule
+                    </th>
+                    {stats.unpaid_cars_payments[0].monthly_payments.map((mp) => (
+                      <th key={mp.month} className="text-center px-3 py-3 font-medium capitalize" style={{ color: '#475569', minWidth: '90px' }}>
+                        {formatMonth(mp.month)}
+                      </th>
+                    ))}
+                    <th className="text-right px-4 py-3 font-medium" style={{ color: '#f59e0b', minWidth: '120px' }}>
+                      Reste dû
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.unpaid_cars_payments.map((car, idx) => (
+                    <tr
+                      key={car.car_id}
+                      style={{ borderBottom: idx < stats.unpaid_cars_payments.length - 1 ? '1px solid #f1f5f9' : 'none' }}
+                    >
+                      <td className="px-4 py-3">
+                        <span className="font-medium" style={{ color: '#1e293b' }}>{car.car_label}</span>
+                        {car.ref && (
+                          <span className="ml-2 text-xs" style={{ color: '#94a3b8' }}>#{car.ref}</span>
+                        )}
+                      </td>
+                      {car.monthly_payments.map((mp) => (
+                        <td key={mp.month} className="text-center px-3 py-3">
+                          {mp.total > 0 ? (
+                            <span
+                              className="inline-block px-2 py-1 rounded text-xs font-medium"
+                              style={{ backgroundColor: '#d1fae5', color: '#065f46' }}
+                            >
+                              {formatNumber(mp.total)}
+                            </span>
+                          ) : (
+                            <span
+                              className="inline-block px-2 py-1 rounded text-xs font-medium"
+                              style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}
+                            >
+                              —
+                            </span>
+                          )}
+                        </td>
+                      ))}
+                      <td className="text-right px-4 py-3 font-semibold" style={{ color: '#f59e0b' }}>
+                        {formatNumber(car.remaining)} MRU
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* Section: Historique */}
         <div>
