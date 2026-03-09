@@ -37,7 +37,10 @@
       "Bash(__NEW_LINE_de06bc50ec4db39e__ echo \"03 done\")",
       "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/context/04-boundaries.md:*)",
       "Bash(__NEW_LINE_2f437b4578273d62__ echo \"04 done\")",
-      "Bash(gh auth status)"
+      "Bash(gh auth status)",
+      "Bash(sed -i '' 's|PROJECT_NAME=\"\"mahdara\"\"|PROJECT_NAME=\"\"mahdara-payment\"\"|g; s|/var/www/mahdara|/var/www/mahdara-payment|g' /Users/djiddou/Documents/Developments/side-projects/mahdara-payment/setup.sh)",
+      "Bash(sed -i '' 's|/var/www/mahdara|/var/www/mahdara-payment|g' /Users/djiddou/Documents/Developments/side-projects/mahdara-payment/mahdara.conf)",
+      "Bash(sed -i '' 's|/var/www/mahdara|/var/www/mahdara-payment|g' /Users/djiddou/Documents/Developments/side-projects/mahdara-payment/mahdara.service)"
     ],
     "additionalDirectories": [
       "/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/db/migrate"
