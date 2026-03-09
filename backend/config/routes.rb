@@ -1,143 +1,28 @@
 Rails.application.routes.draw do
-  # Health check endpoint
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # API routes
   namespace :api do
-    # Authentication
     post 'auth/login', to: 'auth#login'
-
-    # Dashboard
     get 'dashboard/statistics', to: 'dashboard#statistics'
 
-    # Tenants (Super Admin only)
-    resources :tenants
-
-    # Cars
-    resources :cars do
-      member do
-        post 'restore', to: 'cars#restore'
-        post 'sell', to: 'cars#sell'
-        post 'unsell', to: 'cars#unsell'
-        post 'rent', to: 'cars#rent'
-        post 'return_rental', to: 'cars#return_rental'
-        post 'salvage_photos', to: 'cars#add_salvage_photos'
-        delete 'salvage_photos/:photo_id', to: 'cars#delete_salvage_photo'
-        post 'reorder_salvage_photos', to: 'cars#reorder_salvage_photos'
-        post 'after_repair_photos', to: 'cars#add_after_repair_photos'
-        delete 'after_repair_photos/:photo_id', to: 'cars#delete_after_repair_photo'
-        post 'reorder_after_repair_photos', to: 'cars#reorder_after_repair_photos'
-        post 'invoices', to: 'cars#add_invoices'
-        delete 'invoices/:invoice_id', to: 'cars#delete_invoice'
-      end
+    resources :users
+    resources :employee_types
+    resources :employees do
+      collection { get 'lookup_nni' }
     end
-
-    # Car Models
-    resources :car_models do
-      collection do
-        get 'active'
-      end
+    resources :contracts, only: [:create, :update, :destroy]
+    resources :wilayas do
+      collection { post 'import' }
     end
-
-    # Expense Categories
-    resources :expense_categories do
-      collection do
-        get 'active'
-      end
-      member do
-        get 'stats'
-      end
+    resources :moughataa do
+      collection { post 'import' }
     end
-
-    # Sellers
-    resources :sellers do
-      collection do
-        get 'active'
-      end
+    resources :communes do
+      collection { post 'import' }
     end
-
-    # Tags
-    resources :tags
-
-    # Payment Methods
-    resources :payment_methods do
-      collection do
-        get 'active'
-      end
+    resources :villages do
+      collection { post 'import' }
     end
-
-    # Users (tenant members)
-    resources :users do
-      collection do
-        get 'managers'
-        get 'profits'
-      end
-    end
-
-    # Expenses
-    resources :expenses
-
-    # Payments
-    resources :payments
-
-    # Rental Transactions
-    resources :rental_transactions
-
-    # Cashouts
-    resources :cashouts, only: [:index, :show, :create, :destroy]
-
-    # Debts
-    resources :debts do
-      collection do
-        get 'summary'
-        post 'import'
-      end
-    end
-
-    # Projects
-    resources :projects do
-      collection do
-        get 'active'
-      end
-    end
-
-    # Project Expense Categories
-    resources :project_expense_categories do
-      collection do
-        get 'active'
-      end
-    end
-
-    # Project Expenses
-    resources :project_expenses do
-      collection do
-        post 'import'
-      end
-    end
-
-    # Time Tracking (namespaced)
-    namespace :time_tracking do
-      resources :projects do
-        member do
-          post 'restore'
-        end
-      end
-
-      resources :tasks do
-        member do
-          post 'complete'
-        end
-      end
-
-      resources :time_entries
-    end
-
-    # Car Shares (authenticated CRUD)
-    resources :car_shares, only: [:index, :show, :create, :update, :destroy]
-
-    # Public endpoints (no authentication required)
-    get 'public/cars/:token', to: 'public#show_car', as: :public_shared_car
-    get 'public/catalog', to: 'catalog#index', as: :public_catalog
-    get 'public/catalog/:id', to: 'catalog#show', as: :public_catalog_car
+    resources :payment_batches, only: [:index, :show, :create, :destroy]
   end
 end

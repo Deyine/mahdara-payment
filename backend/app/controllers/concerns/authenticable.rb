@@ -48,9 +48,4 @@ module Authenticable
     end
   end
 
-  def require_car_access
-    if current_user&.operator?
-      render json: { error: 'Access denied: this account only has access to time tracking' }, status: :forbidden
-    end
-  end
 end

@@ -18,15 +18,11 @@ export default function Layout({ children }) {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
-  const isManagerOrAdmin = user?.role === 'manager' || user?.role === 'admin' || user?.role === 'super_admin';
-
   const navItems = [
-    { path: '/admin', label: 'Tableau de Bord', icon: '📊', adminOnly: false },
-    { path: '/admin/cars', label: 'Véhicules', icon: '🚗', adminOnly: false },
-    { path: '/admin/profits', label: 'Profits', icon: '💰', adminOnly: false, requireManagerOrAdmin: true },
-    { path: '/admin/projects', label: 'Projets', icon: '🏗️', adminOnly: true },
-    { path: '/admin/debts', label: 'Dettes', icon: '💳', adminOnly: true },
-    { path: '/admin/settings', label: 'Paramètres', icon: '⚙️', adminOnly: true },
+    { path: '/admin', label: 'لوحة التحكم', icon: '📊', adminOnly: false },
+    { path: '/admin/employees', label: 'الموظفون', icon: '👥', adminOnly: false },
+    { path: '/admin/payments', label: 'المدفوعات', icon: '💰', adminOnly: false },
+    { path: '/admin/settings', label: 'الإعدادات', icon: '⚙️', adminOnly: true },
   ];
 
   const handleNavClick = () => {
@@ -39,43 +35,39 @@ export default function Layout({ children }) {
       <header className="bg-white shadow-sm sticky top-0 z-40" style={{ borderBottom: '1px solid #e2e8f0' }}>
         <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4">
           <div className="flex justify-between items-center">
-            {/* Mobile: Hamburger + Logo */}
             <div className="flex items-center gap-3">
-              {/* Hamburger Menu Button - Mobile Only */}
               <button
                 onClick={() => setDrawerOpen(true)}
                 className="md:hidden p-2 rounded-lg transition-colors"
                 style={{ color: '#1e293b' }}
-                aria-label="Ouvrir le menu"
+                aria-label="فتح القائمة"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
 
-              {/* Logo/Brand */}
               <div className="flex items-center gap-2">
                 <div
                   className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-lg sm:text-xl font-bold text-white"
                   style={{ backgroundColor: '#167bff' }}
                 >
-                  B
+                  م
                 </div>
                 <div className="hidden sm:block">
                   <h1 className="text-xl font-bold" style={{ color: '#1e293b' }}>
-                    BestCar
+                    Mahdara
                   </h1>
-                  <p className="text-xs" style={{ color: '#64748b' }}>Gestion de Véhicules</p>
+                  <p className="text-xs" style={{ color: '#64748b' }}>إدارة المدفوعات</p>
                 </div>
               </div>
             </div>
 
-            {/* Desktop: User Info & Logout */}
             <div className="hidden md:flex items-center gap-4">
-              <div className="text-right">
+              <div>
                 <p className="font-medium text-sm" style={{ color: '#1e293b' }}>{user?.name}</p>
                 <p className="text-xs" style={{ color: '#64748b' }}>
-                  {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Administrateur' : user?.role === 'manager' ? 'Manager' : 'Opérateur'}
+                  {user?.role === 'super_admin' ? 'مشرف عام' : user?.role === 'admin' ? 'مشرف' : 'مدير'}
                 </p>
               </div>
               <button
@@ -85,11 +77,10 @@ export default function Layout({ children }) {
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#fee2e2'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#fef2f2'}
               >
-                Déconnexion
+                تسجيل الخروج
               </button>
             </div>
 
-            {/* Mobile: User Icon (optional - shows current user) */}
             <div className="md:hidden">
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white"
@@ -108,8 +99,6 @@ export default function Layout({ children }) {
           <div className="flex gap-1">
             {navItems.map((item) => {
               if (item.adminOnly && !isAdmin) return null;
-              if (item.requireManagerOrAdmin && !isManagerOrAdmin) return null;
-
 
               return (
                 <Link
@@ -127,7 +116,7 @@ export default function Layout({ children }) {
                     if (!isActive(item.path)) e.target.style.color = '#64748b';
                   }}
                 >
-                  <span className="mr-2">{item.icon}</span>
+                  <span className="ml-2">{item.icon}</span>
                   {item.label}
                 </Link>
               );
@@ -139,22 +128,14 @@ export default function Layout({ children }) {
       {/* Mobile Navigation Drawer */}
       {drawerOpen && (
         <>
-          {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
             onClick={() => setDrawerOpen(false)}
-            style={{ transition: 'opacity 0.3s ease-in-out' }}
           />
-
-          {/* Drawer */}
           <div
-            className="fixed top-0 left-0 bottom-0 w-64 bg-white z-50 md:hidden shadow-2xl"
-            style={{
-              animation: 'slideInFromLeft 0.3s ease-out',
-              borderRight: '1px solid #e2e8f0'
-            }}
+            className="fixed top-0 right-0 bottom-0 w-64 bg-white z-50 md:hidden shadow-2xl"
+            style={{ animation: 'slideInFromRight 0.3s ease-out', borderLeft: '1px solid #e2e8f0' }}
           >
-            {/* Drawer Header */}
             <div className="p-4 border-b" style={{ borderColor: '#e2e8f0' }}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -162,16 +143,14 @@ export default function Layout({ children }) {
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-xl font-bold text-white"
                     style={{ backgroundColor: '#167bff' }}
                   >
-                    B
+                    م
                   </div>
-                  <div>
-                    <h2 className="font-bold text-lg" style={{ color: '#1e293b' }}>BestCar</h2>
-                  </div>
+                  <h2 className="font-bold text-lg" style={{ color: '#1e293b' }}>Mahdara</h2>
                 </div>
                 <button
                   onClick={() => setDrawerOpen(false)}
                   className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                  aria-label="Fermer le menu"
+                  aria-label="إغلاق القائمة"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -179,7 +158,6 @@ export default function Layout({ children }) {
                 </button>
               </div>
 
-              {/* User Info */}
               <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: '#f8fafc' }}>
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold text-white"
@@ -190,18 +168,15 @@ export default function Layout({ children }) {
                 <div className="flex-1">
                   <p className="font-medium text-sm" style={{ color: '#1e293b' }}>{user?.name}</p>
                   <p className="text-xs" style={{ color: '#64748b' }}>
-                    {user?.role === 'super_admin' ? 'Super Admin' : user?.role === 'admin' ? 'Administrateur' : user?.role === 'manager' ? 'Manager' : 'Opérateur'}
+                    {user?.role === 'super_admin' ? 'مشرف عام' : user?.role === 'admin' ? 'مشرف' : 'مدير'}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Navigation Items */}
             <nav className="p-4">
               {navItems.map((item) => {
                 if (item.adminOnly && !isAdmin) return null;
-                if (item.requireManagerOrAdmin && !isManagerOrAdmin) return null;
-  
 
                 return (
                   <Link
@@ -221,7 +196,6 @@ export default function Layout({ children }) {
               })}
             </nav>
 
-            {/* Logout Button at Bottom */}
             <div className="absolute bottom-0 left-0 right-0 p-4 border-t" style={{ borderColor: '#e2e8f0' }}>
               <button
                 onClick={handleLogout}
@@ -231,26 +205,20 @@ export default function Layout({ children }) {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                Déconnexion
+                تسجيل الخروج
               </button>
             </div>
           </div>
         </>
       )}
 
-      {/* Slide-in Animation */}
       <style>{`
-        @keyframes slideInFromLeft {
-          from {
-            transform: translateX(-100%);
-          }
-          to {
-            transform: translateX(0);
-          }
+        @keyframes slideInFromRight {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
         }
       `}</style>
 
-      {/* Main Content */}
       <main className="pb-8">{children}</main>
     </div>
   );

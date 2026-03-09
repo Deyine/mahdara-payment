@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude --version)",
+      "Bash(npm show @anthropic-ai/claude-code version)",
+      "Bash(npx @anthropic-ai/claude-code --version)",
+      "Bash(sed -i '' 's/BestCar/Mahdara/g' /Users/djiddou/Documents/Developments/side-projects/mahdara-payment/context/02-conventions.md)",
+      "Bash(sed -i '' 's/bestcar/mahdara/g' /Users/djiddou/Documents/Developments/side-projects/mahdara-payment/context/02-conventions.md)",
+      "Bash(rm -f app/controllers/api/car_models_controller.rb app/controllers/api/car_shares_controller.rb app/controllers/api/cars_controller.rb app/controllers/api/cashouts_controller.rb app/controllers/api/catalog_controller.rb app/controllers/api/debts_controller.rb app/controllers/api/expense_categories_controller.rb app/controllers/api/expenses_controller.rb app/controllers/api/payment_methods_controller.rb app/controllers/api/payments_controller.rb app/controllers/api/project_expense_categories_controller.rb app/controllers/api/project_expenses_controller.rb app/controllers/api/projects_controller.rb app/controllers/api/public_controller.rb app/controllers/api/rental_transactions_controller.rb app/controllers/api/sellers_controller.rb app/controllers/api/tags_controller.rb)",
+      "Bash(rm -rf app/controllers/api/time_tracking)",
+      "Bash(rm -f app/models/car_model.rb app/models/car_share.rb app/models/car_tag.rb app/models/car.rb app/models/cashout.rb app/models/debt.rb app/models/expense_category.rb app/models/expense.rb app/models/payment_method.rb app/models/payment.rb app/models/project_expense_category.rb app/models/project_expense.rb app/models/project.rb app/models/rental_transaction.rb app/models/seller.rb app/models/tag.rb)",
+      "Bash(rm -rf app/models/time_tracking)",
+      "Bash(rm -f app/serializers/car_serializer.rb app/serializers/car_share_serializer.rb app/serializers/cashout_serializer.rb app/serializers/catalog_car_serializer.rb app/serializers/debt_serializer.rb app/serializers/payment_method_serializer.rb app/serializers/payment_serializer.rb app/serializers/public_car_serializer.rb app/serializers/rental_transaction_serializer.rb)",
+      "Bash(rm -rf app/serializers/time_tracking)",
+      "Bash(rm -f pages/Cars.jsx pages/CarDetail.jsx pages/ImportCars.jsx pages/ManagerProfits.jsx pages/CarModels.jsx pages/ExpenseCategories.jsx pages/ExpenseCategoryStats.jsx pages/Sellers.jsx pages/PaymentMethods.jsx pages/Tags.jsx pages/Debts.jsx pages/Projects.jsx pages/ProjectExpenseCategories.jsx pages/SharedCar.jsx pages/Privacy.jsx components/ExpenseManager.jsx components/InvoiceManager.jsx components/PaymentManager.jsx components/PhotoGallery.jsx components/ProfitShareManager.jsx components/RentalManager.jsx components/ShareCarModal.jsx components/BulkPaymentImport.jsx components/FullscreenPhotoViewer.jsx components/admin/OperatorManagement.jsx components/admin/Statistics.jsx)",
+      "Bash(rmdir components/admin)",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/app/models/employee_type.rb:*)",
+      "Bash(__NEW_LINE_5ed32da7599406e7__ cat)",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/app/models/wilaya.rb:*)",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/app/models/moughataa.rb:*)",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/app/models/commune.rb:*)",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/app/models/village.rb:*)",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/app/models/contract.rb:*)",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/app/models/employee.rb:*)",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/app/models/payment_batch.rb:*)",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/app/models/payment_batch_employee.rb:*)",
+      "Bash(__NEW_LINE_5ed32da7599406e7__ echo \"All models created\")",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/app/controllers/api/employee_types_controller.rb:*)",
+      "Bash(__NEW_LINE_931876ceb33165da__ cat)",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/app/controllers/api/employees_controller.rb:*)",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/app/controllers/api/contracts_controller.rb:*)",
+      "Bash(__NEW_LINE_931876ceb33165da__ echo \"Done\")",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/db/schema.rb:*)",
+      "Bash(__NEW_LINE_13381b65dfe4c8a3__ cat)",
+      "Bash(__NEW_LINE_13381b65dfe4c8a3__ echo \"Main controllers updated\")",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/context/03-api-contracts.md:*)",
+      "Bash(__NEW_LINE_de06bc50ec4db39e__ echo \"03 done\")",
+      "Bash(/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/context/04-boundaries.md:*)",
+      "Bash(__NEW_LINE_2f437b4578273d62__ echo \"04 done\")",
+      "Bash(gh auth status)"
+    ],
+    "additionalDirectories": [
+      "/Users/djiddou/Documents/Developments/side-projects/mahdara-payment/backend/db/migrate"
+    ]
+  }
+}

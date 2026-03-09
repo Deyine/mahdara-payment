@@ -20,7 +20,7 @@ export function DialogProvider({ children }) {
     });
   };
 
-  const showConfirm = (message, title = 'Confirmation') => {
+  const showConfirm = (message, title = 'تأكيد') => {
     return new Promise((resolve) => {
       setConfirmDialog({ message, title, resolve });
     });
@@ -80,7 +80,7 @@ export function DialogProvider({ children }) {
                   </div>
                 )}
                 <h3 className="text-lg font-semibold flex-1" style={{ color: '#1e293b' }}>
-                  {alertDialog.type === 'error' ? 'Erreur' : alertDialog.type === 'success' ? 'Succès' : 'Attention'}
+                  {alertDialog.type === 'error' ? 'خطأ' : alertDialog.type === 'success' ? 'نجاح' : 'تنبيه'}
                 </h3>
               </div>
 
@@ -144,7 +144,7 @@ export function DialogProvider({ children }) {
                   onMouseEnter={(e) => e.target.style.backgroundColor = '#f1f5f9'}
                   onMouseLeave={(e) => e.target.style.backgroundColor = '#fafbfc'}
                 >
-                  Annuler
+                  إلغاء
                 </button>
                 <button
                   onClick={() => handleConfirm(true)}
@@ -153,7 +153,7 @@ export function DialogProvider({ children }) {
                   onMouseEnter={(e) => e.target.style.backgroundColor = '#dc2626'}
                   onMouseLeave={(e) => e.target.style.backgroundColor = '#ef4444'}
                 >
-                  Confirmer
+                  تأكيد
                 </button>
               </div>
             </div>

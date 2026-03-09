@@ -8,27 +8,24 @@ export default function Settings() {
   };
 
   const settingsMenuItems = [
-    { path: '/admin/settings/car-models', label: 'Modèles de Véhicules', icon: '🚗' },
-    { path: '/admin/settings/expense-categories', label: 'Catégories de Dépenses', icon: '💰' },
-    { path: '/admin/settings/sellers', label: 'Vendeurs', icon: '🏢' },
-    { path: '/admin/settings/payment-methods', label: 'Modes de Paiement', icon: '💳' },
-    { path: '/admin/settings/tags', label: 'Tags', icon: '🏷️' },
-    { path: '/admin/settings/project-expense-categories', label: 'Catégories Dépenses Projet', icon: '📊' },
-    { path: '/admin/settings/users', label: 'Utilisateurs', icon: '👤' },
+    { path: '/admin/settings/employee-types', label: 'أنواع الموظفين', icon: '👥' },
+    { path: '/admin/settings/wilayas', label: 'الولايات', icon: '🗺️' },
+    { path: '/admin/settings/moughataa', label: 'المقاطعات', icon: '📍' },
+    { path: '/admin/settings/communes', label: 'البلديات', icon: '🏘️' },
+    { path: '/admin/settings/villages', label: 'القرى', icon: '🏡' },
+    { path: '/admin/settings/users', label: 'المستخدمون', icon: '👤' },
   ];
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#fafbfc' }}>
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold" style={{ color: '#1e293b' }}>Paramètres</h1>
-          <p style={{ color: '#64748b' }}>Gérer les paramètres de l'application</p>
+          <h1 className="text-3xl font-bold" style={{ color: '#1e293b' }}>الإعدادات</h1>
+          <p style={{ color: '#64748b' }}>إدارة إعدادات التطبيق</p>
         </div>
 
-        {/* Sub Navigation */}
         <div className="bg-white rounded-lg shadow-sm mb-6" style={{ border: '1px solid #e2e8f0' }}>
-          <div className="flex border-b" style={{ borderColor: '#e2e8f0' }}>
+          <div className="flex flex-wrap border-b" style={{ borderColor: '#e2e8f0' }}>
             {settingsMenuItems.map((item) => (
               <Link
                 key={item.path}
@@ -46,14 +43,13 @@ export default function Settings() {
                   if (!isActive(item.path)) e.target.style.color = '#64748b';
                 }}
               >
-                <span className="mr-2">{item.icon}</span>
+                <span className="ml-2">{item.icon}</span>
                 {item.label}
               </Link>
             ))}
           </div>
         </div>
 
-        {/* Content */}
         <Outlet />
       </div>
     </div>

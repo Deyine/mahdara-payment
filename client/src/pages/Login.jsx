@@ -31,15 +31,15 @@ export default function Login() {
       <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2" style={{ color: '#1e293b' }}>
-            BestCar
+            محضرة
           </h1>
-          <p style={{ color: '#64748b' }}>Système de Gestion de Véhicules</p>
+          <p style={{ color: '#64748b' }}>نظام إدارة المدفوعات</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block font-medium mb-2" style={{ color: '#475569' }}>
-              Nom d'utilisateur
+              اسم المستخدم
             </label>
             <input
               type="text"
@@ -55,7 +55,7 @@ export default function Login() {
 
           <div>
             <label className="block font-medium mb-2" style={{ color: '#475569' }}>
-              Mot de passe
+              كلمة المرور
             </label>
             <input
               type="password"
@@ -83,7 +83,7 @@ export default function Login() {
             onMouseEnter={(e) => !loading && (e.target.style.backgroundColor = '#0d5dd6')}
             onMouseLeave={(e) => !loading && (e.target.style.backgroundColor = '#167bff')}
           >
-            {loading ? 'Connexion en cours...' : 'Se connecter'}
+            {loading ? 'جارٍ تسجيل الدخول...' : 'تسجيل الدخول'}
           </button>
         </form>
       </div>

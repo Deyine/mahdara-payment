@@ -1,76 +1,52 @@
-# BestCar - Project Identity
+# Mahdara - Project Identity
 
-## What is BestCar?
+## What is Mahdara?
 
-BestCar is a **multi-tenant salvage car inventory and expense tracking system** designed for businesses that purchase, repair, and resell salvage vehicles from auctions.
+Mahdara is a **single-tenant employee payment management system** for organizations that manage employee contracts and issue monthly salary payments.
 
 ## Business Domain
 
-**Salvage Car Business Management**
-- Purchase vehicles from auctions (Copart, IAA, etc.)
-- Track vehicle information (VIN, model, year, mileage, condition)
-- Manage repair costs and expenses by category
-- Calculate total investment per vehicle
-- Multi-tenant architecture for multiple business units
+**Employee Payment Management**
+- Manage employees with their NNI (National ID), personal info, and location
+- Define employee types (categories like Titulaire, Contractuel)
+- Assign contracts (CDI or CDD) with monthly amounts and start dates
+- Create payment batches covering one or more employees for one or more months
+- Track payment history and totals
 
 ## Target Users
 
-### Primary Users
-- **Car Dealers & Resellers** - Businesses that buy and resell salvage vehicles
-- **Auction Buyers** - Professionals who purchase from Copart, IAA, and other auction houses
-- **Repair Shops** - Shops that repair and flip salvage cars
-
-### User Roles
-- **Super Admin** - System-wide access, can manage all tenants
-- **Admin** - Full access within their tenant (CRUD all entities)
+- **Admin / Super Admin** — Full CRUD access (employees, contracts, payments, settings)
+- **User** — Read-only access
 
 ## Problems Solved
 
-### Core Problems
-1. **Vehicle Inventory Chaos** - Track hundreds of VINs, purchase dates, sources, and locations
-2. **Cost Tracking** - Calculate true cost including purchase price, clearance, towing, and repairs
-3. **Expense Management** - Categorize repair costs (reparation) vs purchase costs (auction fees, shipping)
-4. **Multi-Business Management** - Support multiple business units with complete data isolation
-
-### Key Features
-- Complete vehicle lifecycle tracking (purchase → repair → sale-ready)
-- Bulk vehicle import from Excel/text data with flexible parsing
-- Automatic MRO to MRU currency conversion during import
-- Smart expense category matching and auto-creation
-- Comprehensive import recap with totals and visual indicators
-- Expense categorization (reparation: engine, body, paint; purchase: fees, shipping, clearance)
-- Real-time cost calculation and profitability analysis
-- Multi-tenant architecture with subdomain support
+1. **Employee Record Management** — Central registry with NNI-verified identities from Gov API (Huwiyeti)
+2. **Location Hierarchy** — Wilaya → Moughataa → Commune → Village address system with CSV bulk import
+3. **Contract Tracking** — CDI (unlimited) and CDD (fixed months) contract types with monthly amounts
+4. **Payment Batching** — Group employees into payment batches, specify months paid per employee
+5. **Total Visibility** — Live total calculation before saving a payment batch
 
 ## Technology Foundation
 
 **Backend:** Ruby on Rails 8.0 API (PostgreSQL, UUID primary keys)
 **Frontend:** React 19 + Vite 7
-**Authentication:** JWT tokens
-**UI Framework:** Tailwind CSS (Nexus Dashboard 3.1 design system)
+**Authentication:** JWT tokens (24h expiry)
+**UI Framework:** Pure Tailwind CSS (Nexus Dashboard 3.1 design system)
 **Language:** French UI
 
 ## Scope Boundaries
 
 **In Scope:**
-- Vehicle inventory management (VIN, model, purchase details)
-- Seller/auction house management (name, location, active status)
-- Expense tracking by category and vehicle
-- Cost calculation (purchase + clearance + towing + repairs)
-- Multi-tenant data isolation
-- Car model library management
-- Expense category configuration
-- Bulk vehicle import from Excel/text data with:
-  - Flexible parsing (supports ::, tabs, spaces, emojis)
-  - MRO to MRU currency auto-conversion (old to new Mauritanian Ouguiya)
-  - Smart expense category matching and auto-creation
-  - Comprehensive recap showing totals and what will be created
-  - Support for clearance costs and multi-line expense sections
+- Employee management (NNI, personal info, location, type, contract)
+- Employee types CRUD (settings)
+- Location hierarchy CRUD with CSV import: Wilaya → Moughataa → Commune → Village
+- Contract management (CDI unlimited / CDD with duration in months)
+- Payment batch creation and management with per-employee months count
+- NNI lookup against Mauritanian Government API (Huwiyeti)
 
 **Out of Scope:**
-- Customer/buyer management
-- Point-of-sale system
-- Payment processing
+- Payslip/document generation
 - Accounting/bookkeeping integration
-- Vehicle listing/marketplace features
-- Automated VIN decoding/vehicle history reports
+- Bank transfer integration
+- Leave/absence management
+- Multi-tenancy

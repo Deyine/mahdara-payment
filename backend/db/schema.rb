@@ -1,24 +1,100 @@
 # This file is auto-generated from the current state of the database. Instead
-# of editing this file, please use the migrations feature of Active Record to
-# incrementally modify your database, and then regenerate this schema definition.
-#
-# This file is the source Rails uses to define your schema when running `bin/rails
-# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
-# be faster and is potentially less error prone than running all of your
-# migrations from scratch. Old migrations may fail to apply correctly if those
-# migrations use external dependencies or application code.
-#
-# It's strongly recommended that you check this file into your version control system.
+# of editing this file, please use the migrations feature of Active Record.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_01_000001) do
-  # These are extensions that must be enabled in order to support this database
-  enable_extension "pg_catalog.plpgsql"
+ActiveRecord::Schema[8.0].define(version: 2026_03_08_000005) do
   enable_extension "pgcrypto"
+  enable_extension "plpgsql"
+
+  create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.string "username", null: false
+    t.string "password_digest", null: false
+    t.string "role", default: "user", null: false
+    t.boolean "active", default: true, null: false
+    t.jsonb "permissions", default: {}
+    t.timestamps
+    t.index ["username"], name: "index_users_on_username", unique: true
+  end
+
+  create_table "employee_types", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.boolean "active", default: true, null: false
+    t.timestamps
+    t.index ["name"], name: "index_employee_types_on_name", unique: true
+  end
+
+  create_table "wilayas", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.string "code"
+    t.timestamps
+    t.index ["name"], name: "index_wilayas_on_name", unique: true
+  end
+
+  create_table "moughataa", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.references "wilaya", null: false, foreign_key: true, type: :uuid
+    t.timestamps
+  end
+
+  create_table "communes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.references "moughataa", null: false, foreign_key: { to_table: "moughataa" }, type: :uuid
+    t.timestamps
+  end
+
+  create_table "villages", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.references "commune", null: false, foreign_key: true, type: :uuid
+    t.timestamps
+  end
+
+  create_table "employees", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "nni", null: false
+    t.string "first_name", null: false
+    t.string "last_name", null: false
+    t.date "birth_date"
+    t.string "phone"
+    t.boolean "active", default: true, null: false
+    t.references "employee_type", null: false, foreign_key: true, type: :uuid
+    t.references "wilaya", foreign_key: true, type: :uuid
+    t.references "moughataa", foreign_key: { to_table: "moughataa" }, type: :uuid
+    t.references "commune", foreign_key: true, type: :uuid
+    t.references "village", foreign_key: true, type: :uuid
+    t.timestamps
+    t.index ["nni"], name: "index_employees_on_nni", unique: true
+  end
+
+  create_table "contracts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.references "employee", null: false, foreign_key: true, type: :uuid
+    t.string "contract_type", null: false
+    t.decimal "amount", precision: 15, scale: 2, null: false
+    t.date "start_date", null: false
+    t.integer "duration_months"
+    t.boolean "active", default: true, null: false
+    t.timestamps
+  end
+
+  create_table "payment_batches", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.date "payment_date", null: false
+    t.string "status", default: "draft", null: false
+    t.text "notes"
+    t.references "created_by", foreign_key: { to_table: :users }, type: :uuid
+    t.timestamps
+  end
+
+  create_table "payment_batch_employees", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.references "payment_batch", null: false, foreign_key: true, type: :uuid
+    t.references "employee", null: false, foreign_key: true, type: :uuid
+    t.integer "months_count", null: false
+    t.decimal "amount", precision: 15, scale: 2, null: false
+    t.timestamps
+    t.index ["payment_batch_id", "employee_id"], name: "index_pbe_on_batch_and_employee", unique: true
+  end
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
-    t.string "record_id", null: false
+    t.bigint "record_id", null: false
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
     t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
@@ -43,367 +119,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_01_000001) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "car_models", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "name", null: false
-    t.boolean "active", default: true, null: false
-    t.uuid "tenant_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["active"], name: "index_car_models_on_active"
-    t.index ["tenant_id", "name"], name: "index_car_models_on_tenant_id_and_name", unique: true
-    t.index ["tenant_id"], name: "index_car_models_on_tenant_id"
-  end
-
-  create_table "car_shares", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "tenant_id", null: false
-    t.uuid "car_id", null: false
-    t.bigint "created_by_id", null: false
-    t.string "token", null: false
-    t.boolean "show_costs", default: false, null: false
-    t.boolean "show_expenses", default: false, null: false
-    t.datetime "expires_at"
-    t.integer "view_count", default: 0, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["car_id", "tenant_id"], name: "index_car_shares_on_car_id_and_tenant_id"
-    t.index ["car_id"], name: "index_car_shares_on_car_id"
-    t.index ["created_by_id"], name: "index_car_shares_on_created_by_id"
-    t.index ["expires_at"], name: "index_car_shares_on_expires_at"
-    t.index ["tenant_id"], name: "index_car_shares_on_tenant_id"
-    t.index ["token"], name: "index_car_shares_on_token", unique: true
-  end
-
-  create_table "car_tags", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "car_id", null: false
-    t.uuid "tag_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["car_id", "tag_id"], name: "index_car_tags_on_car_id_and_tag_id", unique: true
-    t.index ["car_id"], name: "index_car_tags_on_car_id"
-    t.index ["tag_id"], name: "index_car_tags_on_tag_id"
-  end
-
-  create_table "cars", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "vin", null: false
-    t.uuid "car_model_id", null: false
-    t.integer "year", null: false
-    t.string "color"
-    t.integer "mileage"
-    t.date "purchase_date", null: false
-    t.decimal "purchase_price", precision: 10, scale: 2, null: false
-    t.decimal "clearance_cost", precision: 10, scale: 2
-    t.decimal "towing_cost", precision: 10, scale: 2
-    t.uuid "tenant_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "deleted_at"
-    t.uuid "seller_id"
-    t.string "status", default: "active", null: false
-    t.decimal "sale_price", precision: 10, scale: 2
-    t.date "sale_date"
-    t.integer "ref"
-    t.bigint "profit_share_user_id"
-    t.decimal "profit_share_percentage", precision: 5, scale: 2, default: "0.0"
-    t.boolean "published", default: false, null: false
-    t.decimal "listing_price", precision: 10, scale: 2
-    t.jsonb "salvage_photos_order", default: []
-    t.jsonb "after_repair_photos_order", default: []
-    t.index ["car_model_id"], name: "index_cars_on_car_model_id"
-    t.index ["deleted_at"], name: "index_cars_on_deleted_at"
-    t.index ["profit_share_user_id"], name: "index_cars_on_profit_share_user_id"
-    t.index ["published"], name: "index_cars_on_published"
-    t.index ["purchase_date"], name: "index_cars_on_purchase_date"
-    t.index ["seller_id"], name: "index_cars_on_seller_id"
-    t.index ["status"], name: "index_cars_on_status"
-    t.index ["tenant_id", "ref"], name: "index_cars_on_tenant_id_and_ref", unique: true
-    t.index ["tenant_id", "vin"], name: "index_cars_on_tenant_id_and_vin", unique: true
-    t.index ["tenant_id"], name: "index_cars_on_tenant_id"
-  end
-
-  create_table "cashouts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "tenant_id", null: false
-    t.bigint "user_id", null: false
-    t.decimal "amount", precision: 10, scale: 2, null: false
-    t.date "cashout_date", null: false
-    t.text "notes"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["cashout_date"], name: "index_cashouts_on_cashout_date"
-    t.index ["tenant_id"], name: "index_cashouts_on_tenant_id"
-    t.index ["user_id"], name: "index_cashouts_on_user_id"
-  end
-
-  create_table "debts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "tenant_id", null: false
-    t.string "debtor_name", null: false
-    t.bigint "user_id"
-    t.string "direction", null: false
-    t.decimal "amount", precision: 10, scale: 2, null: false
-    t.date "debt_date", null: false
-    t.text "notes"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["debt_date"], name: "index_debts_on_debt_date"
-    t.index ["direction"], name: "index_debts_on_direction"
-    t.index ["tenant_id"], name: "index_debts_on_tenant_id"
-    t.index ["user_id"], name: "index_debts_on_user_id"
-  end
-
-  create_table "expense_categories", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "name", null: false
-    t.string "expense_type", null: false
-    t.boolean "active", default: true, null: false
-    t.uuid "tenant_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["active"], name: "index_expense_categories_on_active"
-    t.index ["expense_type"], name: "index_expense_categories_on_expense_type"
-    t.index ["tenant_id", "name"], name: "index_expense_categories_on_tenant_id_and_name", unique: true
-    t.index ["tenant_id"], name: "index_expense_categories_on_tenant_id"
-  end
-
-  create_table "expenses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "car_id", null: false
-    t.uuid "expense_category_id", null: false
-    t.decimal "amount", precision: 10, scale: 2, null: false
-    t.text "description"
-    t.date "expense_date", null: false
-    t.uuid "tenant_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["car_id"], name: "index_expenses_on_car_id"
-    t.index ["expense_category_id"], name: "index_expenses_on_expense_category_id"
-    t.index ["expense_date"], name: "index_expenses_on_expense_date"
-    t.index ["tenant_id", "car_id"], name: "index_expenses_on_tenant_id_and_car_id"
-    t.index ["tenant_id"], name: "index_expenses_on_tenant_id"
-  end
-
-  create_table "payment_methods", force: :cascade do |t|
-    t.uuid "tenant_id", null: false
-    t.string "name", null: false
-    t.boolean "active", default: true, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["active"], name: "index_payment_methods_on_active"
-    t.index ["tenant_id", "name"], name: "index_payment_methods_on_tenant_id_and_name", unique: true
-    t.index ["tenant_id"], name: "index_payment_methods_on_tenant_id"
-  end
-
-  create_table "payments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "tenant_id", null: false
-    t.uuid "car_id", null: false
-    t.decimal "amount", precision: 10, scale: 2, null: false
-    t.date "payment_date", null: false
-    t.text "notes"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "payment_method_id"
-    t.index ["car_id", "payment_date"], name: "index_payments_on_car_id_and_payment_date"
-    t.index ["car_id"], name: "index_payments_on_car_id"
-    t.index ["payment_date"], name: "index_payments_on_payment_date"
-    t.index ["payment_method_id"], name: "index_payments_on_payment_method_id"
-    t.index ["tenant_id"], name: "index_payments_on_tenant_id"
-  end
-
-  create_table "project_expense_categories", force: :cascade do |t|
-    t.uuid "tenant_id", null: false
-    t.string "name", null: false
-    t.text "description"
-    t.boolean "active", default: true, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["active"], name: "index_project_expense_categories_on_active"
-    t.index ["tenant_id", "name"], name: "index_project_expense_categories_on_tenant_id_and_name", unique: true
-    t.index ["tenant_id"], name: "index_project_expense_categories_on_tenant_id"
-  end
-
-  create_table "project_expenses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "tenant_id", null: false
-    t.uuid "project_id", null: false
-    t.integer "project_expense_category_id", null: false
-    t.decimal "amount", precision: 10, scale: 2, null: false
-    t.date "expense_date", null: false
-    t.text "description"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["expense_date"], name: "index_project_expenses_on_expense_date"
-    t.index ["project_expense_category_id"], name: "index_project_expenses_on_project_expense_category_id"
-    t.index ["project_id", "expense_date"], name: "index_project_expenses_on_project_id_and_expense_date"
-    t.index ["project_id"], name: "index_project_expenses_on_project_id"
-    t.index ["tenant_id"], name: "index_project_expenses_on_tenant_id"
-  end
-
-  create_table "projects", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "tenant_id", null: false
-    t.string "name", null: false
-    t.text "description"
-    t.boolean "active", default: true, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["tenant_id", "name"], name: "index_projects_on_tenant_id_and_name", unique: true
-    t.index ["tenant_id"], name: "index_projects_on_tenant_id"
-  end
-
-  create_table "rental_transactions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "tenant_id", null: false
-    t.uuid "car_id", null: false
-    t.decimal "amount", precision: 10, scale: 2, null: false
-    t.text "notes"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "locataire", null: false
-    t.date "rental_date", null: false
-    t.integer "days", null: false
-    t.decimal "daily_rate", precision: 10, scale: 2, null: false
-    t.bigint "profit_share_user_id"
-    t.decimal "profit_per_day", precision: 10, scale: 2, default: "0.0"
-    t.index ["car_id"], name: "index_rental_transactions_on_car_id"
-    t.index ["profit_share_user_id"], name: "index_rental_transactions_on_profit_share_user_id"
-    t.index ["rental_date"], name: "index_rental_transactions_on_rental_date"
-    t.index ["tenant_id"], name: "index_rental_transactions_on_tenant_id"
-  end
-
-  create_table "sellers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "tenant_id", null: false
-    t.string "name", null: false
-    t.string "location"
-    t.boolean "active", default: true, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["active"], name: "index_sellers_on_active"
-    t.index ["tenant_id", "name"], name: "index_sellers_on_tenant_id_and_name", unique: true
-    t.index ["tenant_id"], name: "index_sellers_on_tenant_id"
-  end
-
-  create_table "tags", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "name", null: false
-    t.string "color", default: "#167bff"
-    t.uuid "tenant_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["tenant_id", "name"], name: "index_tags_on_tenant_id_and_name", unique: true
-    t.index ["tenant_id"], name: "index_tags_on_tenant_id"
-  end
-
-  create_table "tenants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "name", null: false
-    t.string "subdomain"
-    t.boolean "active", default: true, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["active"], name: "index_tenants_on_active"
-    t.index ["subdomain"], name: "index_tenants_on_subdomain", unique: true
-  end
-
-  create_table "time_tracking_projects", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "tenant_id", null: false
-    t.bigint "user_id", null: false
-    t.string "label", null: false
-    t.text "description"
-    t.string "status", default: "active", null: false
-    t.datetime "deleted_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["deleted_at"], name: "index_time_tracking_projects_on_deleted_at"
-    t.index ["status"], name: "index_time_tracking_projects_on_status"
-    t.index ["tenant_id", "label"], name: "index_time_tracking_projects_on_tenant_and_label", unique: true, where: "(deleted_at IS NULL)"
-    t.index ["tenant_id"], name: "index_time_tracking_projects_on_tenant_id"
-    t.index ["user_id"], name: "index_time_tracking_projects_on_user_id"
-  end
-
-  create_table "time_tracking_tasks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "tenant_id", null: false
-    t.uuid "project_id", null: false
-    t.bigint "user_id", null: false
-    t.string "title", null: false
-    t.text "description"
-    t.integer "position", default: 0, null: false
-    t.string "status", default: "active", null: false
-    t.datetime "deleted_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "estimated_minutes"
-    t.index ["deleted_at"], name: "index_time_tracking_tasks_on_deleted_at"
-    t.index ["project_id", "position"], name: "index_time_tracking_tasks_on_project_id_and_position"
-    t.index ["project_id"], name: "index_time_tracking_tasks_on_project_id"
-    t.index ["status"], name: "index_time_tracking_tasks_on_status"
-    t.index ["tenant_id"], name: "index_time_tracking_tasks_on_tenant_id"
-    t.index ["user_id"], name: "index_time_tracking_tasks_on_user_id"
-  end
-
-  create_table "time_tracking_time_entries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "tenant_id", null: false
-    t.uuid "task_id", null: false
-    t.bigint "user_id", null: false
-    t.string "title", null: false
-    t.text "notes"
-    t.datetime "deleted_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "duration_minutes", default: 0, null: false
-    t.date "entry_date", default: -> { "CURRENT_DATE" }, null: false
-    t.index ["deleted_at"], name: "index_time_tracking_time_entries_on_deleted_at"
-    t.index ["task_id"], name: "index_time_tracking_time_entries_on_task_id"
-    t.index ["tenant_id"], name: "index_time_tracking_time_entries_on_tenant_id"
-    t.index ["user_id"], name: "index_time_tracking_time_entries_on_user_id"
-  end
-
-  create_table "users", force: :cascade do |t|
-    t.string "name", null: false
-    t.string "username", null: false
-    t.string "password_digest", null: false
-    t.string "role", null: false
-    t.uuid "tenant_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.boolean "active", default: true, null: false
-    t.jsonb "permissions", default: {}, null: false
-    t.index ["tenant_id", "role"], name: "index_users_on_tenant_id_and_role"
-    t.index ["tenant_id"], name: "index_users_on_tenant_id"
-    t.index ["username"], name: "index_users_on_username", unique: true
-  end
-
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "car_models", "tenants"
-  add_foreign_key "car_shares", "cars"
-  add_foreign_key "car_shares", "tenants"
-  add_foreign_key "car_shares", "users", column: "created_by_id"
-  add_foreign_key "car_tags", "cars"
-  add_foreign_key "car_tags", "tags"
-  add_foreign_key "cars", "car_models"
-  add_foreign_key "cars", "sellers"
-  add_foreign_key "cars", "tenants"
-  add_foreign_key "cars", "users", column: "profit_share_user_id"
-  add_foreign_key "cashouts", "tenants"
-  add_foreign_key "cashouts", "users"
-  add_foreign_key "debts", "tenants"
-  add_foreign_key "debts", "users"
-  add_foreign_key "expense_categories", "tenants"
-  add_foreign_key "expenses", "cars"
-  add_foreign_key "expenses", "expense_categories"
-  add_foreign_key "expenses", "tenants"
-  add_foreign_key "payment_methods", "tenants"
-  add_foreign_key "payments", "cars"
-  add_foreign_key "payments", "payment_methods"
-  add_foreign_key "payments", "tenants"
-  add_foreign_key "project_expense_categories", "tenants"
-  add_foreign_key "project_expenses", "project_expense_categories"
-  add_foreign_key "project_expenses", "projects"
-  add_foreign_key "project_expenses", "tenants"
-  add_foreign_key "projects", "tenants"
-  add_foreign_key "rental_transactions", "cars"
-  add_foreign_key "rental_transactions", "tenants"
-  add_foreign_key "rental_transactions", "users", column: "profit_share_user_id"
-  add_foreign_key "sellers", "tenants"
-  add_foreign_key "tags", "tenants"
-  add_foreign_key "time_tracking_projects", "tenants"
-  add_foreign_key "time_tracking_projects", "users"
-  add_foreign_key "time_tracking_tasks", "tenants"
-  add_foreign_key "time_tracking_tasks", "time_tracking_projects", column: "project_id"
-  add_foreign_key "time_tracking_tasks", "users"
-  add_foreign_key "time_tracking_time_entries", "tenants"
-  add_foreign_key "time_tracking_time_entries", "time_tracking_tasks", column: "task_id"
-  add_foreign_key "time_tracking_time_entries", "users"
-  add_foreign_key "users", "tenants"
 end

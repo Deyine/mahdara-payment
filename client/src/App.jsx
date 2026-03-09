@@ -5,23 +5,17 @@ import Layout from './components/Layout';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import Cars from './pages/Cars';
-import CarDetail from './pages/CarDetail';
-import ImportCars from './pages/ImportCars';
-import ManagerProfits from './pages/ManagerProfits';
+import Employees from './pages/Employees';
+import EmployeeDetail from './pages/EmployeeDetail';
+import PaymentBatches from './pages/PaymentBatches';
+import NewPaymentBatch from './pages/NewPaymentBatch';
 import Settings from './pages/Settings';
-import CarModels from './pages/CarModels';
-import ExpenseCategories from './pages/ExpenseCategories';
-import ExpenseCategoryStats from './pages/ExpenseCategoryStats';
-import Sellers from './pages/Sellers';
-import PaymentMethods from './pages/PaymentMethods';
-import Tags from './pages/Tags';
+import EmployeeTypes from './pages/EmployeeTypes';
+import Wilayas from './pages/Wilayas';
+import Moughataa from './pages/Moughataa';
+import Communes from './pages/Communes';
+import Villages from './pages/Villages';
 import Users from './pages/Users';
-import Debts from './pages/Debts';
-import Projects from './pages/Projects';
-import ProjectExpenseCategories from './pages/ProjectExpenseCategories';
-import SharedCar from './pages/SharedCar';
-import Privacy from './pages/Privacy';
 
 function PrivateRoute({ children, requireAdmin = false }) {
   const { user, loading } = useAuth();
@@ -52,15 +46,14 @@ function AppRoutes() {
     <Routes>
       {/* Public landing page */}
       <Route path="/" element={<Landing />} />
-      {/* Public routes */}
-      <Route path="/share/:token" element={<SharedCar />} />
-      <Route path="/privacy" element={<Privacy />} />
+
       {/* Admin login */}
       <Route
         path="/admin/login"
         element={user ? <Navigate to="/admin" /> : <Login />}
       />
-      {/* Admin protected routes */}
+
+      {/* Dashboard */}
       <Route
         path="/admin"
         element={
@@ -69,54 +62,44 @@ function AppRoutes() {
           </PrivateRoute>
         }
       />
+
+      {/* Employees */}
       <Route
-        path="/admin/cars"
+        path="/admin/employees"
         element={
           <PrivateRoute>
-            <Cars />
+            <Employees />
           </PrivateRoute>
         }
       />
       <Route
-        path="/admin/cars/import"
-        element={
-          <PrivateRoute requireAdmin>
-            <ImportCars />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/admin/cars/:id"
+        path="/admin/employees/:id"
         element={
           <PrivateRoute>
-            <CarDetail />
+            <EmployeeDetail />
           </PrivateRoute>
         }
       />
+
+      {/* Payment Batches */}
       <Route
-        path="/admin/profits"
+        path="/admin/payments"
         element={
           <PrivateRoute>
-            <ManagerProfits />
+            <PaymentBatches />
           </PrivateRoute>
         }
       />
       <Route
-        path="/admin/projects"
+        path="/admin/payments/new"
         element={
           <PrivateRoute requireAdmin>
-            <Projects />
+            <NewPaymentBatch />
           </PrivateRoute>
         }
       />
-      <Route
-        path="/admin/debts"
-        element={
-          <PrivateRoute requireAdmin>
-            <Debts />
-          </PrivateRoute>
-        }
-      />
+
+      {/* Settings */}
       <Route
         path="/admin/settings"
         element={
@@ -125,15 +108,13 @@ function AppRoutes() {
           </PrivateRoute>
         }
       >
-        <Route index element={<Navigate to="/admin/settings/car-models" replace />} />
-        <Route path="car-models" element={<CarModels />} />
-        <Route path="expense-categories" element={<ExpenseCategories />} />
-        <Route path="expense-categories/:id/stats" element={<ExpenseCategoryStats />} />
-        <Route path="sellers" element={<Sellers />} />
-        <Route path="payment-methods" element={<PaymentMethods />} />
-        <Route path="tags" element={<Tags />} />
+        <Route index element={<Navigate to="/admin/settings/employee-types" replace />} />
+        <Route path="employee-types" element={<EmployeeTypes />} />
+        <Route path="wilayas" element={<Wilayas />} />
+        <Route path="moughataa" element={<Moughataa />} />
+        <Route path="communes" element={<Communes />} />
+        <Route path="villages" element={<Villages />} />
         <Route path="users" element={<Users />} />
-        <Route path="project-expense-categories" element={<ProjectExpenseCategories />} />
       </Route>
     </Routes>
   );

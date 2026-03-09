@@ -14,14 +14,13 @@ export default function Users() {
     name: '',
     username: '',
     password: '',
-    role: 'manager',
-    permissions: { time_tracking: false }
+    role: 'user',
+    permissions: {}
   });
 
   const ROLES = [
-    { value: 'manager', label: 'Manager', description: 'Lecture seule' },
-    { value: 'operator', label: 'Opérateur', description: 'Suivi du temps uniquement' },
-    { value: 'admin', label: 'Admin', description: 'Accès complet au tenant', requiresSuperAdmin: true },
+    { value: 'user', label: 'مستخدم', description: 'قراءة فقط' },
+    { value: 'admin', label: 'مشرف', description: 'وصول كامل', requiresSuperAdmin: true },
   ];
 
   useEffect(() => {
@@ -34,7 +33,7 @@ export default function Users() {
       const response = await usersAPI.getAll();
       setUsers(response.data);
     } catch (error) {
-      await showAlert('Erreur lors du chargement des utilisateurs', 'error');
+      await showAlert('خطأ في تحميل المستخدمين', 'error');
     } finally {
       setLoading(false);
     }
@@ -42,7 +41,7 @@ export default function Users() {
 
   const handleCreate = () => {
     setEditingUser(null);
-    setFormData({ name: '', username: '', password: '', role: 'manager', permissions: { time_tracking: false } });
+    setFormData({ name: '', username: '', password: '', role: 'user', permissions: {} });
     setShowForm(true);
   };
 
@@ -53,7 +52,7 @@ export default function Users() {
       username: user.username,
       password: '',
       role: user.role,
-      permissions: user.permissions || { time_tracking: false }
+      permissions: user.permissions || {}
     });
     setShowForm(true);
   };
@@ -73,20 +72,20 @@ export default function Users() {
         await usersAPI.update(editingUser.id, dataToSend);
         resetForm();
         fetchUsers();
-        await showAlert('Utilisateur modifié avec succès', 'success');
+        await showAlert('تم تعديل المستخدم بنجاح', 'success');
       } else {
         if (!formData.password) {
-          await showAlert('Le mot de passe est requis', 'error');
+          await showAlert('كلمة المرور مطلوبة', 'error');
           return;
         }
         await usersAPI.create(dataToSend);
         resetForm();
         fetchUsers();
-        await showAlert('Utilisateur créé avec succès', 'success');
+        await showAlert('تم إنشاء المستخدم بنجاح', 'success');
       }
     } catch (error) {
       await showAlert(
-        error.response?.data?.errors?.[0] || error.response?.data?.error || 'Erreur lors de l\'enregistrement',
+        error.response?.data?.errors?.[0] || error.response?.data?.error || 'خطأ في الحفظ',
         'error'
       );
     }
@@ -96,45 +95,45 @@ export default function Users() {
     const userToDelete = users.find(u => u.id === id);
 
     if (userToDelete.id === currentUser.id) {
-      await showAlert('Vous ne pouvez pas supprimer votre propre compte', 'error');
+      await showAlert('لا يمكنك حذف حسابك الخاص', 'error');
       return;
     }
 
     const confirmed = await showConfirm(
-      `Êtes-vous sûr de vouloir supprimer l'utilisateur "${userToDelete.name}" ?`,
-      'Supprimer l\'utilisateur'
+      `هل تريد حذف المستخدم "${userToDelete.name}" ؟`,
+      'حذف المستخدم'
     );
 
     if (!confirmed) return;
 
     try {
       await usersAPI.delete(id);
-      await showAlert('Utilisateur supprimé avec succès', 'success');
+      await showAlert('تم حذف المستخدم بنجاح', 'success');
       fetchUsers();
     } catch (error) {
       await showAlert(
-        error.response?.data?.error || 'Erreur lors de la suppression',
+        error.response?.data?.error || 'خطأ في الحذف',
         'error'
       );
     }
   };
 
   const handleToggleActive = async (user) => {
-    const action = user.active ? 'désactiver' : 'activer';
+    const action = user.active ? 'تعطيل' : 'تفعيل';
     const confirmed = await showConfirm(
-      `Êtes-vous sûr de vouloir ${action} l'utilisateur "${user.name}" ?`,
-      `${action.charAt(0).toUpperCase()}${action.slice(1)} l'utilisateur`
+      `هل تريد ${action} المستخدم "${user.name}" ؟`,
+      `${action} المستخدم`
     );
 
     if (!confirmed) return;
 
     try {
       await usersAPI.update(user.id, { active: !user.active });
-      await showAlert(`Utilisateur ${action === 'désactiver' ? 'désactivé' : 'activé'} avec succès`, 'success');
+      await showAlert(`تم ${user.active ? 'تعطيل' : 'تفعيل'} المستخدم بنجاح`, 'success');
       fetchUsers();
     } catch (error) {
       await showAlert(
-        error.response?.data?.errors?.join(', ') || 'Erreur lors de la modification',
+        error.response?.data?.errors?.join(', ') || 'خطأ في التعديل',
         'error'
       );
     }
@@ -143,19 +142,17 @@ export default function Users() {
   const resetForm = () => {
     setShowForm(false);
     setEditingUser(null);
-    setFormData({ name: '', username: '', password: '', role: 'manager', permissions: { time_tracking: false } });
+    setFormData({ name: '', username: '', password: '', role: 'user', permissions: {} });
   };
 
   const getRoleBadge = (role) => {
     switch (role) {
       case 'super_admin':
-        return { label: 'Super Admin', color: '#8b5cf6' };
+        return { label: 'مشرف عام', color: '#8b5cf6' };
       case 'admin':
-        return { label: 'Admin', color: '#167bff' };
-      case 'manager':
-        return { label: 'Manager', color: '#10b981' };
-      case 'operator':
-        return { label: 'Opérateur', color: '#f59e0b' };
+        return { label: 'مشرف', color: '#167bff' };
+      case 'user':
+        return { label: 'مستخدم', color: '#10b981' };
       default:
         return { label: role, color: '#64748b' };
     }
@@ -175,7 +172,7 @@ export default function Users() {
         marginBottom: '20px'
       }}>
         <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#1e293b' }}>
-          Utilisateurs
+          المستخدمون
         </h2>
         {canWrite && (
           <button
@@ -191,37 +188,37 @@ export default function Users() {
               fontWeight: 'bold'
             }}
           >
-            + Nouvel Utilisateur
+            + مستخدم جديد
           </button>
         )}
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px' }}>Chargement...</div>
+        <div style={{ textAlign: 'center', padding: '40px' }}>جارٍ التحميل...</div>
       ) : users.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
-          Aucun utilisateur enregistré.
+          لا يوجد مستخدم مسجل.
         </div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
-                <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
-                  Nom
+                <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
+                  الاسم
                 </th>
-                <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
-                  Nom d'utilisateur
+                <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
+                  اسم المستخدم
                 </th>
-                <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
-                  Rôle
+                <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
+                  الدور
                 </th>
-                <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
-                  Statut
+                <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
+                  الحالة
                 </th>
                 {canWrite && (
-                  <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
-                    Actions
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
+                    الإجراءات
                   </th>
                 )}
               </tr>
@@ -230,8 +227,8 @@ export default function Users() {
               {users.map((user) => {
                 const badge = getRoleBadge(user.role);
                 const isCurrentUser = user.id === currentUser?.id;
-                const canEditUser = canWrite && (isSuperAdmin || user.role === 'manager');
-                const canDeleteUser = canWrite && !isCurrentUser && (isSuperAdmin || user.role === 'manager');
+                const canEditUser = canWrite && (isSuperAdmin || user.role !== 'super_admin');
+                const canDeleteUser = canWrite && !isCurrentUser && (isSuperAdmin || user.role !== 'super_admin');
 
                 return (
                   <tr key={user.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
@@ -239,14 +236,14 @@ export default function Users() {
                       {user.name}
                       {isCurrentUser && (
                         <span style={{
-                          marginLeft: '8px',
+                          marginRight: '8px',
                           fontSize: '11px',
                           backgroundColor: '#f1f5f9',
                           color: '#64748b',
                           padding: '2px 6px',
                           borderRadius: '4px'
                         }}>
-                          (vous)
+                          (أنت)
                         </span>
                       )}
                     </td>
@@ -276,12 +273,12 @@ export default function Users() {
                         backgroundColor: user.active ? '#dcfce7' : '#fee2e2',
                         color: user.active ? '#166534' : '#dc2626'
                       }}>
-                        {user.active ? 'Actif' : 'Inactif'}
+                        {user.active ? 'نشط' : 'غير نشط'}
                       </span>
                     </td>
                     {canWrite && (
-                      <td style={{ padding: '12px', textAlign: 'right' }}>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                      <td style={{ padding: '12px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-start' }}>
                           {canEditUser && (
                             <button
                               onClick={() => handleEdit(user)}
@@ -295,7 +292,7 @@ export default function Users() {
                                 cursor: 'pointer'
                               }}
                             >
-                              Modifier
+                              تعديل
                             </button>
                           )}
                           {canEditUser && !isCurrentUser && (
@@ -311,7 +308,7 @@ export default function Users() {
                                 cursor: 'pointer'
                               }}
                             >
-                              {user.active ? 'Désactiver' : 'Activer'}
+                              {user.active ? 'تعطيل' : 'تفعيل'}
                             </button>
                           )}
                           {canDeleteUser && (
@@ -327,7 +324,7 @@ export default function Users() {
                                 cursor: 'pointer'
                               }}
                             >
-                              Supprimer
+                              حذف
                             </button>
                           )}
                         </div>
@@ -363,20 +360,20 @@ export default function Users() {
             width: '100%'
           }}>
             <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold' }}>
-              {editingUser ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'}
+              {editingUser ? 'تعديل المستخدم' : 'مستخدم جديد'}
             </h2>
 
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>
-                  Nom complet *
+                  الاسم الكامل *
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  placeholder="Ex: Jean Dupont"
+                  placeholder="مثال: أحمد محمد"
                   style={{
                     width: '100%',
                     padding: '10px',
@@ -389,14 +386,14 @@ export default function Users() {
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>
-                  Nom d'utilisateur *
+                  اسم المستخدم *
                 </label>
                 <input
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   required
-                  placeholder="Ex: jean.dupont"
+                  placeholder="مثال: ahmed.mohamed"
                   style={{
                     width: '100%',
                     padding: '10px',
@@ -409,14 +406,14 @@ export default function Users() {
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>
-                  Mot de passe {editingUser ? '(laisser vide pour ne pas changer)' : '*'}
+                  كلمة المرور {editingUser ? '(اتركه فارغاً للإبقاء)' : '*'}
                 </label>
                 <input
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required={!editingUser}
-                  placeholder={editingUser ? '••••••••' : 'Entrer un mot de passe'}
+                  placeholder={editingUser ? '••••••••' : 'أدخل كلمة مرور'}
                   style={{
                     width: '100%',
                     padding: '10px',
@@ -429,7 +426,7 @@ export default function Users() {
 
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>
-                  Rôle *
+                  الدور *
                 </label>
                 <select
                   value={formData.role}
@@ -453,63 +450,10 @@ export default function Users() {
                 </select>
                 {editingUser && editingUser.id === currentUser?.id && (
                   <p style={{ fontSize: '12px', color: '#64748b', marginTop: '5px' }}>
-                    Vous ne pouvez pas modifier votre propre rôle
+                    لا يمكنك تعديل دورك الخاص
                   </p>
                 )}
               </div>
-
-              {formData.role === 'manager' && (
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '10px', fontSize: '14px', fontWeight: '500' }}>
-                    Permissions
-                  </label>
-                  <div style={{
-                    padding: '12px',
-                    borderRadius: '6px',
-                    border: '1px solid #e2e8f0',
-                    backgroundColor: '#f8fafc'
-                  }}>
-                    <label style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}>
-                      <input
-                        type="checkbox"
-                        checked={formData.permissions?.time_tracking || false}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          permissions: { ...formData.permissions, time_tracking: e.target.checked }
-                        })}
-                        style={{ width: '18px', height: '18px', accentColor: '#167bff' }}
-                      />
-                      <span>
-                        <span style={{ fontWeight: '500', color: '#1e293b' }}>Suivi du Temps</span>
-                        <span style={{ display: 'block', fontSize: '12px', color: '#64748b' }}>
-                          Accès au module de suivi du temps
-                        </span>
-                      </span>
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {formData.role === 'operator' && (
-                <div style={{ marginBottom: '20px' }}>
-                  <div style={{
-                    padding: '12px',
-                    borderRadius: '6px',
-                    border: '1px solid #fde68a',
-                    backgroundColor: '#fffbeb'
-                  }}>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#92400e' }}>
-                      Un opérateur a uniquement accès à l'application de suivi du temps. Il n'a pas accès à la gestion des véhicules.
-                    </p>
-                  </div>
-                </div>
-              )}
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
@@ -525,7 +469,7 @@ export default function Users() {
                     fontWeight: 'bold'
                   }}
                 >
-                  {editingUser ? 'Modifier' : 'Créer'}
+                  {editingUser ? 'تعديل' : 'إنشاء'}
                 </button>
                 <button
                   type="button"
@@ -539,7 +483,7 @@ export default function Users() {
                     cursor: 'pointer'
                   }}
                 >
-                  Annuler
+                  إلغاء
                 </button>
               </div>
             </form>
