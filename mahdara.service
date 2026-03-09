@@ -7,12 +7,12 @@ Type=notify
 WatchdogSec=10
 
 User=root
-WorkingDirectory=/var/www/mahdara/backend
-EnvironmentFile=/var/www/mahdara/backend/.env
+WorkingDirectory=/var/www/mahdara-payment/backend
+EnvironmentFile=/var/www/mahdara-payment/backend/.env
 
 ExecStart=/root/.rbenv/bin/rbenv exec bundle exec puma -C config/puma.rb
-StandardOutput=append:/var/www/mahdara/backend/log/puma.stdout.log
-StandardError=append:/var/www/mahdara/backend/log/puma.stderr.log
+StandardOutput=append:/var/www/mahdara-payment/backend/log/puma.stdout.log
+StandardError=append:/var/www/mahdara-payment/backend/log/puma.stderr.log
 
 Restart=always
 

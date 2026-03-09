@@ -14,7 +14,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-PROJECT_NAME="mahdara"
+PROJECT_NAME="mahdara-payment"
 INSTALL_DIR="/var/www/$PROJECT_NAME"
 REPO_URL="git@github.com:Deyine/mahdara-payment.git"
 SERVICE_NAME="mahdara"
@@ -24,7 +24,7 @@ echo -e "${BLUE}=======================================${NC}"
 echo -e "${BLUE}  Mahdara - إدارة مدفوعات الموظفين${NC}"
 echo -e "${BLUE}=======================================${NC}"
 echo ""
-echo -e "${YELLOW}Note: It's recommended to run this script from outside /var/www/mahdara${NC}"
+echo -e "${YELLOW}Note: It's recommended to run this script from outside /var/www/mahdara-payment${NC}"
 echo -e "${YELLOW}      (e.g., from /root or /tmp)${NC}"
 echo ""
 
