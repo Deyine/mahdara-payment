@@ -104,7 +104,7 @@ export default function Wilayas() {
       ) : wilayas.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>لا توجد ولاية مسجلة.</div>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table dir="rtl" style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الاسم</th>
@@ -119,7 +119,7 @@ export default function Wilayas() {
                 <td style={{ padding: '12px', fontSize: '14px', color: '#64748b' }}>{w.code || '—'}</td>
                 {canWrite && (
                   <td style={{ padding: '12px', textAlign: 'left' }}>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-start' }}>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                       <button onClick={() => handleEdit(w)} style={{
                         padding: '6px 12px', fontSize: '13px', backgroundColor: 'white',
                         border: '1px solid #167bff', color: '#167bff', borderRadius: '4px', cursor: 'pointer'

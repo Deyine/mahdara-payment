@@ -261,7 +261,7 @@ export default function EmployeeDetail() {
                         </div>
                       </div>
                       {canWrite && (
-                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-start' }}>
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
                           <button onClick={() => openContractForm(c)} style={{
                             padding: '5px 10px', fontSize: '12px', backgroundColor: 'white',
                             border: '1px solid #167bff', color: '#167bff', borderRadius: '4px', cursor: 'pointer'

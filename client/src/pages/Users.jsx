@@ -201,7 +201,7 @@ export default function Users() {
         </div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table dir="rtl" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
                 <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
@@ -278,7 +278,7 @@ export default function Users() {
                     </td>
                     {canWrite && (
                       <td style={{ padding: '12px', textAlign: 'left' }}>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-start' }}>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                           {canEditUser && (
                             <button
                               onClick={() => handleEdit(user)}

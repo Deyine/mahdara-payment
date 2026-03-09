@@ -75,7 +75,7 @@ export default function PaymentBatches() {
               )}
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table dir="rtl" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
                   <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>تاريخ الدفع</th>
@@ -112,7 +112,7 @@ export default function PaymentBatches() {
                         {batch.created_by?.name || '—'}
                       </td>
                       <td style={{ padding: '14px 16px', textAlign: 'left' }}>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-start' }}>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                           <button onClick={() => navigate(`/admin/payments/${batch.id}`)} style={{
                             padding: '6px 12px', fontSize: '13px', backgroundColor: 'white',
                             border: '1px solid #167bff', color: '#167bff', borderRadius: '4px', cursor: 'pointer'

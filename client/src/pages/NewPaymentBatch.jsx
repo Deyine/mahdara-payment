@@ -125,7 +125,7 @@ export default function NewPaymentBatch() {
                   </div>
                 ) : (
                   <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <table dir="rtl" style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
                         <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
                           <th style={{ padding: '10px', width: '40px' }}></th>
@@ -227,13 +227,13 @@ export default function NewPaymentBatch() {
                   معلومات الدفعة
                 </h2>
                 <div style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>تاريخ الدفع *</label>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>تاريخ الدفع *</label>
                   <input type="date" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} required style={{
                     width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box'
                   }} />
                 </div>
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>ملاحظات (اختياري)</label>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>ملاحظات (اختياري)</label>
                   <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} style={{
                     width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', resize: 'vertical', boxSizing: 'border-box'
                   }} placeholder="مثال: مرتبات يناير 2026..." />

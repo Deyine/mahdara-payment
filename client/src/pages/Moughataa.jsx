@@ -120,7 +120,7 @@ export default function Moughataa() {
         )}
       </div>
 
-      <div style={{ marginBottom: '16px' }}>
+      <div style={{ marginBottom: '16px', direction: 'rtl' }}>
         <select value={filterWilayaId} onChange={e => setFilterWilayaId(e.target.value)} style={{
           padding: '8px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', minWidth: '200px'
         }}>
@@ -134,7 +134,7 @@ export default function Moughataa() {
       ) : items.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>لا توجد مقاطعة مسجلة.</div>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table dir="rtl" style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الاسم</th>
@@ -149,7 +149,7 @@ export default function Moughataa() {
                 <td style={{ padding: '12px', fontSize: '14px', color: '#64748b' }}>{item.wilaya?.name || '—'}</td>
                 {canWrite && (
                   <td style={{ padding: '12px', textAlign: 'left' }}>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-start' }}>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                       <button onClick={() => handleEdit(item)} style={{
                         padding: '6px 12px', fontSize: '13px', backgroundColor: 'white',
                         border: '1px solid #167bff', color: '#167bff', borderRadius: '4px', cursor: 'pointer'
