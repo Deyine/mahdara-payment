@@ -254,31 +254,40 @@ export default function Employees() {
             </div>
 
             <form onSubmit={handleSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-                <div>
-                  <label style={labelStyle}>الرقم الوطني *</label>
-                  <input type="text" value={formData.nni} onChange={e => setFormData({ ...formData, nni: e.target.value })}
-                    required style={inputStyle} placeholder="NNI" />
+              {/* Identity fields from Huwiyeti - read only */}
+              <div style={{ marginBottom: '15px', padding: '14px', borderRadius: '6px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '10px', fontWeight: '500' }}>
+                  معلومات الهوية (من هويتي) — غير قابلة للتعديل
                 </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={labelStyle}>الرقم الوطني</label>
+                    <input type="text" value={formData.nni} readOnly required
+                      style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>الاسم الأول</label>
+                    <input type="text" value={formData.first_name} readOnly required
+                      style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>اسم العائلة</label>
+                    <input type="text" value={formData.last_name} readOnly required
+                      style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>تاريخ الميلاد</label>
+                    <input type="text" value={formData.birth_date} readOnly
+                      style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
                 <div>
                   <label style={labelStyle}>الهاتف</label>
                   <input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })}
                     style={inputStyle} placeholder="مثال: 22000000" />
-                </div>
-                <div>
-                  <label style={labelStyle}>الاسم الأول *</label>
-                  <input type="text" value={formData.first_name} onChange={e => setFormData({ ...formData, first_name: e.target.value })}
-                    required style={inputStyle} placeholder="الاسم الأول" />
-                </div>
-                <div>
-                  <label style={labelStyle}>اسم العائلة *</label>
-                  <input type="text" value={formData.last_name} onChange={e => setFormData({ ...formData, last_name: e.target.value })}
-                    required style={inputStyle} placeholder="اسم العائلة" />
-                </div>
-                <div>
-                  <label style={labelStyle}>تاريخ الميلاد</label>
-                  <input type="date" value={formData.birth_date} onChange={e => setFormData({ ...formData, birth_date: e.target.value })}
-                    style={inputStyle} />
                 </div>
                 <div>
                   <label style={labelStyle}>نوع الموظف *</label>

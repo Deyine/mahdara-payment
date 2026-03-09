@@ -33,7 +33,7 @@ class Api::EmployeesController < ApplicationController
   end
 
   def update
-    if @employee.update(employee_params)
+    if @employee.update(employee_update_params)
       render json: employee_json(@employee)
     else
       render json: { errors: @employee.errors.full_messages }, status: :unprocessable_entity
@@ -57,6 +57,10 @@ class Api::EmployeesController < ApplicationController
   def employee_params
     params.require(:employee).permit(:nni, :first_name, :last_name, :birth_date, :phone,
                                      :employee_type_id, :wilaya_id, :moughataa_id, :commune_id, :village_id, :active)
+  end
+
+  def employee_update_params
+    params.require(:employee).permit(:phone, :employee_type_id, :wilaya_id, :moughataa_id, :commune_id, :village_id, :active)
   end
 
   def employee_json(e, full: false)
