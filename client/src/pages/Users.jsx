@@ -359,13 +359,13 @@ export default function Users() {
             maxWidth: '450px',
             width: '100%'
           }}>
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold' }}>
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold', textAlign: 'right' }}>
               {editingUser ? 'تعديل المستخدم' : 'مستخدم جديد'}
             </h2>
 
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>
                   الاسم الكامل *
                 </label>
                 <input
@@ -385,7 +385,7 @@ export default function Users() {
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>
                   اسم المستخدم *
                 </label>
                 <input
@@ -405,7 +405,7 @@ export default function Users() {
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>
                   كلمة المرور {editingUser ? '(اتركه فارغاً للإبقاء)' : '*'}
                 </label>
                 <input
@@ -425,7 +425,7 @@ export default function Users() {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>
                   الدور *
                 </label>
                 <select

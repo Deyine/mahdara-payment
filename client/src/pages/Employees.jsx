@@ -110,7 +110,7 @@ export default function Employees() {
   const inputStyle = {
     width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box'
   };
-  const labelStyle = { display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' };
+  const labelStyle = { display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' };
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#fafbfc' }}>
@@ -236,7 +236,7 @@ export default function Employees() {
           justifyContent: 'center', zIndex: 1000, overflowY: 'auto', padding: '20px'
         }}>
           <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', maxWidth: '500px', width: '100%', margin: 'auto' }}>
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold' }}>موظف جديد</h2>
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold', textAlign: 'right' }}>موظف جديد</h2>
 
             {/* NNI Lookup */}
             <div style={{ marginBottom: '20px', padding: '16px', borderRadius: '6px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>

@@ -173,12 +173,12 @@ export default function Moughataa() {
           backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
           <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', maxWidth: '400px', width: '100%' }}>
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold' }}>
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold', textAlign: 'right' }}>
               {editing ? 'تعديل المقاطعة' : 'مقاطعة جديدة'}
             </h2>
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>الولاية *</label>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>الولاية *</label>
                 <select value={formData.wilaya_id} onChange={e => setFormData({ ...formData, wilaya_id: e.target.value })}
                   required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px' }}>
                   <option value="">اختر ولاية</option>
@@ -186,7 +186,7 @@ export default function Moughataa() {
                 </select>
               </div>
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>الاسم *</label>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>الاسم *</label>
                 <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
                   required placeholder="اسم المقاطعة" style={{
                     width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px'

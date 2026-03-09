@@ -5,7 +5,7 @@ import { useDialog } from '../context/DialogContext';
 import { employeesAPI, contractsAPI, employeeTypesAPI, wilayasAPI, moughataaAPI, communesAPI, villagesAPI } from '../services/api';
 
 const inputStyle = { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' };
-const labelStyle = { display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' };
+const labelStyle = { display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' };
 
 export default function EmployeeDetail() {
   const { id } = useParams();
@@ -285,7 +285,7 @@ export default function EmployeeDetail() {
           justifyContent: 'center', zIndex: 1000, overflowY: 'auto', padding: '20px'
         }}>
           <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', maxWidth: '560px', width: '100%', margin: 'auto' }}>
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold' }}>تعديل الموظف</h2>
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold', textAlign: 'right' }}>تعديل الموظف</h2>
             <form onSubmit={handleEditSubmit}>
               {/* Identity fields from Huwiyeti - read only */}
               <div style={{ marginBottom: '15px', padding: '14px', borderRadius: '6px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
@@ -380,7 +380,7 @@ export default function EmployeeDetail() {
           backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px'
         }}>
           <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', maxWidth: '420px', width: '100%' }}>
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold' }}>
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold', textAlign: 'right' }}>
               {editingContract ? 'تعديل العقد' : 'عقد جديد'}
             </h2>
             <form onSubmit={handleContractSubmit}>

@@ -224,14 +224,14 @@ export default function Villages() {
           backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
           <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', maxWidth: '400px', width: '100%' }}>
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold' }}>
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold', textAlign: 'right' }}>
               {editing ? 'تعديل القرية' : 'قرية جديدة'}
             </h2>
             <form onSubmit={handleSubmit}>
               {!editing && (
                 <>
                   <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>الولاية *</label>
+                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>الولاية *</label>
                     <select value={formWilayaId} onChange={e => setFormWilayaId(e.target.value)} required style={{
                       width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px'
                     }}>
@@ -240,7 +240,7 @@ export default function Villages() {
                     </select>
                   </div>
                   <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>المقاطعة *</label>
+                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>المقاطعة *</label>
                     <select value={formMoughataaId} onChange={e => setFormMoughataaId(e.target.value)} required disabled={!formWilayaId} style={{
                       width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px',
                       backgroundColor: !formWilayaId ? '#f1f5f9' : 'white'
@@ -252,7 +252,7 @@ export default function Villages() {
                 </>
               )}
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>البلدية *</label>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>البلدية *</label>
                 <select value={formData.commune_id} onChange={e => setFormData({ ...formData, commune_id: e.target.value })}
                   required disabled={!editing && !formMoughataaId} style={{
                     width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px',
@@ -263,7 +263,7 @@ export default function Villages() {
                 </select>
               </div>
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>الاسم *</label>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>الاسم *</label>
                 <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
                   required placeholder="اسم القرية" style={{
                     width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px'

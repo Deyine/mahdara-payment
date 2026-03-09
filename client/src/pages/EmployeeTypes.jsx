@@ -143,12 +143,12 @@ export default function EmployeeTypes() {
           alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
           <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', maxWidth: '400px', width: '100%' }}>
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold' }}>
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold', textAlign: 'right' }}>
               {editing ? 'تعديل النوع' : 'نوع موظف جديد'}
             </h2>
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500' }}>الاسم *</label>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>الاسم *</label>
                 <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
                   required placeholder="مثال: رسمي، متعاقد..." style={{
                     width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px'
