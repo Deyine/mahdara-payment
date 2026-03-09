@@ -9,6 +9,7 @@ import Employees from './pages/Employees';
 import EmployeeDetail from './pages/EmployeeDetail';
 import PaymentBatches from './pages/PaymentBatches';
 import NewPaymentBatch from './pages/NewPaymentBatch';
+import PaymentBatchDetail from './pages/PaymentBatchDetail';
 import Settings from './pages/Settings';
 import EmployeeTypes from './pages/EmployeeTypes';
 import Wilayas from './pages/Wilayas';
@@ -95,6 +96,14 @@ function AppRoutes() {
         element={
           <PrivateRoute requireAdmin>
             <NewPaymentBatch />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/payments/:id"
+        element={
+          <PrivateRoute>
+            <PaymentBatchDetail />
           </PrivateRoute>
         }
       />
