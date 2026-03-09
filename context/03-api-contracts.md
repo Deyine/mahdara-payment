@@ -84,7 +84,10 @@ Request: {
 }
 ```
 
-### PATCH /api/employees/:id — same params
+### PATCH /api/employees/:id
+
+Identity fields (`nni`, `first_name`, `last_name`, `birth_date`) are **ignored on update** — only `phone`, `employee_type_id`, `wilaya_id`, `moughataa_id`, `commune_id`, `village_id`, `active` are accepted.
+
 ### DELETE /api/employees/:id — blocked if payment batch entries exist
 
 ### GET /api/employees/lookup_nni?nni=1234567890

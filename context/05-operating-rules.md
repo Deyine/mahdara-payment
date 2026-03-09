@@ -28,7 +28,9 @@ The `MultiTenantable` concern does not exist in this project.
 - API endpoint: `POST https://api-houwiyeti.anrpts.gov.mr/houwiyetiapi/v1/partners/getPersonne`
 - Auth header: `entity-api-key` (configured via `HUWIYETI_API_KEY` env var)
 - Response maps: `prenomFr` → `first_name`, `patronymeFr` → `last_name`, `dateNaissance` → `birth_date`
-- Lookup is read-only — it pre-fills the form, it does not create the employee
+- Lookup is the **only way** to populate identity fields — manual entry is not allowed
+- Identity fields (`nni`, `first_name`, `last_name`, `birth_date`) are read-only in the UI after lookup
+- Backend `update` action ignores these fields even if sent (`employee_update_params` excludes them)
 
 ---
 

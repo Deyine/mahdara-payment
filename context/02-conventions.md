@@ -58,7 +58,7 @@
 ### Dialog System
 - Never use native `alert()` or `confirm()`
 - Always use `useDialog()` from `DialogContext` — `showAlert(msg, type)` and `showConfirm(msg, title)`
-- Promise-based, French labels, types: `'error'`, `'success'`, `'warning'`
+- Promise-based, Arabic labels, types: `'error'`, `'success'`, `'warning'`
 
 ### Alert Boxes
 - Success: BG `#f0fdf4`, border `#10b981`, text `#166534`
@@ -123,14 +123,16 @@
 
 ---
 
-## French Localization
+## Arabic RTL Layout
 
-- All UI text in French
-- Dates: `toLocaleDateString('fr-FR')` → `dd/mm/yyyy`
-- Numbers/currency: use `formatNumber()` from `client/src/utils/formatters.js` — never `.toFixed()` directly
-- Currency display: `getCurrencySymbol(currency)` + `formatNumber(amount)`
-- Buttons: "Créer", "Mettre à Jour", "Annuler", "Supprimer"
-- Confirmations: "Êtes-vous sûr de vouloir supprimer..."
+- All UI text in Arabic (`lang="ar" dir="rtl"` on `<html>`)
+- Table content columns: `textAlign: 'right'`
+- Table action columns: `textAlign: 'left'`, action button groups: `justifyContent: 'flex-start'`
+- Nav icons: `className="ml-2"` (not `mr-2`) due to RTL
+- Mobile drawer slides from right (`right-0`, `translateX(100%)` animation)
+- Currency: MRU (أوقية)
+- Buttons: "إنشاء", "تعديل", "إلغاء", "حذف", "حفظ"
+- Read-only identity fields (from Huwiyeti): gray bg `#f1f5f9`, `cursor: 'default'`, `readOnly`
 
 ---
 

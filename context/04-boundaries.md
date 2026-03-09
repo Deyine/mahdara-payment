@@ -2,7 +2,7 @@
 
 ## API Client (`client/src/services/api.js`)
 
-Axios instance with base URL from `VITE_API_URL` env var (default `http://localhost:3061/api`).
+Axios instance with base URL from `VITE_API_URL` env var (default `http://localhost:3062/api`).
 
 **Interceptors:**
 - Request: attach `Authorization: Bearer <token>` from localStorage
@@ -57,8 +57,9 @@ const buildImportFn = (path) => (file) => {
 3. Backend calls `HuwiyetiService#get_person_by_nni` → Gov API
 4. Gov API: `POST https://api-houwiyeti.anrpts.gov.mr/houwiyetiapi/v1/partners/getPersonne`
    with `{ nni }` and header `entity-api-key: <key>`
-5. Response auto-fills: `first_name`, `last_name`, `birth_date`
-6. On error: show alert, user fills manually
+5. Response auto-fills: `first_name`, `last_name`, `birth_date` — shown as **read-only** fields
+6. Identity fields cannot be manually entered or edited — Huwiyeti is the only source
+7. On error: show alert, user must retry with correct NNI
 
 ---
 

@@ -16,7 +16,7 @@
 - **HTTP Client**: Axios with interceptors
 - **Styling**: Pure Tailwind CSS (NO daisyUI)
 - **Design System**: Nexus Dashboard 3.1 color palette
-- **Language**: French UI, LTR layout
+- **Language**: Arabic UI, RTL layout (`dir="rtl"` on `<html lang="ar">`)
 - **Dialogs**: Custom DialogContext (no native alert/confirm)
 
 ## Client Route Structure
@@ -265,14 +265,23 @@ Two default users (no tenant):
 - `superadmin` / `password123` (super_admin role)
 - `admin` / `password123` (admin role)
 
+## Deployment
+
+- **Domain**: `mahdara.next-version.com` (single domain, frontend + API)
+- **Port**: Rails runs on `3062` (configured in `backend/.env` and `puma.rb`)
+- **Nginx**: serves React SPA from `/var/www/mahdara-payment/client/dist`, proxies `/api/` to port 3062
+- **Systemd service**: `mahdara` (`mahdara.service`)
+- **Config files**: `mahdara.conf` (nginx), `mahdara.service` (systemd)
+- **CORS allowed origins**: `http://localhost:5173`, `https://mahdara.next-version.com`
+
 ## Development
 
 ```bash
 # Backend
-cd backend && rails server -p 3061
-# → http://localhost:3061/api
+cd backend && rails server -p 3062
+# → http://localhost:3062/api
 
 # Frontend
 cd client && npm run dev
-# → http://localhost:5173
+# → http://localhost:5173 (proxies /api → 3062)
 ```

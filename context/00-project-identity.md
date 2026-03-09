@@ -32,7 +32,7 @@ Mahdara is a **single-tenant employee payment management system** for organizati
 **Frontend:** React 19 + Vite 7
 **Authentication:** JWT tokens (24h expiry)
 **UI Framework:** Pure Tailwind CSS (Nexus Dashboard 3.1 design system)
-**Language:** French UI
+**Language:** Arabic UI (RTL — `dir="rtl"` on `<html>`)
 
 ## Scope Boundaries
 
