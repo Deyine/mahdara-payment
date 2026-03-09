@@ -20,4 +20,8 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  table[dir="rtl"] td {
+    text-align: right;
+  }
 }
