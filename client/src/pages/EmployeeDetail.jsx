@@ -178,7 +178,7 @@ export default function EmployeeDetail() {
           <button onClick={() => navigate('/admin/employees')} style={{
             background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '14px', padding: 0, marginBottom: '12px'
           }}>العودة إلى الموظفين →</button>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', direction: 'rtl' }}>
             <div>
               <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1e293b' }}>{employee.full_name}</h1>
               <p style={{ margin: '4px 0 0', color: '#64748b', fontFamily: 'monospace' }}>الرقم الوطني: {employee.nni}</p>

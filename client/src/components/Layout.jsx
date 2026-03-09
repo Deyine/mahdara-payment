@@ -34,7 +34,7 @@ export default function Layout({ children }) {
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-40" style={{ borderBottom: '1px solid #e2e8f0' }}>
         <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center" style={{ direction: 'rtl' }}>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setDrawerOpen(true)}
@@ -96,7 +96,7 @@ export default function Layout({ children }) {
       {/* Desktop Navigation */}
       <nav className="hidden md:block bg-white shadow-sm" style={{ borderBottom: '1px solid #e2e8f0' }}>
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex gap-1">
+          <div className="flex gap-1" style={{ direction: 'rtl' }}>
             {navItems.map((item) => {
               if (item.adminOnly && !isAdmin) return null;
 
@@ -116,7 +116,7 @@ export default function Layout({ children }) {
                     if (!isActive(item.path)) e.target.style.color = '#64748b';
                   }}
                 >
-                  <span className="ml-2">{item.icon}</span>
+                  <span className="mr-2">{item.icon}</span>
                   {item.label}
                 </Link>
               );
@@ -137,7 +137,7 @@ export default function Layout({ children }) {
             style={{ animation: 'slideInFromRight 0.3s ease-out', borderLeft: '1px solid #e2e8f0' }}
           >
             <div className="p-4 border-b" style={{ borderColor: '#e2e8f0' }}>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4" style={{ direction: 'rtl' }}>
                 <div className="flex items-center gap-2">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-xl font-bold text-white"
@@ -158,7 +158,7 @@ export default function Layout({ children }) {
                 </button>
               </div>
 
-              <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: '#f8fafc' }}>
+              <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: '#f8fafc', direction: 'rtl' }}>
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold text-white"
                   style={{ backgroundColor: '#167bff' }}

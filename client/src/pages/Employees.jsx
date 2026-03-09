@@ -117,7 +117,7 @@ export default function Employees() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#fafbfc' }}>
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', direction: 'rtl' }}>
           <div>
             <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1e293b' }}>الموظفون</h1>
             <p style={{ margin: '4px 0 0', color: '#64748b' }}>{employees.length} موظف مسجل</p>

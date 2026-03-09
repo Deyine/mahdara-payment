@@ -169,7 +169,8 @@ export default function Users() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '20px'
+        marginBottom: '20px',
+        direction: 'rtl'
       }}>
         <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#1e293b' }}>
           المستخدمون
