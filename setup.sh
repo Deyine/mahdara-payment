@@ -118,7 +118,7 @@ DATABASE_URL=postgresql://mahdara:mahdara_password@localhost/mahdara_production
 RAILS_SERVE_STATIC_FILES=true
 RAILS_MAX_THREADS=5
 WEB_CONCURRENCY=2
-PORT=3000
+PORT=3062
 # Set to true after SSL setup with certbot
 FORCE_SSL=false
 EOF
@@ -229,7 +229,7 @@ echo ""
 echo -e "${YELLOW}[8/10] Creating nginx configuration...${NC}"
 cat > /etc/nginx/conf.d/$SERVICE_NAME.conf <<EOF
 upstream mahdara {
-  server 127.0.0.1:3000 fail_timeout=0;
+  server 127.0.0.1:3062 fail_timeout=0;
 }
 
 server {

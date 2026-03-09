@@ -29,7 +29,7 @@ threads threads_count, threads_count
 
 # Bind to localhost only for reverse proxy setup (nginx)
 # This prevents direct external access to the Rails app
-bind "tcp://127.0.0.1:#{ENV.fetch('PORT', 3061)}"
+bind "tcp://127.0.0.1:#{ENV.fetch('PORT', 3062)}"
 
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
