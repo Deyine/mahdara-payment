@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_09_180443) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_09_200002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -41,6 +41,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_09_180443) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "banks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_banks_on_name", unique: true
   end
 
   create_table "communes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -87,6 +95,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_09_180443) do
     t.datetime "updated_at", null: false
     t.string "first_name_fr"
     t.string "last_name_fr"
+    t.uuid "bank_id"
+    t.string "account_number"
+    t.index ["bank_id"], name: "index_employees_on_bank_id"
     t.index ["commune_id"], name: "index_employees_on_commune_id"
     t.index ["employee_type_id"], name: "index_employees_on_employee_type_id"
     t.index ["moughataa_id"], name: "index_employees_on_moughataa_id"
@@ -157,6 +168,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_09_180443) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "communes", "moughataa"
   add_foreign_key "contracts", "employees"
+  add_foreign_key "employees", "banks"
   add_foreign_key "employees", "communes"
   add_foreign_key "employees", "employee_types"
   add_foreign_key "employees", "moughataa"

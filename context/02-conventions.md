@@ -126,9 +126,12 @@
 ## Arabic RTL Layout
 
 - All UI text in Arabic (`lang="ar" dir="rtl"` on `<html>`)
-- Table content columns: `textAlign: 'right'`
-- Table action columns: `textAlign: 'left'`, action button groups: `justifyContent: 'flex-start'`
-- Nav icons: `className="ml-2"` (not `mr-2`) due to RTL
+- Page header rows (title + action buttons): `direction: 'rtl'` on the flex container — title appears right, action button left
+- Tables: `dir="rtl"` on `<table>` — first column appears on right, actions column on left
+- Table cell alignment: handled globally in `index.css` via `table[dir="rtl"] td { text-align: right }` (body defaults to `text-align: left`)
+- Table action column header: `textAlign: 'left'`; action button groups: `justifyContent: 'flex-end'`
+- Nav menus (Layout tabs, Settings tabs): `direction: 'rtl'` on the flex container
+- Nav icons: `className="mr-2"` (RTL)
 - Mobile drawer slides from right (`right-0`, `translateX(100%)` animation)
 - Currency: MRU (أوقية)
 - Buttons: "إنشاء", "تعديل", "إلغاء", "حذف", "حفظ"
