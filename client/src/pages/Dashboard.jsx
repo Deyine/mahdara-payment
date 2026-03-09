@@ -41,7 +41,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#fafbfc' }}>
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div style={{ marginBottom: '32px' }}>
+        <div style={{ marginBottom: '32px', direction: 'rtl' }}>
           <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1e293b' }}>لوحة التحكم</h1>
           <p style={{ margin: '6px 0 0', color: '#64748b' }}>نظرة عامة على التطبيق</p>
         </div>

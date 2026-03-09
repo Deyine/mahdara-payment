@@ -19,7 +19,7 @@ export default function Settings() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#fafbfc' }}>
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-8">
+        <div className="mb-8" style={{ direction: 'rtl' }}>
           <h1 className="text-3xl font-bold" style={{ color: '#1e293b' }}>الإعدادات</h1>
           <p style={{ color: '#64748b' }}>إدارة إعدادات التطبيق</p>
         </div>
