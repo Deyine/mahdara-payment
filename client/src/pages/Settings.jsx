@@ -25,7 +25,7 @@ export default function Settings() {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm mb-6" style={{ border: '1px solid #e2e8f0' }}>
-          <div className="flex flex-wrap border-b" style={{ borderColor: '#e2e8f0' }}>
+          <div className="flex flex-wrap border-b" style={{ borderColor: '#e2e8f0', direction: 'rtl' }}>
             {settingsMenuItems.map((item) => (
               <Link
                 key={item.path}
