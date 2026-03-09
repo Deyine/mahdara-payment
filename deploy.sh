@@ -49,7 +49,7 @@ echo ""
 # Step 2: Pull latest code
 echo -e "${YELLOW}[2/$TOTAL_STEPS] Pulling latest code from repository...${NC}"
 cd "$PROJECT_DIR"
-git pull mahdara main
+git pull origin main
 echo -e "${GREEN}✓ Code updated${NC}"
 echo ""
 
