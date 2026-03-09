@@ -4,6 +4,7 @@ class Employee < ApplicationRecord
   belongs_to :moughataa, optional: true
   belongs_to :commune, optional: true
   belongs_to :village, optional: true
+  belongs_to :bank, optional: true
 
   has_many :contracts, dependent: :destroy
   has_many :payment_batch_employees, dependent: :restrict_with_error

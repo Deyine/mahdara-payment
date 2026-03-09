@@ -13,6 +13,7 @@ export default function Settings() {
     { path: '/admin/settings/moughataa', label: 'المقاطعات', icon: '📍' },
     { path: '/admin/settings/communes', label: 'البلديات', icon: '🏘️' },
     { path: '/admin/settings/villages', label: 'القرى', icon: '🏡' },
+    { path: '/admin/settings/banks', label: 'البنوك', icon: '🏦' },
     { path: '/admin/settings/users', label: 'المستخدمون', icon: '👤' },
   ];
 

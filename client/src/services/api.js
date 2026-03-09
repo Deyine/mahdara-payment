@@ -29,6 +29,13 @@ export const dashboardAPI = {
   getStatistics: () => api.get('/dashboard/statistics'),
 };
 
+export const banksAPI = {
+  getAll: () => api.get('/banks'),
+  create: (data) => api.post('/banks', { bank: data }),
+  update: (id, data) => api.patch(`/banks/${id}`, { bank: data }),
+  delete: (id) => api.delete(`/banks/${id}`),
+};
+
 export const employeeTypesAPI = {
   getAll: () => api.get('/employee_types'),
   create: (data) => api.post('/employee_types', { employee_type: data }),

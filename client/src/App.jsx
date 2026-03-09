@@ -17,6 +17,7 @@ import Moughataa from './pages/Moughataa';
 import Communes from './pages/Communes';
 import Villages from './pages/Villages';
 import Users from './pages/Users';
+import Banks from './pages/Banks';
 
 function PrivateRoute({ children, requireAdmin = false }) {
   const { user, loading } = useAuth();
@@ -123,6 +124,7 @@ function AppRoutes() {
         <Route path="moughataa" element={<Moughataa />} />
         <Route path="communes" element={<Communes />} />
         <Route path="villages" element={<Villages />} />
+        <Route path="banks" element={<Banks />} />
         <Route path="users" element={<Users />} />
       </Route>
     </Routes>

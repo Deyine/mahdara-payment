@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
-import { employeesAPI, employeeTypesAPI, wilayasAPI } from '../services/api';
+import { employeesAPI, employeeTypesAPI, wilayasAPI, banksAPI } from '../services/api';
 
 export default function Employees() {
   const navigate = useNavigate();
@@ -11,6 +11,7 @@ export default function Employees() {
   const [employees, setEmployees] = useState([]);
   const [types, setTypes] = useState([]);
   const [wilayas, setWilayas] = useState([]);
+  const [banks, setBanks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterTypeId, setFilterTypeId] = useState('');
@@ -20,11 +21,12 @@ export default function Employees() {
   const [nniLoading, setNniLoading] = useState(false);
   const [formData, setFormData] = useState({
     nni: '', first_name: '', last_name: '', first_name_fr: '', last_name_fr: '',
-    birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true
+    birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true,
+    bank_id: '', account_number: ''
   });
 
   useEffect(() => {
-    Promise.all([fetchEmployees(), fetchTypes(), fetchWilayas()]);
+    Promise.all([fetchEmployees(), fetchTypes(), fetchWilayas(), fetchBanks()]);
   }, []);
 
   const fetchEmployees = async () => {
@@ -45,6 +47,10 @@ export default function Employees() {
 
   const fetchWilayas = async () => {
     try { const res = await wilayasAPI.getAll(); setWilayas(res.data); } catch { /* ignore */ }
+  };
+
+  const fetchBanks = async () => {
+    try { const res = await banksAPI.getAll(); setBanks(res.data); } catch { /* ignore */ }
   };
 
   const handleLookupNni = async () => {
@@ -74,7 +80,7 @@ export default function Employees() {
 
   const handleCreate = () => {
     setNniInput('');
-    setFormData({ nni: '', first_name: '', last_name: '', first_name_fr: '', last_name_fr: '', birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true });
+    setFormData({ nni: '', first_name: '', last_name: '', first_name_fr: '', last_name_fr: '', birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true, bank_id: '', account_number: '' });
     setShowForm(true);
   };
 
@@ -316,6 +322,19 @@ export default function Employees() {
                     <option value="">اختر...</option>
                     {wilayas.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
                   </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>البنك</label>
+                  <select value={formData.bank_id} onChange={e => setFormData({ ...formData, bank_id: e.target.value })}
+                    style={inputStyle}>
+                    <option value="">اختر...</option>
+                    {banks.filter(b => b.active).map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>رقم الحساب</label>
+                  <input type="text" value={formData.account_number} onChange={e => setFormData({ ...formData, account_number: e.target.value })}
+                    style={inputStyle} placeholder="مثال: MR13..." />
                 </div>
               </div>
 

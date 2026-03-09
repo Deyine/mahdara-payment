@@ -4,7 +4,7 @@ class Api::EmployeesController < ApplicationController
   before_action :set_employee, only: [:show, :update, :destroy]
 
   def index
-    @employees = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :contracts)
+    @employees = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts)
                          .order(:last_name, :first_name)
     render json: @employees.map { |e| employee_json(e) }
   end
@@ -51,17 +51,19 @@ class Api::EmployeesController < ApplicationController
   private
 
   def set_employee
-    @employee = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :contracts).find(params[:id])
+    @employee = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts).find(params[:id])
   end
 
   def employee_params
     params.require(:employee).permit(:nni, :first_name, :last_name, :first_name_fr, :last_name_fr,
                                      :birth_date, :phone, :employee_type_id, :wilaya_id,
-                                     :moughataa_id, :commune_id, :village_id, :active)
+                                     :moughataa_id, :commune_id, :village_id, :active,
+                                     :bank_id, :account_number)
   end
 
   def employee_update_params
-    params.require(:employee).permit(:phone, :employee_type_id, :wilaya_id, :moughataa_id, :commune_id, :village_id, :active)
+    params.require(:employee).permit(:phone, :employee_type_id, :wilaya_id, :moughataa_id, :commune_id, :village_id, :active,
+                                     :bank_id, :account_number)
   end
 
   def employee_json(e, full: false)
@@ -83,6 +85,8 @@ class Api::EmployeesController < ApplicationController
       moughataa: e.moughataa ? { id: e.moughataa.id, name: e.moughataa.name } : nil,
       commune: e.commune ? { id: e.commune.id, name: e.commune.name } : nil,
       village: e.village ? { id: e.village.id, name: e.village.name } : nil,
+      bank: e.bank ? { id: e.bank.id, name: e.bank.name } : nil,
+      account_number: e.account_number,
       active_contract: active_contract ? contract_json(active_contract) : nil
     }
     data[:contracts] = e.contracts.map { |c| contract_json(c) } if full

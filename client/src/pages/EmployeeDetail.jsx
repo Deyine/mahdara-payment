@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
-import { employeesAPI, contractsAPI, employeeTypesAPI, wilayasAPI, moughataaAPI, communesAPI, villagesAPI } from '../services/api';
+import { employeesAPI, contractsAPI, employeeTypesAPI, wilayasAPI, moughataaAPI, communesAPI, villagesAPI, banksAPI } from '../services/api';
 
 const inputStyle = { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' };
 const labelStyle = { display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' };
@@ -21,6 +21,7 @@ export default function EmployeeDetail() {
   // Reference data
   const [types, setTypes] = useState([]);
   const [wilayas, setWilayas] = useState([]);
+  const [banks, setBanks] = useState([]);
   const [moughataaList, setMoughataaList] = useState([]);
   const [communesList, setCommunesList] = useState([]);
   const [villagesList, setVillagesList] = useState([]);
@@ -35,7 +36,7 @@ export default function EmployeeDetail() {
   });
 
   useEffect(() => {
-    Promise.all([fetchEmployee(), fetchTypes(), fetchWilayas()]);
+    Promise.all([fetchEmployee(), fetchTypes(), fetchWilayas(), fetchBanks()]);
   }, [id]);
 
   useEffect(() => {
@@ -77,6 +78,10 @@ export default function EmployeeDetail() {
     try { const r = await wilayasAPI.getAll(); setWilayas(r.data); } catch { /* ignore */ }
   };
 
+  const fetchBanks = async () => {
+    try { const r = await banksAPI.getAll(); setBanks(r.data); } catch { /* ignore */ }
+  };
+
   const openEditForm = () => {
     const wilayaId = employee.wilaya?.id || '';
     const moughataaId = employee.moughataa?.id || '';
@@ -97,7 +102,9 @@ export default function EmployeeDetail() {
       moughataa_id: moughataaId,
       commune_id: communeId,
       village_id: employee.village?.id || '',
-      active: employee.active
+      active: employee.active,
+      bank_id: employee.bank?.id || '',
+      account_number: employee.account_number || ''
     });
     setShowEditForm(true);
   };
@@ -216,6 +223,8 @@ export default function EmployeeDetail() {
             {infoRow('المقاطعة', employee.moughataa?.name)}
             {infoRow('البلدية', employee.commune?.name)}
             {infoRow('القرية', employee.village?.name)}
+            {infoRow('البنك', employee.bank?.name)}
+            {infoRow('رقم الحساب', employee.account_number)}
           </div>
 
           {/* Contracts Card */}
@@ -369,6 +378,18 @@ export default function EmployeeDetail() {
                     <option value="">اختر...</option>
                     {villagesList.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
                   </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>البنك</label>
+                  <select value={editData.bank_id} onChange={e => setEditData({ ...editData, bank_id: e.target.value })} style={inputStyle}>
+                    <option value="">اختر...</option>
+                    {banks.filter(b => b.active).map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>رقم الحساب</label>
+                  <input type="text" value={editData.account_number} onChange={e => setEditData({ ...editData, account_number: e.target.value })}
+                    style={inputStyle} placeholder="مثال: MR13..." />
                 </div>
               </div>
               <div style={{ marginBottom: '20px' }}>

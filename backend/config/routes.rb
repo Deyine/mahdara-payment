@@ -7,6 +7,7 @@ Rails.application.routes.draw do
 
     resources :users
     resources :employee_types
+    resources :banks
     resources :employees do
       collection { get 'lookup_nni' }
     end
