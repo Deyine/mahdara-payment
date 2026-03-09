@@ -14,6 +14,7 @@ export default function Moughataa() {
   const [editing, setEditing] = useState(null);
   const [formData, setFormData] = useState({ name: '', wilaya_id: '' });
   const [importing, setImporting] = useState(false);
+  const [showCsvHelp, setShowCsvHelp] = useState(false);
   const fileRef = useRef();
 
   useEffect(() => {
@@ -107,7 +108,7 @@ export default function Moughataa() {
         <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#1e293b' }}>المقاطعات</h2>
         {canWrite && (
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => fileRef.current.click()} disabled={importing} style={{
+            <button onClick={() => setShowCsvHelp(true)} disabled={importing} style={{
               padding: '8px 16px', borderRadius: '6px', border: '1px solid #167bff',
               color: '#167bff', backgroundColor: 'white', cursor: 'pointer', fontSize: '14px'
             }}>{importing ? 'جارٍ الاستيراد...' : 'استيراد CSV'}</button>
@@ -165,6 +166,40 @@ export default function Moughataa() {
             ))}
           </tbody>
         </table>
+      )}
+
+      {showCsvHelp && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', maxWidth: '480px', width: '100%' }}>
+            <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold', textAlign: 'right' }}>تنسيق ملف CSV للمقاطعات</h2>
+            <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '16px', textAlign: 'right' }}>
+              يجب أن يحتوي الملف على الأعمدة التالية (الفاصل: فاصلة أو فاصلة منقوطة):
+            </p>
+            <div style={{ backgroundColor: '#f8fafc', borderRadius: '6px', padding: '16px', marginBottom: '16px', border: '1px solid #e2e8f0', direction: 'ltr', fontFamily: 'monospace', fontSize: '13px' }}>
+              <div style={{ color: '#64748b', marginBottom: '8px' }}>name,wilaya</div>
+              <div style={{ color: '#1e293b' }}>تيارت,نواكشوط الشمالية</div>
+              <div style={{ color: '#1e293b' }}>ذراع أفريطس,نواكشوط الجنوبية</div>
+            </div>
+            <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px', textAlign: 'right', lineHeight: '1.6' }}>
+              <div>• <strong>name</strong>: اسم المقاطعة (مطلوب)</div>
+              <div>• <strong>wilaya</strong>: اسم الولاية كما هو مسجل في النظام (مطلوب)</div>
+              <div style={{ marginTop: '8px', color: '#94a3b8' }}>الصفوف المكررة يتم تجاهلها تلقائياً</div>
+            </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => { setShowCsvHelp(false); fileRef.current.click(); }} style={{
+                flex: 1, padding: '10px', borderRadius: '6px', border: 'none',
+                backgroundColor: '#167bff', color: 'white', cursor: 'pointer', fontWeight: 'bold'
+              }}>اختر الملف</button>
+              <button onClick={() => setShowCsvHelp(false)} style={{
+                flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
+                backgroundColor: 'white', cursor: 'pointer'
+              }}>إلغاء</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {showForm && (
