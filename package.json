@@ -1,7 +1,7 @@
 {
-  "name": "bestcar",
+  "name": "mahdara",
   "version": "1.0.0",
-  "description": "BestCar - Multi-tenant salvage car inventory and expense tracking system",
+  "description": "Mahdara - Employee Payment Management System",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd backend && bundle exec rails server -p 3000",

@@ -56,10 +56,10 @@ Rails.application.configure do
   # config.action_mailer.raise_delivery_errors = false
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "api.bestcar-mr.com", protocol: "https" }
+  config.action_mailer.default_url_options = { host: "mahdara.next-version.com", protocol: "https" }
 
   # Set default URL options for Active Storage and route helpers
-  Rails.application.routes.default_url_options = { host: "api.bestcar-mr.com", protocol: "https" }
+  Rails.application.routes.default_url_options = { host: "mahdara.next-version.com", protocol: "https" }
 
   # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
   # config.action_mailer.smtp_settings = {
