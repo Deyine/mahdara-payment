@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# BestCar - Initial Server Setup Script
-# This script performs the initial setup of the BestCar application on a production server
+# Mahdara - Initial Server Setup Script
+# This script performs the initial setup of the Mahdara application on a production server
 # Run this script ONCE during initial deployment
 
 set -e  # Exit on any error
@@ -14,18 +14,17 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-PROJECT_NAME="bestcar"
+PROJECT_NAME="mahdara"
 INSTALL_DIR="/var/www/$PROJECT_NAME"
-REPO_URL="git@github.com:Deyine/bestcar.git"
-SERVICE_NAME="bestcar"
-NGINX_DOMAIN="api.bestcar-mr.com"  # Backend API domain
-FRONTEND_DOMAIN="bestcar-mr.com"    # Frontend domain
+REPO_URL="git@github.com:Deyine/mahdara-payment.git"
+SERVICE_NAME="mahdara"
+NGINX_DOMAIN="mahdara.next-version.com"
 
 echo -e "${BLUE}=======================================${NC}"
-echo -e "${BLUE}  BestCar - Initial Server Setup${NC}"
+echo -e "${BLUE}  Mahdara - إدارة مدفوعات الموظفين${NC}"
 echo -e "${BLUE}=======================================${NC}"
 echo ""
-echo -e "${YELLOW}Note: It's recommended to run this script from outside /var/www/bestcar${NC}"
+echo -e "${YELLOW}Note: It's recommended to run this script from outside /var/www/mahdara${NC}"
 echo -e "${YELLOW}      (e.g., from /root or /tmp)${NC}"
 echo ""
 
@@ -115,11 +114,11 @@ if [ ! -f .env ]; then
 RAILS_ENV=production
 RAILS_LOG_TO_STDOUT=true
 SECRET_KEY_BASE=$(openssl rand -hex 64)
-DATABASE_URL=postgresql://bestcar:bestcar_password@localhost/bestcar_production
+DATABASE_URL=postgresql://mahdara:mahdara_password@localhost/mahdara_production
 RAILS_SERVE_STATIC_FILES=true
 RAILS_MAX_THREADS=5
 WEB_CONCURRENCY=2
-PORT=3061
+PORT=3000
 # Set to true after SSL setup with certbot
 FORCE_SSL=false
 EOF
@@ -142,9 +141,9 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   # Create PostgreSQL user and database
   echo -e "${YELLOW}Creating PostgreSQL database and user...${NC}"
-  sudo -u postgres psql -c "CREATE USER bestcar WITH PASSWORD 'bestcar_password';" || true
-  sudo -u postgres psql -c "CREATE DATABASE bestcar_production OWNER bestcar;" || true
-  sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE bestcar_production TO bestcar;" || true
+  sudo -u postgres psql -c "CREATE USER mahdara WITH PASSWORD 'mahdara_password';" || true
+  sudo -u postgres psql -c "CREATE DATABASE mahdara_production OWNER mahdara;" || true
+  sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE mahdara_production TO mahdara;" || true
 
   # Load environment variables from .env file
   set -a
@@ -201,7 +200,7 @@ echo ""
 echo -e "${YELLOW}[7/10] Creating systemd service...${NC}"
 cat > /etc/systemd/system/$SERVICE_NAME.service <<EOF
 [Unit]
-Description=BestCar Rails Application
+Description=Mahdara Rails Application
 After=network.target
 
 [Service]
@@ -229,57 +228,38 @@ echo ""
 # Step 8: Create nginx configuration
 echo -e "${YELLOW}[8/10] Creating nginx configuration...${NC}"
 cat > /etc/nginx/conf.d/$SERVICE_NAME.conf <<EOF
-upstream bestcar {
+upstream mahdara {
   server 127.0.0.1:3000 fail_timeout=0;
 }
 
-# Backend API Server
 server {
   listen 80;
   server_name $NGINX_DOMAIN;
-  root $INSTALL_DIR/backend/public;
 
-  try_files \$uri/index.html \$uri @bestcar;
+  root $INSTALL_DIR/client/dist;
 
-  access_log /var/log/nginx/bestcar-api.access.log;
-  error_log /var/log/nginx/bestcar-api.error.log;
+  # Serve frontend SPA
+  location / {
+    index index.html index.htm;
+    try_files \$uri \$uri/ /index.html;
+  }
 
-  location @bestcar {
+  # Proxy API requests to Rails
+  location /api/ {
     proxy_set_header X-Forwarded-Proto \$scheme;
     proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
     proxy_set_header X-Real-IP \$remote_addr;
     proxy_set_header Host \$host;
     proxy_redirect off;
     proxy_set_header Connection '';
-    proxy_pass http://bestcar;
+    proxy_pass http://mahdara;
   }
 
-  location ~ ^/(assets|fonts|system|packs)/|favicon.ico|robots.txt {
+  # Static assets
+  location ~ ^/(assets|packs)/|favicon.ico|robots.txt {
     gzip_static on;
     expires max;
     add_header Cache-Control public;
-  }
-
-  error_page 500 502 503 504 /500.html;
-  client_max_body_size 50M;
-  keepalive_timeout 10;
-}
-
-# Frontend Server
-server {
-  listen 80;
-  server_name $FRONTEND_DOMAIN;
-
-  root $INSTALL_DIR/client/dist;
-
-  location / {
-    index index.html index.htm;
-    try_files \$uri \$uri/ /index.html;
-  }
-
-  location /api/ {
-    proxy_pass http://$NGINX_DOMAIN/api/;
-    proxy_redirect default;
   }
 
   # Compression
@@ -291,8 +271,7 @@ server {
     add_header Cache-Control public;
   }
 
-  location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|woff|ttf|otf|woff2|eot)$ {
-    gzip_static on;
+  location ~* \.(?:jpg|jpeg|gif|png|ico|svg|woff|woff2|ttf|otf|eot)$ {
     access_log off;
     expires max;
     add_header Cache-Control public;
@@ -301,6 +280,9 @@ server {
   error_page 500 502 503 504 /500.html;
   client_max_body_size 50M;
   keepalive_timeout 10;
+
+  access_log /var/log/nginx/mahdara.access.log;
+  error_log /var/log/nginx/mahdara.error.log;
 }
 EOF
 
@@ -322,9 +304,9 @@ systemctl start $SERVICE_NAME
 
 # Check service status
 if systemctl is-active --quiet $SERVICE_NAME; then
-  echo -e "${GREEN}✓ BestCar service started successfully${NC}"
+  echo -e "${GREEN}✓ Mahdara service started successfully${NC}"
 else
-  echo -e "${RED}✗ BestCar service failed to start${NC}"
+  echo -e "${RED}✗ Mahdara service failed to start${NC}"
   echo -e "${YELLOW}Check logs: journalctl -u $SERVICE_NAME -n 50${NC}"
 fi
 
@@ -341,13 +323,13 @@ echo ""
 echo -e "${YELLOW}[10/10] Setup complete!${NC}"
 echo ""
 echo -e "${BLUE}========================================${NC}"
-echo -e "${GREEN}  BestCar Setup Complete!${NC}"
+echo -e "${GREEN}  Mahdara Setup Complete!${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 echo -e "${YELLOW}Next steps:${NC}"
 echo ""
 echo "1. Configure SSL certificates with certbot:"
-echo "   ${BLUE}sudo certbot --nginx -d $NGINX_DOMAIN -d $FRONTEND_DOMAIN${NC}"
+echo "   ${BLUE}sudo certbot --nginx -d $NGINX_DOMAIN${NC}"
 echo ""
 echo "2. Update database credentials in:"
 echo "   ${BLUE}$INSTALL_DIR/backend/.env${NC}"
@@ -366,7 +348,6 @@ echo "  - Restart app: ${BLUE}sudo systemctl restart $SERVICE_NAME${NC}"
 echo "  - Reload nginx: ${BLUE}sudo systemctl reload nginx${NC}"
 echo "  - Deploy updates: ${BLUE}cd $INSTALL_DIR && ./deploy.sh${NC}"
 echo ""
-echo -e "${GREEN}Application URLs (after SSL setup):${NC}"
-echo "  - API: ${BLUE}https://$NGINX_DOMAIN${NC}"
-echo "  - Frontend: ${BLUE}https://$FRONTEND_DOMAIN${NC}"
+echo -e "${GREEN}Application URL (after SSL setup):${NC}"
+echo "  - ${BLUE}https://$NGINX_DOMAIN${NC}"
 echo ""

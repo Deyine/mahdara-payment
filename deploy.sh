@@ -1,17 +1,11 @@
 #!/bin/bash
 
-# Bestcar Dealership Management Deployment Script
+# Mahdara - Employee Payment Management Deployment Script
 # This script handles deployment updates for production environment
 # Prerequisites: Initial server configuration must be complete (nginx, systemd, postgresql)
 #
 # Usage:
-#   ./deploy.sh                    # Deploy main app + time tracking frontend
-#   DEPLOY_TIME_TRACKING=0 ./deploy.sh  # Deploy main app only
-#
-# Time Tracking Frontend:
-#   - Deployed to: /var/www/time-tracking/dist
-#   - Domain: time.next-version.com
-#   - Nginx config required (see context/06-time-tracking-frontend.md)
+#   ./deploy.sh  # Deploy the app
 
 set -e  # Exit on any error
 
@@ -26,11 +20,8 @@ NC='\033[0m' # No Color
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$PROJECT_DIR/backend"
 CLIENT_DIR="$PROJECT_DIR/client"
-TIME_TRACKING_CLIENT_DIR="$PROJECT_DIR/time-tracking-client"
-SERVICE_NAME="bestcar"
-
-# Deployment options (set to 1 to enable)
-DEPLOY_TIME_TRACKING=${DEPLOY_TIME_TRACKING:-1}  # Deploy time tracking frontend by default
+SERVICE_NAME="mahdara"
+TOTAL_STEPS=6
 
 # Load environment variables from .env file (needed for Rails commands)
 if [ -f "$BACKEND_DIR/.env" ]; then
@@ -44,18 +35,8 @@ fi
 echo ""
 
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  Bestcar Dealership Management Deployment${NC}"
+echo -e "${BLUE}  Mahdara - إدارة مدفوعات الموظفين${NC}"
 echo -e "${BLUE}========================================${NC}"
-echo ""
-
-# Check deployment mode
-if [ "$DEPLOY_TIME_TRACKING" = "1" ]; then
-  TOTAL_STEPS=8
-  echo -e "${GREEN}Mode: Full deployment (Main App + Time Tracking)${NC}"
-else
-  TOTAL_STEPS=6
-  echo -e "${GREEN}Mode: Main app deployment only${NC}"
-fi
 echo ""
 
 # Step 1: Setup SSH keys
@@ -68,7 +49,7 @@ echo ""
 # Step 2: Pull latest code
 echo -e "${YELLOW}[2/$TOTAL_STEPS] Pulling latest code from repository...${NC}"
 cd "$PROJECT_DIR"
-git pull origin main
+git pull mahdara main
 echo -e "${GREEN}✓ Code updated${NC}"
 echo ""
 
@@ -79,45 +60,27 @@ bundle install --deployment --without development test
 echo -e "${GREEN}✓ Backend dependencies installed${NC}"
 echo ""
 
-# Step 4: Install main frontend dependencies
-echo -e "${YELLOW}[4/$TOTAL_STEPS] Installing main frontend dependencies...${NC}"
+# Step 4: Install and build frontend
+echo -e "${YELLOW}[4/$TOTAL_STEPS] Installing frontend dependencies...${NC}"
 cd "$CLIENT_DIR"
 npm install --production=false
 echo -e "${GREEN}✓ Frontend dependencies installed${NC}"
 echo ""
 
-# Step 5: Build main frontend
-echo -e "${YELLOW}[5/$TOTAL_STEPS] Building main frontend...${NC}"
-cd "$CLIENT_DIR"
+echo -e "${YELLOW}[5/$TOTAL_STEPS] Building frontend...${NC}"
 npm run build
-echo -e "${GREEN}✓ Main frontend built successfully${NC}"
+echo -e "${GREEN}✓ Frontend built successfully${NC}"
 echo ""
 
-# Step 6: Install and build time tracking frontend (if enabled)
-if [ "$DEPLOY_TIME_TRACKING" = "1" ]; then
-  echo -e "${YELLOW}[6/$TOTAL_STEPS] Installing time tracking frontend dependencies...${NC}"
-  cd "$TIME_TRACKING_CLIENT_DIR"
-  npm install --production=false
-  echo -e "${GREEN}✓ Time tracking dependencies installed${NC}"
-  echo ""
-
-  echo -e "${YELLOW}[7/$TOTAL_STEPS] Building time tracking frontend...${NC}"
-  npm run build
-  echo -e "${GREEN}✓ Time tracking frontend built successfully${NC}"
-  echo ""
-fi
-
-# Step 7/8: Run database migrations
-MIGRATION_STEP=$((DEPLOY_TIME_TRACKING ? 8 : 6))
-echo -e "${YELLOW}[$MIGRATION_STEP/$TOTAL_STEPS] Running database migrations...${NC}"
+# Step 5: Run database migrations
+echo -e "${YELLOW}[6/$TOTAL_STEPS] Running database migrations...${NC}"
 cd "$BACKEND_DIR"
 RAILS_ENV=production bundle exec rails db:migrate
 echo -e "${GREEN}✓ Database migrations completed${NC}"
 echo ""
 
-# Step 7/9: Restart Rails server
-RESTART_STEP=$((DEPLOY_TIME_TRACKING ? TOTAL_STEPS : 7))
-echo -e "${YELLOW}[$RESTART_STEP/$TOTAL_STEPS] Restarting application server...${NC}"
+# Step 6: Restart Rails server
+echo -e "${YELLOW}[$TOTAL_STEPS/$TOTAL_STEPS] Restarting application server...${NC}"
 if systemctl is-active --quiet "$SERVICE_NAME"; then
     sudo systemctl restart "$SERVICE_NAME"
     echo -e "${GREEN}✓ Service restarted: $SERVICE_NAME${NC}"
@@ -151,49 +114,3 @@ echo "  - Check service status: sudo systemctl status $SERVICE_NAME"
 echo "  - View logs: sudo journalctl -u $SERVICE_NAME -f"
 echo "  - Check nginx: sudo systemctl status nginx"
 echo ""
-
-if [ "$DEPLOY_TIME_TRACKING" = "1" ]; then
-  echo -e "${BLUE}========================================${NC}"
-  echo -e "${BLUE}  Time Tracking Frontend Info${NC}"
-  echo -e "${BLUE}========================================${NC}"
-  echo ""
-  echo -e "${YELLOW}Build location:${NC} $TIME_TRACKING_CLIENT_DIR/dist"
-  echo -e "${YELLOW}Domain:${NC} time.next-version.com"
-  echo -e "${YELLOW}Dev server:${NC} http://localhost:5174"
-  echo ""
-  echo -e "${YELLOW}Nginx configuration example:${NC}"
-  echo ""
-  cat << NGINX_CONF
-  server {
-      listen 80;
-      server_name time.next-version.com;
-
-      root $PROJECT_DIR/time-tracking-client/dist;
-      index index.html;
-
-      # SPA fallback routing
-      location / {
-          try_files \$uri \$uri/ /index.html;
-      }
-
-      # Optional: Proxy API requests (alternative to CORS)
-      location /api {
-          proxy_pass http://localhost:3000/api;
-          proxy_set_header Host \$host;
-          proxy_set_header X-Real-IP \$remote_addr;
-          proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-          proxy_set_header X-Forwarded-Proto \$scheme;
-      }
-  }
-NGINX_CONF
-  echo ""
-  echo -e "${YELLOW}To apply nginx config:${NC}"
-  echo "  1. Create/edit: sudo nano /etc/nginx/sites-available/time-tracking"
-  echo "  2. Enable site: sudo ln -s /etc/nginx/sites-available/time-tracking /etc/nginx/sites-enabled/"
-  echo "  3. Test config: sudo nginx -t"
-  echo "  4. Reload nginx: sudo systemctl reload nginx"
-  echo "  5. Setup SSL: sudo certbot --nginx -d time.next-version.com"
-  echo ""
-  echo -e "${YELLOW}Documentation:${NC} context/06-time-tracking-frontend.md"
-  echo ""
-fi
