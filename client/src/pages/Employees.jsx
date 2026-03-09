@@ -19,8 +19,8 @@ export default function Employees() {
   const [nniInput, setNniInput] = useState('');
   const [nniLoading, setNniLoading] = useState(false);
   const [formData, setFormData] = useState({
-    nni: '', first_name: '', last_name: '', birth_date: '',
-    phone: '', employee_type_id: '', wilaya_id: '', active: true
+    nni: '', first_name: '', last_name: '', first_name_fr: '', last_name_fr: '',
+    birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true
   });
 
   useEffect(() => {
@@ -58,10 +58,12 @@ export default function Employees() {
         nni: data.nni || nniInput,
         first_name: data.first_name || '',
         last_name: data.last_name || '',
+        first_name_fr: data.first_name_fr || '',
+        last_name_fr: data.last_name_fr || '',
         birth_date: data.birth_date || ''
       }));
-      if (data.first_name || data.last_name) {
-        await showAlert(`تم العثور على: ${data.first_name} ${data.last_name}`, 'success');
+      if (data.first_name || data.first_name_fr) {
+        await showAlert(`تم العثور على: ${data.first_name || ''} ${data.last_name || ''}`, 'success');
       }
     } catch (err) {
       await showAlert(err.response?.data?.error || 'الرقم الوطني غير موجود', 'error');
@@ -72,7 +74,7 @@ export default function Employees() {
 
   const handleCreate = () => {
     setNniInput('');
-    setFormData({ nni: '', first_name: '', last_name: '', birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true });
+    setFormData({ nni: '', first_name: '', last_name: '', first_name_fr: '', last_name_fr: '', birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true });
     setShowForm(true);
   };
 
@@ -266,18 +268,28 @@ export default function Employees() {
                       style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
                   </div>
                   <div>
-                    <label style={labelStyle}>الاسم الأول</label>
+                    <label style={labelStyle}>تاريخ الميلاد</label>
+                    <input type="text" value={formData.birth_date} readOnly
+                      style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>الاسم الأول (عربي)</label>
                     <input type="text" value={formData.first_name} readOnly required
                       style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
                   </div>
                   <div>
-                    <label style={labelStyle}>اسم العائلة</label>
+                    <label style={labelStyle}>اسم العائلة (عربي)</label>
                     <input type="text" value={formData.last_name} readOnly required
                       style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
                   </div>
                   <div>
-                    <label style={labelStyle}>تاريخ الميلاد</label>
-                    <input type="text" value={formData.birth_date} readOnly
+                    <label style={labelStyle}>الاسم الأول (فرنسي)</label>
+                    <input type="text" value={formData.first_name_fr} readOnly
+                      style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>اسم العائلة (فرنسي)</label>
+                    <input type="text" value={formData.last_name_fr} readOnly
                       style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
                   </div>
                 </div>

@@ -55,8 +55,9 @@ class Api::EmployeesController < ApplicationController
   end
 
   def employee_params
-    params.require(:employee).permit(:nni, :first_name, :last_name, :birth_date, :phone,
-                                     :employee_type_id, :wilaya_id, :moughataa_id, :commune_id, :village_id, :active)
+    params.require(:employee).permit(:nni, :first_name, :last_name, :first_name_fr, :last_name_fr,
+                                     :birth_date, :phone, :employee_type_id, :wilaya_id,
+                                     :moughataa_id, :commune_id, :village_id, :active)
   end
 
   def employee_update_params
@@ -71,6 +72,9 @@ class Api::EmployeesController < ApplicationController
       first_name: e.first_name,
       last_name: e.last_name,
       full_name: e.full_name,
+      first_name_fr: e.first_name_fr,
+      last_name_fr: e.last_name_fr,
+      full_name_fr: e.full_name_fr,
       birth_date: e.birth_date,
       phone: e.phone,
       active: e.active,

@@ -88,6 +88,8 @@ export default function EmployeeDetail() {
       nni: employee.nni,
       first_name: employee.first_name,
       last_name: employee.last_name,
+      first_name_fr: employee.first_name_fr || '',
+      last_name_fr: employee.last_name_fr || '',
       birth_date: employee.birth_date || '',
       phone: employee.phone || '',
       employee_type_id: employee.employee_type?.id || '',
@@ -203,8 +205,10 @@ export default function EmployeeDetail() {
             <h2 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>
               المعلومات الشخصية
             </h2>
-            {infoRow('الاسم الأول', employee.first_name)}
-            {infoRow('اسم العائلة', employee.last_name)}
+            {infoRow('الاسم الأول (عربي)', employee.first_name)}
+            {infoRow('اسم العائلة (عربي)', employee.last_name)}
+            {infoRow('الاسم الأول (فرنسي)', employee.first_name_fr)}
+            {infoRow('اسم العائلة (فرنسي)', employee.last_name_fr)}
             {infoRow('تاريخ الميلاد', employee.birth_date)}
             {infoRow('الهاتف', employee.phone)}
             {infoRow('نوع الموظف', employee.employee_type?.name)}
@@ -299,18 +303,28 @@ export default function EmployeeDetail() {
                       style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
                   </div>
                   <div>
-                    <label style={labelStyle}>الاسم الأول</label>
+                    <label style={labelStyle}>تاريخ الميلاد</label>
+                    <input type="text" value={editData.birth_date} readOnly
+                      style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>الاسم الأول (عربي)</label>
                     <input type="text" value={editData.first_name} readOnly
                       style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
                   </div>
                   <div>
-                    <label style={labelStyle}>اسم العائلة</label>
+                    <label style={labelStyle}>اسم العائلة (عربي)</label>
                     <input type="text" value={editData.last_name} readOnly
                       style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
                   </div>
                   <div>
-                    <label style={labelStyle}>تاريخ الميلاد</label>
-                    <input type="text" value={editData.birth_date} readOnly
+                    <label style={labelStyle}>الاسم الأول (فرنسي)</label>
+                    <input type="text" value={editData.first_name_fr} readOnly
+                      style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>اسم العائلة (فرنسي)</label>
+                    <input type="text" value={editData.last_name_fr} readOnly
                       style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
                   </div>
                 </div>

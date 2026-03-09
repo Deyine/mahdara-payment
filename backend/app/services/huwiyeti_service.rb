@@ -22,11 +22,11 @@ class HuwiyetiService
 
     {
       nni: personne['nni'] || nni,
-      first_name: personne['prenomFr'],
-      last_name: personne['patronymeFr'],
+      first_name: personne['prenomAr'],
+      last_name: personne['patronymeAr'],
+      first_name_fr: personne['prenomFr'],
+      last_name_fr: personne['patronymeFr'],
       birth_date: parse_date(personne['dateNaissance']),
-      first_name_ar: personne['prenomAr'],
-      last_name_ar: personne['patronymeAr'],
       gender: personne['sexeCode'],
       birth_place: personne['lieuNaissanceFr'],
       photo: data['photo']
