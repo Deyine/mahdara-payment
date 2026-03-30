@@ -241,7 +241,7 @@ export default function EmployeeDetail() {
   if (!employee) return null;
 
   const infoRow = (label, value) => (
-    <div style={{ marginBottom: '12px' }}>
+    <div style={{ marginBottom: '12px', textAlign: 'right' }}>
       <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '2px' }}>{label}</div>
       <div style={{ fontSize: '14px', color: '#1e293b', fontWeight: '500' }}>{value || '—'}</div>
     </div>
