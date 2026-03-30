@@ -278,7 +278,7 @@ export default function EmployeeDetail() {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: employee.mahdara ? '24px' : 0 }}>
           {/* Info Card */}
-          <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0' }}>
+          <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0', direction: 'rtl' }}>
             <h2 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>
               المعلومات الشخصية
             </h2>
@@ -298,8 +298,8 @@ export default function EmployeeDetail() {
           </div>
 
           {/* Contracts Card */}
-          <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0', direction: 'rtl' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', direction: 'rtl' }}>
               <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>العقود</h2>
               {canWrite && (
                 <button onClick={() => openContractForm()} style={{
@@ -361,7 +361,7 @@ export default function EmployeeDetail() {
 
         {/* Mahdara Card */}
         {(employee.mahdara || employee.employee_type?.is_mahdara) && (
-          <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #93c5fd', marginTop: '0' }}>
+          <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #93c5fd', marginTop: '0', direction: 'rtl' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', direction: 'rtl' }}>
               <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1e40af' }}>بيانات المحظرة</h2>
               {employee.mahdara?.mahl_ilmi_attached && (
