@@ -6,17 +6,17 @@ class Api::CommunesController < ApplicationController
   def index
     scope = Commune.includes(moughataa: :wilaya).order(:name)
     scope = scope.where(moughataa_id: params[:moughataa_id]) if params[:moughataa_id].present?
-    render json: scope.map { |c| commune_json(c) }
+    render json: CommuneSerializer.many(scope)
   end
 
   def show
-    render json: commune_json(@commune)
+    render json: CommuneSerializer.one(@commune)
   end
 
   def create
     @commune = Commune.new(commune_params)
     if @commune.save
-      render json: commune_json(@commune), status: :created
+      render json: CommuneSerializer.one(@commune), status: :created
     else
       render json: { errors: @commune.errors.full_messages }, status: :unprocessable_entity
     end
@@ -24,7 +24,7 @@ class Api::CommunesController < ApplicationController
 
   def update
     if @commune.update(commune_params)
-      render json: commune_json(@commune)
+      render json: CommuneSerializer.one(@commune)
     else
       render json: { errors: @commune.errors.full_messages }, status: :unprocessable_entity
     end
@@ -76,10 +76,5 @@ class Api::CommunesController < ApplicationController
 
   def commune_params
     params.require(:commune).permit(:name, :moughataa_id)
-  end
-
-  def commune_json(c)
-    { id: c.id, name: c.name, moughataa_id: c.moughataa_id,
-      moughataa: c.moughataa ? { id: c.moughataa.id, name: c.moughataa.name } : nil }
   end
 end

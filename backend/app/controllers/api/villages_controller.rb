@@ -6,17 +6,17 @@ class Api::VillagesController < ApplicationController
   def index
     scope = Village.includes(commune: { moughataa: :wilaya }).order(:name)
     scope = scope.where(commune_id: params[:commune_id]) if params[:commune_id].present?
-    render json: scope.map { |v| village_json(v) }
+    render json: VillageSerializer.many(scope)
   end
 
   def show
-    render json: village_json(@village)
+    render json: VillageSerializer.one(@village)
   end
 
   def create
     @village = Village.new(village_params)
     if @village.save
-      render json: village_json(@village), status: :created
+      render json: VillageSerializer.one(@village), status: :created
     else
       render json: { errors: @village.errors.full_messages }, status: :unprocessable_entity
     end
@@ -24,7 +24,7 @@ class Api::VillagesController < ApplicationController
 
   def update
     if @village.update(village_params)
-      render json: village_json(@village)
+      render json: VillageSerializer.one(@village)
     else
       render json: { errors: @village.errors.full_messages }, status: :unprocessable_entity
     end
@@ -74,10 +74,5 @@ class Api::VillagesController < ApplicationController
 
   def village_params
     params.require(:village).permit(:name, :commune_id)
-  end
-
-  def village_json(v)
-    { id: v.id, name: v.name, commune_id: v.commune_id,
-      commune: v.commune ? { id: v.commune.id, name: v.commune.name } : nil }
   end
 end

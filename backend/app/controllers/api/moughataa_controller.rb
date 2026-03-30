@@ -6,17 +6,17 @@ class Api::MoughataaController < ApplicationController
   def index
     scope = Moughataa.includes(:wilaya).order(:name)
     scope = scope.where(wilaya_id: params[:wilaya_id]) if params[:wilaya_id].present?
-    render json: scope.map { |m| moughataa_json(m) }
+    render json: MoughataaSerializer.many(scope)
   end
 
   def show
-    render json: moughataa_json(@moughataa)
+    render json: MoughataaSerializer.one(@moughataa)
   end
 
   def create
     @moughataa = Moughataa.new(moughataa_params)
     if @moughataa.save
-      render json: moughataa_json(@moughataa), status: :created
+      render json: MoughataaSerializer.one(@moughataa), status: :created
     else
       render json: { errors: @moughataa.errors.full_messages }, status: :unprocessable_entity
     end
@@ -24,7 +24,7 @@ class Api::MoughataaController < ApplicationController
 
   def update
     if @moughataa.update(moughataa_params)
-      render json: moughataa_json(@moughataa)
+      render json: MoughataaSerializer.one(@moughataa)
     else
       render json: { errors: @moughataa.errors.full_messages }, status: :unprocessable_entity
     end
@@ -76,10 +76,5 @@ class Api::MoughataaController < ApplicationController
 
   def moughataa_params
     params.require(:moughataa).permit(:name, :wilaya_id)
-  end
-
-  def moughataa_json(m)
-    { id: m.id, name: m.name, wilaya_id: m.wilaya_id,
-      wilaya: m.wilaya ? { id: m.wilaya.id, name: m.wilaya.name } : nil }
   end
 end

@@ -4,17 +4,17 @@ class Api::WilayasController < ApplicationController
   before_action :set_wilaya, only: [:show, :update, :destroy]
 
   def index
-    render json: Wilaya.order(:name).map { |w| { id: w.id, name: w.name, code: w.code } }
+    render json: WilayaSerializer.many(Wilaya.order(:name))
   end
 
   def show
-    render json: { id: @wilaya.id, name: @wilaya.name, code: @wilaya.code }
+    render json: WilayaSerializer.one(@wilaya)
   end
 
   def create
     @wilaya = Wilaya.new(wilaya_params)
     if @wilaya.save
-      render json: { id: @wilaya.id, name: @wilaya.name, code: @wilaya.code }, status: :created
+      render json: WilayaSerializer.one(@wilaya), status: :created
     else
       render json: { errors: @wilaya.errors.full_messages }, status: :unprocessable_entity
     end
@@ -22,7 +22,7 @@ class Api::WilayasController < ApplicationController
 
   def update
     if @wilaya.update(wilaya_params)
-      render json: { id: @wilaya.id, name: @wilaya.name, code: @wilaya.code }
+      render json: WilayaSerializer.one(@wilaya)
     else
       render json: { errors: @wilaya.errors.full_messages }, status: :unprocessable_entity
     end

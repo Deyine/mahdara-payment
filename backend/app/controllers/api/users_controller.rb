@@ -5,11 +5,11 @@ class Api::UsersController < ApplicationController
 
   def index
     @users = User.order(:name)
-    render json: @users.map { |u| user_json(u) }
+    render json: UserSerializer.many(@users)
   end
 
   def show
-    render json: user_json(@user)
+    render json: UserSerializer.one(@user)
   end
 
   def create
@@ -20,7 +20,7 @@ class Api::UsersController < ApplicationController
     end
 
     if @user.save
-      render json: user_json(@user), status: :created
+      render json: UserSerializer.one(@user), status: :created
     else
       render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
     end
@@ -39,7 +39,7 @@ class Api::UsersController < ApplicationController
     params_to_update.delete(:password) if params_to_update[:password].blank?
 
     if @user.update(params_to_update)
-      render json: user_json(@user)
+      render json: UserSerializer.one(@user)
     else
       render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
     end
@@ -61,18 +61,5 @@ class Api::UsersController < ApplicationController
 
   def user_params
     params.require(:user).permit(:name, :username, :password, :role, :active, permissions: {})
-  end
-
-  def user_json(user)
-    {
-      id: user.id,
-      name: user.name,
-      username: user.username,
-      role: user.role,
-      active: user.active,
-      permissions: user.permissions || {},
-      created_at: user.created_at,
-      updated_at: user.updated_at
-    }
   end
 end

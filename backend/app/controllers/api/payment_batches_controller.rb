@@ -6,11 +6,11 @@ class Api::PaymentBatchesController < ApplicationController
   def index
     @batches = PaymentBatch.includes(:created_by, payment_batch_employees: :employee)
                            .order(created_at: :desc)
-    render json: @batches.map { |b| batch_json(b) }
+    render json: PaymentBatchSerializer.many(@batches)
   end
 
   def show
-    render json: batch_json(@batch, full: true)
+    render json: PaymentBatchSerializer.one(@batch, full: true)
   end
 
   def create
@@ -29,7 +29,7 @@ class Api::PaymentBatchesController < ApplicationController
       end
     end
 
-    render json: batch_json(@batch, full: true), status: :created
+    render json: PaymentBatchSerializer.one(@batch, full: true), status: :created
   rescue ActiveRecord::RecordInvalid => e
     render json: { errors: [e.message] }, status: :unprocessable_entity
   end
@@ -48,31 +48,5 @@ class Api::PaymentBatchesController < ApplicationController
 
   def batch_params
     params.require(:payment_batch).permit(:payment_date, :notes)
-  end
-
-  def batch_json(b, full: false)
-    total = b.payment_batch_employees.sum { |pbe| pbe.amount.to_f * pbe.months_count }
-    data = {
-      id: b.id,
-      payment_date: b.payment_date,
-      status: b.status,
-      notes: b.notes,
-      total: total,
-      employees_count: b.payment_batch_employees.size,
-      created_by: b.created_by ? { id: b.created_by.id, name: b.created_by.name } : nil,
-      created_at: b.created_at
-    }
-    if full
-      data[:employees] = b.payment_batch_employees.map do |pbe|
-        {
-          id: pbe.id,
-          employee_id: pbe.employee_id,
-          employee_name: pbe.employee&.full_name,
-          months_count: pbe.months_count,
-          amount: pbe.amount.to_f
-        }
-      end
-    end
-    data
   end
 end

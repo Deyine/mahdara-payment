@@ -6,7 +6,7 @@ class Api::MahdarasController < ApplicationController
   def create
     @mahdara = Mahdara.new(mahdara_params)
     if @mahdara.save
-      render json: mahdara_json(@mahdara), status: :created
+      render json: MahdaraSerializer.one(@mahdara), status: :created
     else
       render json: { errors: @mahdara.errors.full_messages }, status: :unprocessable_entity
     end
@@ -14,7 +14,7 @@ class Api::MahdarasController < ApplicationController
 
   def update
     if @mahdara.update(mahdara_params)
-      render json: mahdara_json(@mahdara)
+      render json: MahdaraSerializer.one(@mahdara)
     else
       render json: { errors: @mahdara.errors.full_messages }, status: :unprocessable_entity
     end
@@ -34,29 +34,12 @@ class Api::MahdarasController < ApplicationController
   private
 
   def set_mahdara
-    @mahdara = Mahdara.includes(:wilaya, :moughataa, :commune, :village).find(params[:id])
+    @mahdara = Mahdara.includes(:wilaya, :moughataa, :commune, :village, mahl_ilmi_attachment: :blob).find(params[:id])
   end
 
   def mahdara_params
     params.require(:mahdara).permit(:employee_id, :nom, :numero_releve, :mahdara_type,
                                     :wilaya_id, :moughataa_id, :commune_id, :village_id,
                                     :nombre_etudiants, :mahl_ilmi)
-  end
-
-  def mahdara_json(m)
-    {
-      id: m.id,
-      employee_id: m.employee_id,
-      nom: m.nom,
-      numero_releve: m.numero_releve,
-      mahdara_type: m.mahdara_type,
-      wilaya: m.wilaya ? { id: m.wilaya.id, name: m.wilaya.name } : nil,
-      moughataa: m.moughataa ? { id: m.moughataa.id, name: m.moughataa.name } : nil,
-      commune: m.commune ? { id: m.commune.id, name: m.commune.name } : nil,
-      village: m.village ? { id: m.village.id, name: m.village.name } : nil,
-      nombre_etudiants: m.nombre_etudiants,
-      mahl_ilmi_attached: m.mahl_ilmi.attached?,
-      mahl_ilmi_filename: m.mahl_ilmi.attached? ? m.mahl_ilmi.filename.to_s : nil
-    }
   end
 end

@@ -5,17 +5,17 @@ class Api::BanksController < ApplicationController
 
   def index
     @banks = Bank.order(:name)
-    render json: @banks.map { |b| bank_json(b) }
+    render json: BankSerializer.many(@banks)
   end
 
   def show
-    render json: bank_json(@bank)
+    render json: BankSerializer.one(@bank)
   end
 
   def create
     @bank = Bank.new(bank_params)
     if @bank.save
-      render json: bank_json(@bank), status: :created
+      render json: BankSerializer.one(@bank), status: :created
     else
       render json: { errors: @bank.errors.full_messages }, status: :unprocessable_entity
     end
@@ -23,7 +23,7 @@ class Api::BanksController < ApplicationController
 
   def update
     if @bank.update(bank_params)
-      render json: bank_json(@bank)
+      render json: BankSerializer.one(@bank)
     else
       render json: { errors: @bank.errors.full_messages }, status: :unprocessable_entity
     end
@@ -45,9 +45,5 @@ class Api::BanksController < ApplicationController
 
   def bank_params
     params.require(:bank).permit(:name, :active)
-  end
-
-  def bank_json(b)
-    { id: b.id, name: b.name, active: b.active, created_at: b.created_at }
   end
 end
