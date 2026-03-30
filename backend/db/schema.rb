@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_09_200002) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_30_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -76,6 +76,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_09_200002) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_mahdara", default: false, null: false
     t.index ["name"], name: "index_employee_types_on_name", unique: true
   end
 
@@ -104,6 +105,25 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_09_200002) do
     t.index ["nni"], name: "index_employees_on_nni", unique: true
     t.index ["village_id"], name: "index_employees_on_village_id"
     t.index ["wilaya_id"], name: "index_employees_on_wilaya_id"
+  end
+
+  create_table "mahdaras", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "employee_id", null: false
+    t.string "nom", null: false
+    t.string "numero_releve"
+    t.string "mahdara_type"
+    t.uuid "wilaya_id"
+    t.uuid "moughataa_id"
+    t.uuid "commune_id"
+    t.uuid "village_id"
+    t.integer "nombre_etudiants"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["commune_id"], name: "index_mahdaras_on_commune_id"
+    t.index ["employee_id"], name: "index_mahdaras_on_employee_id", unique: true
+    t.index ["moughataa_id"], name: "index_mahdaras_on_moughataa_id"
+    t.index ["village_id"], name: "index_mahdaras_on_village_id"
+    t.index ["wilaya_id"], name: "index_mahdaras_on_wilaya_id"
   end
 
   create_table "moughataa", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -174,6 +194,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_09_200002) do
   add_foreign_key "employees", "moughataa"
   add_foreign_key "employees", "villages"
   add_foreign_key "employees", "wilayas"
+  add_foreign_key "mahdaras", "communes"
+  add_foreign_key "mahdaras", "employees"
+  add_foreign_key "mahdaras", "moughataa"
+  add_foreign_key "mahdaras", "villages"
+  add_foreign_key "mahdaras", "wilayas"
   add_foreign_key "moughataa", "wilayas"
   add_foreign_key "payment_batch_employees", "employees"
   add_foreign_key "payment_batch_employees", "payment_batches"

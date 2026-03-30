@@ -11,6 +11,9 @@ Rails.application.routes.draw do
     resources :employees do
       collection { get 'lookup_nni' }
     end
+    resources :mahdaras, only: [:create, :update] do
+      member { get 'document' }
+    end
     resources :contracts, only: [:create, :update, :destroy]
     resources :wilayas do
       collection { post 'import' }

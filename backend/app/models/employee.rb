@@ -8,6 +8,7 @@ class Employee < ApplicationRecord
 
   has_many :contracts, dependent: :destroy
   has_many :payment_batch_employees, dependent: :restrict_with_error
+  has_one :mahdara, dependent: :destroy
 
   validates :nni, presence: true, uniqueness: true
   validates :first_name, presence: true

@@ -44,10 +44,10 @@ class Api::EmployeeTypesController < ApplicationController
   end
 
   def employee_type_params
-    params.require(:employee_type).permit(:name, :active)
+    params.require(:employee_type).permit(:name, :active, :is_mahdara)
   end
 
   def type_json(t)
-    { id: t.id, name: t.name, active: t.active, created_at: t.created_at }
+    { id: t.id, name: t.name, active: t.active, is_mahdara: t.is_mahdara, created_at: t.created_at }
   end
 end

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
-import { employeesAPI, contractsAPI, employeeTypesAPI, wilayasAPI, moughataaAPI, communesAPI, villagesAPI, banksAPI } from '../services/api';
+import { employeesAPI, contractsAPI, employeeTypesAPI, wilayasAPI, moughataaAPI, communesAPI, villagesAPI, banksAPI, mahdarasAPI } from '../services/api';
 
 const inputStyle = { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' };
 const labelStyle = { display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' };
@@ -35,6 +35,17 @@ export default function EmployeeDetail() {
     contract_type: 'CDI', amount: '', start_date: '', duration_months: '', active: true
   });
 
+  // Mahdara edit state
+  const [mahdaraEditData, setMahdaraEditData] = useState({ nom: '', numero_releve: '', mahdara_type: '', nombre_etudiants: '' });
+  const [mahdaraEditFile, setMahdaraEditFile] = useState(null);
+  const [mahdaraWilayaId, setMahdaraWilayaId] = useState('');
+  const [mahdaraMoughataaId, setMahdaraMoughataaId] = useState('');
+  const [mahdaraCommuneId, setMahdaraCommuneId] = useState('');
+  const [mahdaraVillageId, setMahdaraVillageId] = useState('');
+  const [mahdaraMoughataaList, setMahdaraMoughataaList] = useState([]);
+  const [mahdaraCommunesList, setMahdaraCommunesList] = useState([]);
+  const [mahdaraVillagesList, setMahdaraVillagesList] = useState([]);
+
   useEffect(() => {
     Promise.all([fetchEmployee(), fetchTypes(), fetchWilayas(), fetchBanks()]);
   }, [id]);
@@ -56,6 +67,24 @@ export default function EmployeeDetail() {
       villagesAPI.getAll({ commune_id: editCommuneId }).then(r => setVillagesList(r.data)).catch(() => {});
     }
   }, [editCommuneId]);
+
+  useEffect(() => {
+    if (mahdaraWilayaId) {
+      moughataaAPI.getAll({ wilaya_id: mahdaraWilayaId }).then(r => setMahdaraMoughataaList(r.data)).catch(() => {});
+    }
+  }, [mahdaraWilayaId]);
+
+  useEffect(() => {
+    if (mahdaraMoughataaId) {
+      communesAPI.getAll({ moughataa_id: mahdaraMoughataaId }).then(r => setMahdaraCommunesList(r.data)).catch(() => {});
+    }
+  }, [mahdaraMoughataaId]);
+
+  useEffect(() => {
+    if (mahdaraCommuneId) {
+      villagesAPI.getAll({ commune_id: mahdaraCommuneId }).then(r => setMahdaraVillagesList(r.data)).catch(() => {});
+    }
+  }, [mahdaraCommuneId]);
 
   const fetchEmployee = async () => {
     try {
@@ -106,13 +135,54 @@ export default function EmployeeDetail() {
       bank_id: employee.bank?.id || '',
       account_number: employee.account_number || ''
     });
+    if (employee.mahdara) {
+      const m = employee.mahdara;
+      setMahdaraEditData({
+        nom: m.nom || '',
+        numero_releve: m.numero_releve || '',
+        mahdara_type: m.mahdara_type || '',
+        nombre_etudiants: m.nombre_etudiants?.toString() || ''
+      });
+      setMahdaraWilayaId(m.wilaya?.id || '');
+      setMahdaraMoughataaId(m.moughataa?.id || '');
+      setMahdaraCommuneId(m.commune?.id || '');
+      setMahdaraVillageId(m.village?.id || '');
+    } else {
+      setMahdaraEditData({ nom: '', numero_releve: '', mahdara_type: '', nombre_etudiants: '' });
+      setMahdaraWilayaId(''); setMahdaraMoughataaId(''); setMahdaraCommuneId(''); setMahdaraVillageId('');
+    }
+    setMahdaraEditFile(null);
     setShowEditForm(true);
   };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    const isMahdaraType = employee.employee_type?.is_mahdara;
     try {
-      await employeesAPI.update(id, editData);
+      const empUpdate = { ...editData };
+      if (isMahdaraType) {
+        empUpdate.wilaya_id = mahdaraWilayaId;
+        empUpdate.moughataa_id = mahdaraMoughataaId;
+        empUpdate.commune_id = mahdaraCommuneId;
+        empUpdate.village_id = mahdaraVillageId;
+      }
+      await employeesAPI.update(id, empUpdate);
+
+      if (isMahdaraType) {
+        const mahdaraPayload = {
+          ...mahdaraEditData,
+          wilaya_id: mahdaraWilayaId,
+          moughataa_id: mahdaraMoughataaId,
+          commune_id: mahdaraCommuneId,
+          village_id: mahdaraVillageId,
+        };
+        if (employee.mahdara) {
+          await mahdarasAPI.update(employee.mahdara.id, mahdaraPayload, mahdaraEditFile);
+        } else {
+          await mahdarasAPI.create({ employee_id: id, ...mahdaraPayload }, mahdaraEditFile);
+        }
+      }
+
       await showAlert('تم تعديل الموظف', 'success');
       setShowEditForm(false);
       fetchEmployee();
@@ -206,7 +276,7 @@ export default function EmployeeDetail() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: employee.mahdara ? '24px' : 0 }}>
           {/* Info Card */}
           <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0' }}>
             <h2 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>
@@ -288,6 +358,51 @@ export default function EmployeeDetail() {
             )}
           </div>
         </div>
+
+        {/* Mahdara Card */}
+        {(employee.mahdara || employee.employee_type?.is_mahdara) && (
+          <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #93c5fd', marginTop: '0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', direction: 'rtl' }}>
+              <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1e40af' }}>بيانات المحظرة</h2>
+              {employee.mahdara?.mahl_ilmi_attached && (
+                <button onClick={async () => {
+                  try {
+                    const res = await mahdarasAPI.document(employee.mahdara.id);
+                    const url = URL.createObjectURL(new Blob([res.data], { type: res.headers['content-type'] }));
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = employee.mahdara.mahl_ilmi_filename || 'mahl_ilmi';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } catch {
+                    await showAlert('خطأ في تحميل الوثيقة', 'error');
+                  }
+                }} style={{
+                  padding: '6px 14px', borderRadius: '6px', border: '1px solid #167bff',
+                  color: '#167bff', backgroundColor: 'white', cursor: 'pointer', fontSize: '13px'
+                }}>تحميل المأهل العلمي</button>
+              )}
+            </div>
+            {employee.mahdara ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                {infoRow('اسم المحظرة', employee.mahdara.nom)}
+                {infoRow('رقم الإفادة', employee.mahdara.numero_releve)}
+                {infoRow('نوع المحظرة', {
+                  jamia: 'محظرة جامعة', mutakhassisa: 'محظرة متخصصة',
+                  quraniya: 'محظرة قرآنية', awwaliya: 'محظرة أولية'
+                }[employee.mahdara.mahdara_type])}
+                {infoRow('الولاية', employee.mahdara.wilaya?.name)}
+                {infoRow('المقاطعة', employee.mahdara.moughataa?.name)}
+                {infoRow('البلدية', employee.mahdara.commune?.name)}
+                {infoRow('القرية', employee.mahdara.village?.name)}
+                {infoRow('عدد الطلاب', employee.mahdara.nombre_etudiants)}
+                {infoRow('المأهل العلمي', employee.mahdara.mahl_ilmi_attached ? employee.mahdara.mahl_ilmi_filename : 'غير مرفق')}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>لم تُضف بيانات المحظرة بعد</div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Edit Employee Modal */}
@@ -351,34 +466,36 @@ export default function EmployeeDetail() {
                     {types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label style={labelStyle}>الولاية</label>
-                  <select value={editWilayaId} onChange={e => { setEditWilayaId(e.target.value); setEditData({ ...editData, wilaya_id: e.target.value, moughataa_id: '', commune_id: '', village_id: '' }); }} style={inputStyle}>
-                    <option value="">اختر...</option>
-                    {wilayas.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={labelStyle}>المقاطعة</label>
-                  <select value={editMoughataaId} onChange={e => { setEditMoughataaId(e.target.value); setEditData({ ...editData, moughataa_id: e.target.value, commune_id: '', village_id: '' }); }} disabled={!editWilayaId} style={{ ...inputStyle, backgroundColor: !editWilayaId ? '#f1f5f9' : 'white' }}>
-                    <option value="">اختر...</option>
-                    {moughataaList.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={labelStyle}>البلدية</label>
-                  <select value={editCommuneId} onChange={e => { setEditCommuneId(e.target.value); setEditData({ ...editData, commune_id: e.target.value, village_id: '' }); }} disabled={!editMoughataaId} style={{ ...inputStyle, backgroundColor: !editMoughataaId ? '#f1f5f9' : 'white' }}>
-                    <option value="">اختر...</option>
-                    {communesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={labelStyle}>القرية</label>
-                  <select value={editData.village_id} onChange={e => setEditData({ ...editData, village_id: e.target.value })} disabled={!editCommuneId} style={{ ...inputStyle, backgroundColor: !editCommuneId ? '#f1f5f9' : 'white' }}>
-                    <option value="">اختر...</option>
-                    {villagesList.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-                  </select>
-                </div>
+                {!employee.employee_type?.is_mahdara && (<>
+                  <div>
+                    <label style={labelStyle}>الولاية</label>
+                    <select value={editWilayaId} onChange={e => { setEditWilayaId(e.target.value); setEditData({ ...editData, wilaya_id: e.target.value, moughataa_id: '', commune_id: '', village_id: '' }); }} style={inputStyle}>
+                      <option value="">اختر...</option>
+                      {wilayas.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>المقاطعة</label>
+                    <select value={editMoughataaId} onChange={e => { setEditMoughataaId(e.target.value); setEditData({ ...editData, moughataa_id: e.target.value, commune_id: '', village_id: '' }); }} disabled={!editWilayaId} style={{ ...inputStyle, backgroundColor: !editWilayaId ? '#f1f5f9' : 'white' }}>
+                      <option value="">اختر...</option>
+                      {moughataaList.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>البلدية</label>
+                    <select value={editCommuneId} onChange={e => { setEditCommuneId(e.target.value); setEditData({ ...editData, commune_id: e.target.value, village_id: '' }); }} disabled={!editMoughataaId} style={{ ...inputStyle, backgroundColor: !editMoughataaId ? '#f1f5f9' : 'white' }}>
+                      <option value="">اختر...</option>
+                      {communesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>القرية</label>
+                    <select value={editData.village_id} onChange={e => setEditData({ ...editData, village_id: e.target.value })} disabled={!editCommuneId} style={{ ...inputStyle, backgroundColor: !editCommuneId ? '#f1f5f9' : 'white' }}>
+                      <option value="">اختر...</option>
+                      {villagesList.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                    </select>
+                  </div>
+                </>)}
                 <div>
                   <label style={labelStyle}>البنك</label>
                   <select value={editData.bank_id} onChange={e => setEditData({ ...editData, bank_id: e.target.value })} style={inputStyle}>
@@ -392,6 +509,77 @@ export default function EmployeeDetail() {
                     style={inputStyle} placeholder="مثال: MR13..." />
                 </div>
               </div>
+
+              {employee.employee_type?.is_mahdara && (
+                <div style={{ marginBottom: '15px', padding: '16px', borderRadius: '8px', backgroundColor: '#eff6ff', border: '1px solid #93c5fd' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#1e40af', marginBottom: '14px', textAlign: 'right' }}>
+                    بيانات المحظرة
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                    <div>
+                      <label style={labelStyle}>اسم المحظرة *</label>
+                      <input type="text" value={mahdaraEditData.nom} onChange={e => setMahdaraEditData({ ...mahdaraEditData, nom: e.target.value })}
+                        required={!employee.mahdara} style={inputStyle} placeholder="اسم المحظرة" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>رقم الإفادة</label>
+                      <input type="text" value={mahdaraEditData.numero_releve} onChange={e => setMahdaraEditData({ ...mahdaraEditData, numero_releve: e.target.value })}
+                        style={inputStyle} placeholder="رقم الإفادة" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>نوع المحظرة</label>
+                      <select value={mahdaraEditData.mahdara_type} onChange={e => setMahdaraEditData({ ...mahdaraEditData, mahdara_type: e.target.value })} style={inputStyle}>
+                        <option value="">اختر...</option>
+                        <option value="jamia">محظرة جامعة</option>
+                        <option value="mutakhassisa">محظرة متخصصة</option>
+                        <option value="quraniya">محظرة قرآنية</option>
+                        <option value="awwaliya">محظرة أولية</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>عدد الطلاب</label>
+                      <input type="number" value={mahdaraEditData.nombre_etudiants} onChange={e => setMahdaraEditData({ ...mahdaraEditData, nombre_etudiants: e.target.value })}
+                        min="0" style={inputStyle} placeholder="عدد الطلاب" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>الولاية</label>
+                      <select value={mahdaraWilayaId} onChange={e => { setMahdaraWilayaId(e.target.value); setMahdaraMoughataaId(''); setMahdaraCommuneId(''); setMahdaraVillageId(''); }} style={inputStyle}>
+                        <option value="">اختر...</option>
+                        {wilayas.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>المقاطعة</label>
+                      <select value={mahdaraMoughataaId} onChange={e => { setMahdaraMoughataaId(e.target.value); setMahdaraCommuneId(''); setMahdaraVillageId(''); }} disabled={!mahdaraWilayaId} style={{ ...inputStyle, backgroundColor: !mahdaraWilayaId ? '#f1f5f9' : 'white' }}>
+                        <option value="">اختر...</option>
+                        {mahdaraMoughataaList.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>البلدية</label>
+                      <select value={mahdaraCommuneId} onChange={e => { setMahdaraCommuneId(e.target.value); setMahdaraVillageId(''); }} disabled={!mahdaraMoughataaId} style={{ ...inputStyle, backgroundColor: !mahdaraMoughataaId ? '#f1f5f9' : 'white' }}>
+                        <option value="">اختر...</option>
+                        {mahdaraCommunesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>القرية</label>
+                      <select value={mahdaraVillageId} onChange={e => setMahdaraVillageId(e.target.value)} disabled={!mahdaraCommuneId} style={{ ...inputStyle, backgroundColor: !mahdaraCommuneId ? '#f1f5f9' : 'white' }}>
+                        <option value="">اختر...</option>
+                        {mahdaraVillagesList.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>
+                      المأهل العلمي {employee.mahdara?.mahl_ilmi_attached && <span style={{ color: '#64748b', fontWeight: 'normal' }}>(مرفق — اختر ملفاً جديداً للاستبدال)</span>}
+                    </label>
+                    <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => setMahdaraEditFile(e.target.files[0] || null)}
+                      style={{ ...inputStyle, padding: '6px' }} />
+                  </div>
+                </div>
+              )}
+
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
                   <input type="checkbox" checked={editData.active} onChange={e => setEditData({ ...editData, active: e.target.checked })}

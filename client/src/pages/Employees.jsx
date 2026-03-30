@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
-import { employeesAPI, employeeTypesAPI, wilayasAPI, banksAPI } from '../services/api';
+import { employeesAPI, employeeTypesAPI, wilayasAPI, banksAPI, moughataaAPI, communesAPI, villagesAPI, mahdarasAPI } from '../services/api';
 
 export default function Employees() {
   const navigate = useNavigate();
@@ -24,10 +24,54 @@ export default function Employees() {
     birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true,
     bank_id: '', account_number: ''
   });
+  // Mahdara-specific state for create form
+  const [isMahdaraType, setIsMahdaraType] = useState(false);
+  const [mahdaraForm, setMahdaraForm] = useState({ nom: '', numero_releve: '', mahdara_type: '', nombre_etudiants: '' });
+  const [mahdaraFile, setMahdaraFile] = useState(null);
+  const [mahdaraWilayaId, setMahdaraWilayaId] = useState('');
+  const [mahdaraMoughataaId, setMahdaraMoughataaId] = useState('');
+  const [mahdaraCommuneId, setMahdaraCommuneId] = useState('');
+  const [mahdaraVillageId, setMahdaraVillageId] = useState('');
+  const [mahdaraMoughataaList, setMahdaraMoughataaList] = useState([]);
+  const [mahdaraCommunesList, setMahdaraCommunesList] = useState([]);
+  const [mahdaraVillagesList, setMahdaraVillagesList] = useState([]);
 
   useEffect(() => {
     Promise.all([fetchEmployees(), fetchTypes(), fetchWilayas(), fetchBanks()]);
   }, []);
+
+  useEffect(() => {
+    const selectedType = types.find(t => t.id === formData.employee_type_id);
+    setIsMahdaraType(selectedType?.is_mahdara || false);
+  }, [formData.employee_type_id, types]);
+
+  useEffect(() => {
+    setMahdaraMoughataaId(''); setMahdaraCommuneId(''); setMahdaraVillageId('');
+    setMahdaraCommunesList([]); setMahdaraVillagesList([]);
+    if (mahdaraWilayaId) {
+      moughataaAPI.getAll({ wilaya_id: mahdaraWilayaId }).then(r => setMahdaraMoughataaList(r.data)).catch(() => {});
+    } else {
+      setMahdaraMoughataaList([]);
+    }
+  }, [mahdaraWilayaId]);
+
+  useEffect(() => {
+    setMahdaraCommuneId(''); setMahdaraVillageId(''); setMahdaraVillagesList([]);
+    if (mahdaraMoughataaId) {
+      communesAPI.getAll({ moughataa_id: mahdaraMoughataaId }).then(r => setMahdaraCommunesList(r.data)).catch(() => {});
+    } else {
+      setMahdaraCommunesList([]);
+    }
+  }, [mahdaraMoughataaId]);
+
+  useEffect(() => {
+    setMahdaraVillageId('');
+    if (mahdaraCommuneId) {
+      villagesAPI.getAll({ commune_id: mahdaraCommuneId }).then(r => setMahdaraVillagesList(r.data)).catch(() => {});
+    } else {
+      setMahdaraVillagesList([]);
+    }
+  }, [mahdaraCommuneId]);
 
   const fetchEmployees = async () => {
     try {
@@ -81,13 +125,37 @@ export default function Employees() {
   const handleCreate = () => {
     setNniInput('');
     setFormData({ nni: '', first_name: '', last_name: '', first_name_fr: '', last_name_fr: '', birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true, bank_id: '', account_number: '' });
+    setMahdaraForm({ nom: '', numero_releve: '', mahdara_type: '', nombre_etudiants: '' });
+    setMahdaraFile(null);
+    setMahdaraWilayaId(''); setMahdaraMoughataaId(''); setMahdaraCommuneId(''); setMahdaraVillageId('');
+    setMahdaraMoughataaList([]); setMahdaraCommunesList([]); setMahdaraVillagesList([]);
     setShowForm(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await employeesAPI.create(formData);
+      const empData = { ...formData };
+      if (isMahdaraType) {
+        empData.wilaya_id = mahdaraWilayaId;
+        empData.moughataa_id = mahdaraMoughataaId;
+        empData.commune_id = mahdaraCommuneId;
+        empData.village_id = mahdaraVillageId;
+      }
+      const res = await employeesAPI.create(empData);
+      const newEmployee = res.data;
+
+      if (isMahdaraType) {
+        await mahdarasAPI.create({
+          employee_id: newEmployee.id,
+          ...mahdaraForm,
+          wilaya_id: mahdaraWilayaId,
+          moughataa_id: mahdaraMoughataaId,
+          commune_id: mahdaraCommuneId,
+          village_id: mahdaraVillageId,
+        }, mahdaraFile);
+      }
+
       await showAlert('تم إنشاء الموظف بنجاح', 'success');
       setShowForm(false);
       fetchEmployees();
@@ -338,7 +406,75 @@ export default function Employees() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              {isMahdaraType && (
+                <div style={{ marginTop: '20px', padding: '16px', borderRadius: '8px', backgroundColor: '#eff6ff', border: '1px solid #93c5fd' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#1e40af', marginBottom: '14px', textAlign: 'right' }}>
+                    بيانات المحظرة
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                    <div>
+                      <label style={labelStyle}>اسم المحظرة *</label>
+                      <input type="text" value={mahdaraForm.nom} onChange={e => setMahdaraForm({ ...mahdaraForm, nom: e.target.value })}
+                        required style={inputStyle} placeholder="اسم المحظرة" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>رقم الإفادة</label>
+                      <input type="text" value={mahdaraForm.numero_releve} onChange={e => setMahdaraForm({ ...mahdaraForm, numero_releve: e.target.value })}
+                        style={inputStyle} placeholder="رقم الإفادة" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>نوع المحظرة</label>
+                      <select value={mahdaraForm.mahdara_type} onChange={e => setMahdaraForm({ ...mahdaraForm, mahdara_type: e.target.value })} style={inputStyle}>
+                        <option value="">اختر...</option>
+                        <option value="jamia">محظرة جامعة</option>
+                        <option value="mutakhassisa">محظرة متخصصة</option>
+                        <option value="quraniya">محظرة قرآنية</option>
+                        <option value="awwaliya">محظرة أولية</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>عدد الطلاب</label>
+                      <input type="number" value={mahdaraForm.nombre_etudiants} onChange={e => setMahdaraForm({ ...mahdaraForm, nombre_etudiants: e.target.value })}
+                        min="0" style={inputStyle} placeholder="عدد الطلاب" />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>الولاية</label>
+                      <select value={mahdaraWilayaId} onChange={e => setMahdaraWilayaId(e.target.value)} style={inputStyle}>
+                        <option value="">اختر...</option>
+                        {wilayas.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>المقاطعة</label>
+                      <select value={mahdaraMoughataaId} onChange={e => setMahdaraMoughataaId(e.target.value)} disabled={!mahdaraWilayaId} style={{ ...inputStyle, backgroundColor: !mahdaraWilayaId ? '#f1f5f9' : 'white' }}>
+                        <option value="">اختر...</option>
+                        {mahdaraMoughataaList.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>البلدية</label>
+                      <select value={mahdaraCommuneId} onChange={e => setMahdaraCommuneId(e.target.value)} disabled={!mahdaraMoughataaId} style={{ ...inputStyle, backgroundColor: !mahdaraMoughataaId ? '#f1f5f9' : 'white' }}>
+                        <option value="">اختر...</option>
+                        {mahdaraCommunesList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>القرية</label>
+                      <select value={mahdaraVillageId} onChange={e => setMahdaraVillageId(e.target.value)} disabled={!mahdaraCommuneId} style={{ ...inputStyle, backgroundColor: !mahdaraCommuneId ? '#f1f5f9' : 'white' }}>
+                        <option value="">اختر...</option>
+                        {mahdaraVillagesList.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>المأهل العلمي (وثيقة)</label>
+                    <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e => setMahdaraFile(e.target.files[0] || null)}
+                      style={{ ...inputStyle, padding: '6px' }} />
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
                 <button type="submit" style={{
                   flex: 1, padding: '10px', borderRadius: '6px', border: 'none',
                   backgroundColor: '#167bff', color: 'white', cursor: 'pointer', fontWeight: 'bold'

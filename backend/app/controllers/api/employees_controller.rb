@@ -4,7 +4,8 @@ class Api::EmployeesController < ApplicationController
   before_action :set_employee, only: [:show, :update, :destroy]
 
   def index
-    @employees = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts)
+    @employees = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts,
+                                   mahdara: [:wilaya, :moughataa, :commune, :village])
                          .order(:last_name, :first_name)
     render json: @employees.map { |e| employee_json(e) }
   end
@@ -51,7 +52,8 @@ class Api::EmployeesController < ApplicationController
   private
 
   def set_employee
-    @employee = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts).find(params[:id])
+    @employee = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts,
+                                  mahdara: [:wilaya, :moughataa, :commune, :village]).find(params[:id])
   end
 
   def employee_params
@@ -80,17 +82,35 @@ class Api::EmployeesController < ApplicationController
       birth_date: e.birth_date,
       phone: e.phone,
       active: e.active,
-      employee_type: e.employee_type ? { id: e.employee_type.id, name: e.employee_type.name } : nil,
+      employee_type: e.employee_type ? { id: e.employee_type.id, name: e.employee_type.name, is_mahdara: e.employee_type.is_mahdara } : nil,
       wilaya: e.wilaya ? { id: e.wilaya.id, name: e.wilaya.name } : nil,
       moughataa: e.moughataa ? { id: e.moughataa.id, name: e.moughataa.name } : nil,
       commune: e.commune ? { id: e.commune.id, name: e.commune.name } : nil,
       village: e.village ? { id: e.village.id, name: e.village.name } : nil,
       bank: e.bank ? { id: e.bank.id, name: e.bank.name } : nil,
       account_number: e.account_number,
-      active_contract: active_contract ? contract_json(active_contract) : nil
+      active_contract: active_contract ? contract_json(active_contract) : nil,
+      mahdara: mahdara_json(e.mahdara)
     }
     data[:contracts] = e.contracts.map { |c| contract_json(c) } if full
     data
+  end
+
+  def mahdara_json(m)
+    return nil unless m
+    {
+      id: m.id,
+      nom: m.nom,
+      numero_releve: m.numero_releve,
+      mahdara_type: m.mahdara_type,
+      wilaya: m.wilaya ? { id: m.wilaya.id, name: m.wilaya.name } : nil,
+      moughataa: m.moughataa ? { id: m.moughataa.id, name: m.moughataa.name } : nil,
+      commune: m.commune ? { id: m.commune.id, name: m.commune.name } : nil,
+      village: m.village ? { id: m.village.id, name: m.village.name } : nil,
+      nombre_etudiants: m.nombre_etudiants,
+      mahl_ilmi_attached: m.mahl_ilmi.attached?,
+      mahl_ilmi_filename: m.mahl_ilmi.attached? ? m.mahl_ilmi.filename.to_s : nil
+    }
   end
 
   def contract_json(c)

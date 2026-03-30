@@ -52,6 +52,21 @@ export const employeesAPI = {
   lookupNni: (nni) => api.get(`/employees/lookup_nni?nni=${nni}`),
 };
 
+const buildMahdaraFD = (data, file) => {
+  const fd = new FormData();
+  Object.entries(data).forEach(([k, v]) => {
+    if (v !== null && v !== undefined && v !== '') fd.append(`mahdara[${k}]`, v);
+  });
+  if (file) fd.append('mahdara[mahl_ilmi]', file);
+  return fd;
+};
+
+export const mahdarasAPI = {
+  create: (data, file = null) => api.post('/mahdaras', buildMahdaraFD(data, file)),
+  update: (id, data, file = null) => api.patch(`/mahdaras/${id}`, buildMahdaraFD(data, file)),
+  document: (id) => api.get(`/mahdaras/${id}/document`, { responseType: 'blob' }),
+};
+
 export const contractsAPI = {
   create: (data) => api.post('/contracts', { contract: data }),
   update: (id, data) => api.patch(`/contracts/${id}`, { contract: data }),
