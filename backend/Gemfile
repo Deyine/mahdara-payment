@@ -45,6 +45,9 @@ gem "httparty", "~> 0.21"
 gem "prawn", "~> 2.4"
 gem "prawn-table", "~> 0.2"
 
+# Excel generation
+gem "caxlsx", "~> 3.4"
+
 # Pretty print Ruby objects with proper indentation and colors
 gem "awesome_print", require: "ap"
 

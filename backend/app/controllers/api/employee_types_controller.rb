@@ -44,6 +44,6 @@ class Api::EmployeeTypesController < ApplicationController
   end
 
   def employee_type_params
-    params.require(:employee_type).permit(:name, :active, :is_mahdara)
+    params.require(:employee_type).permit(:name, :active, :is_mahdara, :apply_imf)
   end
 end

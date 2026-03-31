@@ -27,6 +27,35 @@ export default function PaymentBatchDetail() {
     }
   };
 
+  const handleConfirm = async () => {
+    const ok = await showConfirm(
+      'بعد التأكيد لن يمكن تعديل أو حذف هذه الدفعة. هل تريد المتابعة؟',
+      'تأكيد الدفعة'
+    );
+    if (!ok) return;
+    try {
+      const res = await paymentBatchesAPI.confirm(batch.id);
+      setBatch(res.data);
+      await showAlert('تم تأكيد الدفعة بنجاح', 'success');
+    } catch (err) {
+      await showAlert(err.response?.data?.error || 'خطأ في التأكيد', 'error');
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const res = await paymentBatchesAPI.export(batch.id);
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `paiement-${batch.payment_date}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      await showAlert('خطأ في تصدير الملف', 'error');
+    }
+  };
+
   const handleDelete = async () => {
     const confirmed = await showConfirm(
       `هل تريد حذف دفعة ${batch.payment_date}؟`,
@@ -82,6 +111,18 @@ export default function PaymentBatchDetail() {
                 padding: '6px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: '600',
                 backgroundColor: badge.bg, color: badge.color
               }}>{badge.label}</span>
+              {batch.status === 'confirmed' && (
+                <button onClick={handleExport} style={{
+                  padding: '8px 16px', borderRadius: '6px', border: '1px solid #10b981',
+                  color: '#10b981', backgroundColor: 'white', cursor: 'pointer', fontSize: '14px'
+                }}>⬇ تصدير Excel</button>
+              )}
+              {canWrite && batch.status === 'draft' && (
+                <button onClick={handleConfirm} style={{
+                  padding: '8px 16px', borderRadius: '6px', border: 'none',
+                  color: 'white', backgroundColor: '#167bff', cursor: 'pointer', fontSize: '14px', fontWeight: '600'
+                }}>تأكيد الدفعة</button>
+              )}
               {canWrite && batch.status === 'draft' && (
                 <button onClick={handleDelete} style={{
                   padding: '8px 16px', borderRadius: '6px', border: '1px solid #ef4444',

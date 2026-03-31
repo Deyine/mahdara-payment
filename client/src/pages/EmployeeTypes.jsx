@@ -10,7 +10,7 @@ export default function EmployeeTypes() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [formData, setFormData] = useState({ name: '', active: true, is_mahdara: false });
+  const [formData, setFormData] = useState({ name: '', active: true, is_mahdara: false, apply_imf: false });
 
   useEffect(() => { fetchTypes(); }, []);
 
@@ -34,7 +34,7 @@ export default function EmployeeTypes() {
 
   const handleEdit = (type) => {
     setEditing(type);
-    setFormData({ name: type.name, active: type.active, is_mahdara: type.is_mahdara });
+    setFormData({ name: type.name, active: type.active, is_mahdara: type.is_mahdara, apply_imf: type.apply_imf });
     setShowForm(true);
   };
 
@@ -73,7 +73,7 @@ export default function EmployeeTypes() {
   const resetForm = () => {
     setShowForm(false);
     setEditing(null);
-    setFormData({ name: '', active: true, is_mahdara: false });
+    setFormData({ name: '', active: true, is_mahdara: false, apply_imf: false });
   };
 
   return (
@@ -102,6 +102,7 @@ export default function EmployeeTypes() {
             <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الاسم</th>
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>محظرة</th>
+              <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>IMF</th>
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الحالة</th>
               {canWrite && <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الإجراءات</th>}
             </tr>
@@ -116,6 +117,14 @@ export default function EmployeeTypes() {
                       padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: '600',
                       backgroundColor: '#eff6ff', color: '#1e40af', border: '1px solid #93c5fd'
                     }}>محظرة</span>
+                  )}
+                </td>
+                <td style={{ padding: '12px' }}>
+                  {type.apply_imf && (
+                    <span style={{
+                      padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: '600',
+                      backgroundColor: '#fef9c3', color: '#854d0e', border: '1px solid #fde047'
+                    }}>IMF 2.5%</span>
                   )}
                 </td>
                 <td style={{ padding: '12px' }}>
@@ -170,7 +179,7 @@ export default function EmployeeTypes() {
                   <span style={{ fontWeight: '500' }}>نشط</span>
                 </label>
               </div>
-              <div style={{ marginBottom: '20px', padding: '12px', borderRadius: '6px', backgroundColor: '#eff6ff', border: '1px solid #93c5fd' }}>
+              <div style={{ marginBottom: '12px', padding: '12px', borderRadius: '6px', backgroundColor: '#eff6ff', border: '1px solid #93c5fd' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
                   <input type="checkbox" checked={formData.is_mahdara} onChange={e => setFormData({ ...formData, is_mahdara: e.target.checked })}
                     style={{ width: '18px', height: '18px', accentColor: '#167bff' }} />
@@ -178,6 +187,18 @@ export default function EmployeeTypes() {
                     <span style={{ fontWeight: '600', color: '#1e40af' }}>نوع محظرة</span>
                     <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>
                       الموظفون من هذا النوع يتطلبون بيانات المحظرة عند الإنشاء
+                    </div>
+                  </div>
+                </label>
+              </div>
+              <div style={{ marginBottom: '20px', padding: '12px', borderRadius: '6px', backgroundColor: '#fefce8', border: '1px solid #fde047' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px' }}>
+                  <input type="checkbox" checked={formData.apply_imf} onChange={e => setFormData({ ...formData, apply_imf: e.target.checked })}
+                    style={{ width: '18px', height: '18px', accentColor: '#167bff' }} />
+                  <div>
+                    <span style={{ fontWeight: '600', color: '#854d0e' }}>تطبيق IMF</span>
+                    <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>
+                      خصم 2.5% على الراتب عند تصدير الدفعة
                     </div>
                   </div>
                 </label>
