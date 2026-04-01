@@ -12,9 +12,15 @@ namespace :employees do
       person = HuwiyetiService.new.get_person_by_nni(employee.nni)
       employee.update_columns(
         pere_prenom_ar: person[:pere_prenom_ar],
-        pere_prenom_fr: person[:pere_prenom_fr],
-        photo:          person[:photo]
+        pere_prenom_fr: person[:pere_prenom_fr]
       )
+      if person[:photo].present?
+        employee.photo.attach(
+          io: StringIO.new(Base64.decode64(person[:photo])),
+          filename: "#{employee.nni}.jpg",
+          content_type: 'image/jpeg'
+        )
+      end
       updated += 1
       puts "[#{updated}/#{total}] ✓ #{employee.nni} — #{employee.full_name}"
     rescue StandardError => e
