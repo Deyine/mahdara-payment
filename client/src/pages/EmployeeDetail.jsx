@@ -279,12 +279,21 @@ export default function EmployeeDetail() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: employee.mahdara ? '24px' : 0, direction: 'rtl' }}>
           {/* Info Card */}
           <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0', direction: 'rtl' }}>
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>
-              المعلومات الشخصية
-            </h2>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '20px' }}>
+              {employee.photo && (
+                <img src={`data:image/jpeg;base64,${employee.photo}`}
+                  alt="صورة الموظف"
+                  style={{ width: '70px', height: '88px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e2e8f0', flexShrink: 0 }} />
+              )}
+              <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1e293b', alignSelf: 'center' }}>
+                المعلومات الشخصية
+              </h2>
+            </div>
             {infoRow('الاسم الأول (عربي)', employee.first_name)}
+            {infoRow('اسم الأب (عربي)', employee.pere_prenom_ar)}
             {infoRow('اسم العائلة (عربي)', employee.last_name)}
             {infoRow('الاسم الأول (فرنسي)', employee.first_name_fr)}
+            {infoRow('اسم الأب (فرنسي)', employee.pere_prenom_fr)}
             {infoRow('اسم العائلة (فرنسي)', employee.last_name_fr)}
             {infoRow('تاريخ الميلاد', employee.birth_date)}
             {infoRow('الهاتف', employee.phone)}

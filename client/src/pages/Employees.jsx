@@ -21,6 +21,7 @@ export default function Employees() {
   const [nniLoading, setNniLoading] = useState(false);
   const [formData, setFormData] = useState({
     nni: '', first_name: '', last_name: '', first_name_fr: '', last_name_fr: '',
+    pere_prenom_ar: '', pere_prenom_fr: '', photo: '',
     birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true,
     bank_id: '', account_number: ''
   });
@@ -110,6 +111,9 @@ export default function Employees() {
         last_name: data.last_name || '',
         first_name_fr: data.first_name_fr || '',
         last_name_fr: data.last_name_fr || '',
+        pere_prenom_ar: data.pere_prenom_ar || '',
+        pere_prenom_fr: data.pere_prenom_fr || '',
+        photo: data.photo || '',
         birth_date: data.birth_date || ''
       }));
       if (data.first_name || data.first_name_fr) {
@@ -124,7 +128,7 @@ export default function Employees() {
 
   const handleCreate = () => {
     setNniInput('');
-    setFormData({ nni: '', first_name: '', last_name: '', first_name_fr: '', last_name_fr: '', birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true, bank_id: '', account_number: '' });
+    setFormData({ nni: '', first_name: '', last_name: '', first_name_fr: '', last_name_fr: '', pere_prenom_ar: '', pere_prenom_fr: '', photo: '', birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true, bank_id: '', account_number: '' });
     setMahdaraForm({ nom: '', numero_releve: '', mahdara_type: '', nombre_etudiants: '' });
     setMahdaraFile(null);
     setMahdaraWilayaId(''); setMahdaraMoughataaId(''); setMahdaraCommuneId(''); setMahdaraVillageId('');
@@ -364,7 +368,24 @@ export default function Employees() {
                     <input type="text" value={formData.last_name_fr} readOnly
                       style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
                   </div>
+                  <div>
+                    <label style={labelStyle}>اسم الأب (عربي)</label>
+                    <input type="text" value={formData.pere_prenom_ar} readOnly
+                      style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>اسم الأب (فرنسي)</label>
+                    <input type="text" value={formData.pere_prenom_fr} readOnly
+                      style={{ ...inputStyle, backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'default' }} />
+                  </div>
                 </div>
+                {formData.photo && (
+                  <div style={{ marginTop: '12px', textAlign: 'center' }}>
+                    <img src={`data:image/jpeg;base64,${formData.photo}`}
+                      alt="صورة الموظف"
+                      style={{ width: '80px', height: '100px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e2e8f0' }} />
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>

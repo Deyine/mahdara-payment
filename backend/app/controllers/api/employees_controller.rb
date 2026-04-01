@@ -58,6 +58,7 @@ class Api::EmployeesController < ApplicationController
 
   def employee_params
     params.require(:employee).permit(:nni, :first_name, :last_name, :first_name_fr, :last_name_fr,
+                                     :pere_prenom_ar, :pere_prenom_fr, :photo,
                                      :birth_date, :phone, :employee_type_id, :wilaya_id,
                                      :moughataa_id, :commune_id, :village_id, :active,
                                      :bank_id, :account_number)

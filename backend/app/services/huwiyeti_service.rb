@@ -26,6 +26,8 @@ class HuwiyetiService
       last_name: personne['patronymeAr'],
       first_name_fr: personne['prenomFr'],
       last_name_fr: personne['patronymeFr'],
+      pere_prenom_ar: personne['perePrenomAr'],
+      pere_prenom_fr: personne['perePrenomFr'],
       birth_date: parse_date(personne['dateNaissance']),
       gender: personne['sexeCode'],
       birth_place: personne['lieuNaissanceFr'],

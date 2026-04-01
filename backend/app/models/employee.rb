@@ -21,10 +21,10 @@ class Employee < ApplicationRecord
   end
 
   def full_name
-    "#{first_name} #{last_name}"
+    [first_name, pere_prenom_ar, last_name].reject(&:blank?).join(' ')
   end
 
   def full_name_fr
-    "#{first_name_fr} #{last_name_fr}"
+    [first_name_fr, pere_prenom_fr, last_name_fr].reject(&:blank?).join(' ')
   end
 end

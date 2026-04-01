@@ -74,8 +74,11 @@ class Api::PaymentBatchesController < ApplicationController
         total_imf  = imf * months
         total_net  = net_month * months
 
-        full_name = [emp.first_name_fr.presence || emp.first_name,
-                     emp.last_name_fr.presence  || emp.last_name].join(' ')
+        full_name = [
+          emp.first_name_fr.presence  || emp.first_name,
+          emp.pere_prenom_fr.presence || emp.pere_prenom_ar,
+          emp.last_name_fr.presence   || emp.last_name
+        ].reject(&:blank?).join(' ')
 
         sheet.add_row(
           [idx + 1, emp.nni, full_name, emp.account_number, emp.bank&.name,
