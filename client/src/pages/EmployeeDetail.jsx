@@ -285,8 +285,8 @@ export default function EmployeeDetail() {
           {/* Info Card */}
           <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0', direction: 'rtl' }}>
             <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '20px' }}>
-              {employee.photo && (
-                <img src={`data:image/jpeg;base64,${employee.photo}`}
+              {employee.photo_url && (
+                <img src={employee.photo_url}
                   alt="صورة الموظف"
                   style={{ width: '70px', height: '88px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e2e8f0', flexShrink: 0 }} />
               )}

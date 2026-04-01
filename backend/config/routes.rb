@@ -10,6 +10,7 @@ Rails.application.routes.draw do
     resources :banks
     resources :employees do
       collection { get 'lookup_nni' }
+      member { get 'photo' }
     end
     resources :mahdaras, only: [:create, :update] do
       member { get 'document' }

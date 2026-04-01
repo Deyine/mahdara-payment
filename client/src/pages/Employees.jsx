@@ -139,7 +139,7 @@ export default function Employees() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const empData = { ...formData };
+      const { photo: _photo, ...empData } = formData;
       if (isMahdaraType) {
         empData.wilaya_id = mahdaraWilayaId;
         empData.moughataa_id = mahdaraMoughataaId;

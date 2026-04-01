@@ -1,13 +1,24 @@
 class Api::EmployeesController < ApplicationController
   before_action :authenticate_user!
   before_action :require_admin, only: [:create, :update, :destroy]
-  before_action :set_employee, only: [:show, :update, :destroy]
+  before_action :set_employee, only: [:show, :update, :destroy, :photo]
 
   def index
     @employees = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts,
                                    mahdara: [:wilaya, :moughataa, :commune, :village, mahl_ilmi_attachment: :blob])
                          .order(:last_name, :first_name)
     render json: EmployeeSerializer.many(@employees)
+  end
+
+  def photo
+    if @employee.photo.attached?
+      send_data @employee.photo.download,
+                filename: "#{@employee.nni}.jpg",
+                content_type: 'image/jpeg',
+                disposition: 'inline'
+    else
+      render json: { error: 'لا توجد صورة' }, status: :not_found
+    end
   end
 
   def show
@@ -27,6 +38,7 @@ class Api::EmployeesController < ApplicationController
   def create
     @employee = Employee.new(employee_params)
     if @employee.save
+      attach_photo_from_huwiyeti(@employee)
       render json: EmployeeSerializer.one(@employee), status: :created
     else
       render json: { errors: @employee.errors.full_messages }, status: :unprocessable_entity
@@ -53,12 +65,25 @@ class Api::EmployeesController < ApplicationController
 
   def set_employee
     @employee = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts,
+                                  photo_attachment: :blob,
                                   mahdara: [:wilaya, :moughataa, :commune, :village, mahl_ilmi_attachment: :blob]).find(params[:id])
+  end
+
+  def attach_photo_from_huwiyeti(employee)
+    person = HuwiyetiService.new.get_person_by_nni(employee.nni)
+    return if person[:photo].blank?
+    employee.photo.attach(
+      io: StringIO.new(Base64.decode64(person[:photo])),
+      filename: "#{employee.nni}.jpg",
+      content_type: 'image/jpeg'
+    )
+  rescue StandardError => e
+    Rails.logger.warn "Could not attach photo for employee #{employee.nni}: #{e.message}"
   end
 
   def employee_params
     params.require(:employee).permit(:nni, :first_name, :last_name, :first_name_fr, :last_name_fr,
-                                     :pere_prenom_ar, :pere_prenom_fr, :photo,
+                                     :pere_prenom_ar, :pere_prenom_fr,
                                      :birth_date, :phone, :employee_type_id, :wilaya_id,
                                      :moughataa_id, :commune_id, :village_id, :active,
                                      :bank_id, :account_number)

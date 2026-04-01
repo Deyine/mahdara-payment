@@ -6,6 +6,8 @@ class Employee < ApplicationRecord
   belongs_to :village, optional: true
   belongs_to :bank, optional: true
 
+  has_one_attached :photo
+
   has_many :contracts, dependent: :destroy
   has_many :payment_batch_employees, dependent: :restrict_with_error
   has_one :mahdara, dependent: :destroy

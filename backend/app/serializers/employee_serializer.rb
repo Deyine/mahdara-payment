@@ -12,7 +12,6 @@ class EmployeeSerializer
       full_name_fr: e.full_name_fr,
       pere_prenom_ar: e.pere_prenom_ar,
       pere_prenom_fr: e.pere_prenom_fr,
-      photo: e.photo,
       birth_date: e.birth_date,
       phone: e.phone,
       active: e.active,
@@ -26,6 +25,7 @@ class EmployeeSerializer
       active_contract: active_contract ? ContractSerializer.one(active_contract) : nil,
       mahdara: MahdaraSerializer.one(e.mahdara)
     }
+    data[:photo_url] = e.photo.attached? ? "/api/employees/#{e.id}/photo" : nil if full
     data[:contracts] = ContractSerializer.many(e.contracts) if full
     data
   end

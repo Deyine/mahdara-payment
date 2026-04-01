@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_30_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_04_01_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -77,6 +77,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_30_000002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "is_mahdara", default: false, null: false
+    t.boolean "apply_imf", default: false, null: false
     t.index ["name"], name: "index_employee_types_on_name", unique: true
   end
 
@@ -98,6 +99,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_30_000002) do
     t.string "last_name_fr"
     t.uuid "bank_id"
     t.string "account_number"
+    t.string "pere_prenom_ar"
+    t.string "pere_prenom_fr"
     t.index ["bank_id"], name: "index_employees_on_bank_id"
     t.index ["commune_id"], name: "index_employees_on_commune_id"
     t.index ["employee_type_id"], name: "index_employees_on_employee_type_id"
@@ -154,6 +157,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_30_000002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["created_by_id"], name: "index_payment_batches_on_created_by_id"
+  end
+
+  create_table "salary_amounts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.integer "amount", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["amount"], name: "index_salary_amounts_on_amount", unique: true
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
