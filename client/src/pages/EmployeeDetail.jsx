@@ -621,8 +621,13 @@ export default function EmployeeDetail() {
               </div>
               <div style={{ marginBottom: '15px' }}>
                 <label style={labelStyle}>المبلغ الشهري (أوقية) *</label>
-                <input type="number" value={contractData.amount} onChange={e => setContractData({ ...contractData, amount: e.target.value })}
-                  required min="0" step="0.01" placeholder="مثال: 50000" style={inputStyle} />
+                <select value={contractData.amount} onChange={e => setContractData({ ...contractData, amount: e.target.value })}
+                  required style={inputStyle}>
+                  <option value="">اختر المبلغ...</option>
+                  {[15000, 12000, 10000, 8000, 7000, 6000, 5000, 4000, 3000].map(a => (
+                    <option key={a} value={a}>{a.toLocaleString()} أوقية</option>
+                  ))}
+                </select>
               </div>
               <div style={{ marginBottom: '15px' }}>
                 <label style={labelStyle}>تاريخ البدء *</label>
