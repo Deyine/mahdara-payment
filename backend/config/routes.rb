@@ -14,6 +14,7 @@ Rails.application.routes.draw do
     resources :mahdaras, only: [:create, :update] do
       member { get 'document' }
     end
+    resources :salary_amounts, only: [:index, :create, :destroy]
     resources :contracts, only: [:create, :update, :destroy]
     resources :wilayas do
       collection { post 'import' }

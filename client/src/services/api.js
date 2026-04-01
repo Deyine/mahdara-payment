@@ -67,6 +67,12 @@ export const mahdarasAPI = {
   document: (id) => api.get(`/mahdaras/${id}/document`, { responseType: 'blob' }),
 };
 
+export const salaryAmountsAPI = {
+  getAll: () => api.get('/salary_amounts'),
+  create: (amount) => api.post('/salary_amounts', { amount }),
+  delete: (id) => api.delete(`/salary_amounts/${id}`),
+};
+
 export const contractsAPI = {
   create: (data) => api.post('/contracts', { contract: data }),
   update: (id, data) => api.patch(`/contracts/${id}`, { contract: data }),

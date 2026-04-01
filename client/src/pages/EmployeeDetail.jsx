@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
-import { employeesAPI, contractsAPI, employeeTypesAPI, wilayasAPI, moughataaAPI, communesAPI, villagesAPI, banksAPI, mahdarasAPI } from '../services/api';
+import { employeesAPI, contractsAPI, employeeTypesAPI, wilayasAPI, moughataaAPI, communesAPI, villagesAPI, banksAPI, mahdarasAPI, salaryAmountsAPI } from '../services/api';
 
 const inputStyle = { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' };
 const labelStyle = { display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' };
@@ -22,6 +22,7 @@ export default function EmployeeDetail() {
   const [types, setTypes] = useState([]);
   const [wilayas, setWilayas] = useState([]);
   const [banks, setBanks] = useState([]);
+  const [salaryAmounts, setSalaryAmounts] = useState([]);
   const [moughataaList, setMoughataaList] = useState([]);
   const [communesList, setCommunesList] = useState([]);
   const [villagesList, setVillagesList] = useState([]);
@@ -47,7 +48,7 @@ export default function EmployeeDetail() {
   const [mahdaraVillagesList, setMahdaraVillagesList] = useState([]);
 
   useEffect(() => {
-    Promise.all([fetchEmployee(), fetchTypes(), fetchWilayas(), fetchBanks()]);
+    Promise.all([fetchEmployee(), fetchTypes(), fetchWilayas(), fetchBanks(), fetchSalaryAmounts()]);
   }, [id]);
 
   useEffect(() => {
@@ -109,6 +110,10 @@ export default function EmployeeDetail() {
 
   const fetchBanks = async () => {
     try { const r = await banksAPI.getAll(); setBanks(r.data); } catch { /* ignore */ }
+  };
+
+  const fetchSalaryAmounts = async () => {
+    try { const r = await salaryAmountsAPI.getAll(); setSalaryAmounts(r.data); } catch { /* ignore */ }
   };
 
   const openEditForm = () => {
@@ -633,8 +638,8 @@ export default function EmployeeDetail() {
                 <select value={contractData.amount} onChange={e => setContractData({ ...contractData, amount: e.target.value })}
                   required style={inputStyle}>
                   <option value="">اختر المبلغ...</option>
-                  {[15000, 12000, 10000, 8000, 7000, 6000, 5000, 4000, 3500, 3000, 2000].map(a => (
-                    <option key={a} value={a}>{a.toLocaleString()} أوقية</option>
+                  {salaryAmounts.map(sa => (
+                    <option key={sa.id} value={sa.amount}>{sa.amount.toLocaleString()} أوقية</option>
                   ))}
                 </select>
               </div>

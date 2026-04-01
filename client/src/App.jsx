@@ -18,6 +18,7 @@ import Communes from './pages/Communes';
 import Villages from './pages/Villages';
 import Users from './pages/Users';
 import Banks from './pages/Banks';
+import SalaryAmounts from './pages/SalaryAmounts';
 
 function PrivateRoute({ children, requireAdmin = false }) {
   const { user, loading } = useAuth();
@@ -125,6 +126,7 @@ function AppRoutes() {
         <Route path="communes" element={<Communes />} />
         <Route path="villages" element={<Villages />} />
         <Route path="banks" element={<Banks />} />
+        <Route path="salary-amounts" element={<SalaryAmounts />} />
         <Route path="users" element={<Users />} />
       </Route>
     </Routes>

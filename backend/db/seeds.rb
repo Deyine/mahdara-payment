@@ -14,3 +14,9 @@ User.find_or_create_by!(username: 'admin') do |u|
 end
 
 puts "Seed completed: #{User.count} users"
+
+# Default salary amounts
+[2000, 3000, 3500, 4000, 5000, 6000, 7000, 8000, 10000, 12000, 15000].each do |amount|
+  SalaryAmount.find_or_create_by!(amount: amount)
+end
+puts "Salary amounts: #{SalaryAmount.count}"
