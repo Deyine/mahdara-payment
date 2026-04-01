@@ -251,10 +251,10 @@ export default function EmployeeDetail() {
     <div className="min-h-screen" style={{ backgroundColor: '#fafbfc' }}>
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
-        <div style={{ marginBottom: '24px' }}>
+        <div style={{ marginBottom: '24px', direction: 'rtl' }}>
           <button onClick={() => navigate('/admin/employees')} style={{
-            background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '14px', padding: 0, marginBottom: '12px'
-          }}>العودة إلى الموظفين →</button>
+            background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '14px', padding: 0, marginBottom: '12px', display: 'block'
+          }}>← العودة إلى الموظفين</button>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', direction: 'rtl' }}>
             <div>
               <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1e293b' }}>{employee.full_name}</h1>
@@ -276,7 +276,7 @@ export default function EmployeeDetail() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: employee.mahdara ? '24px' : 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: employee.mahdara ? '24px' : 0, direction: 'rtl' }}>
           {/* Info Card */}
           <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0', direction: 'rtl' }}>
             <h2 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>
@@ -624,7 +624,7 @@ export default function EmployeeDetail() {
                 <select value={contractData.amount} onChange={e => setContractData({ ...contractData, amount: e.target.value })}
                   required style={inputStyle}>
                   <option value="">اختر المبلغ...</option>
-                  {[15000, 12000, 10000, 8000, 7000, 6000, 5000, 4000, 3000].map(a => (
+                  {[15000, 12000, 10000, 8000, 7000, 6000, 5000, 4000, 3500, 3000, 2000].map(a => (
                     <option key={a} value={a}>{a.toLocaleString()} أوقية</option>
                   ))}
                 </select>

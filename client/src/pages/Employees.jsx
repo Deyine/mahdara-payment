@@ -156,9 +156,7 @@ export default function Employees() {
         }, mahdaraFile);
       }
 
-      await showAlert('تم إنشاء الموظف بنجاح', 'success');
-      setShowForm(false);
-      fetchEmployees();
+      navigate(`/admin/employees/${newEmployee.id}`);
     } catch (err) {
       await showAlert(err.response?.data?.errors?.[0] || 'خطأ', 'error');
     }
