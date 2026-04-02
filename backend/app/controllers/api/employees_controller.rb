@@ -2,6 +2,7 @@ class Api::EmployeesController < ApplicationController
   before_action :authenticate_user!
   before_action :require_admin, only: [:create, :update, :destroy]
   before_action :set_employee, only: [:show, :update, :destroy, :photo]
+  skip_before_action :authenticate_user!, only: [:photo]
 
   def index
     @employees = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts,
