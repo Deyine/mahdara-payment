@@ -96,7 +96,7 @@ export default function PaymentBatchDetail() {
         <div style={{ marginBottom: '24px', direction: 'rtl' }}>
           <button onClick={() => navigate('/admin/payments')} style={{
             background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '14px', padding: 0, marginBottom: '12px'
-          }}>العودة إلى الدفعات →</button>
+          }}>← العودة إلى الدفعات</button>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1e293b' }}>

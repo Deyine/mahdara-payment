@@ -86,7 +86,7 @@ export function DialogProvider({ children }) {
 
               {/* Alert Body */}
               <div className="p-6">
-                <p style={{ color: '#475569' }}>{alertDialog.message}</p>
+                <p style={{ color: '#475569', textAlign: 'right' }}>{alertDialog.message}</p>
               </div>
 
               {/* Alert Footer */}
@@ -98,7 +98,7 @@ export function DialogProvider({ children }) {
                   onMouseEnter={(e) => e.target.style.backgroundColor = '#0d5dd6'}
                   onMouseLeave={(e) => e.target.style.backgroundColor = '#167bff'}
                 >
-                  OK
+                  حسناً
                 </button>
               </div>
             </div>
@@ -132,7 +132,7 @@ export function DialogProvider({ children }) {
 
               {/* Confirm Body */}
               <div className="p-6">
-                <p style={{ color: '#475569' }}>{confirmDialog.message}</p>
+                <p style={{ color: '#475569', textAlign: 'right' }}>{confirmDialog.message}</p>
               </div>
 
               {/* Confirm Footer */}
