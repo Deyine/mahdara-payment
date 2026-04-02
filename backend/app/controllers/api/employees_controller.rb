@@ -1,25 +1,13 @@
 class Api::EmployeesController < ApplicationController
   before_action :authenticate_user!
   before_action :require_admin, only: [:create, :update, :destroy]
-  before_action :set_employee, only: [:show, :update, :destroy, :photo]
-  skip_before_action :authenticate_user!, only: [:photo]
+  before_action :set_employee, only: [:show, :update, :destroy]
 
   def index
     @employees = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts,
                                    mahdara: [:wilaya, :moughataa, :commune, :village, mahl_ilmi_attachment: :blob])
                          .order(:last_name, :first_name)
     render json: EmployeeSerializer.many(@employees)
-  end
-
-  def photo
-    if @employee.photo.attached?
-      send_data @employee.photo.download,
-                filename: "#{@employee.nni}.jpg",
-                content_type: 'image/jpeg',
-                disposition: 'inline'
-    else
-      render json: { error: 'لا توجد صورة' }, status: :not_found
-    end
   end
 
   def show
