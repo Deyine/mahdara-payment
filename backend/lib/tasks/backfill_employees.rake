@@ -1,8 +1,7 @@
 namespace :employees do
   desc "Backfill pere_prenom_ar, pere_prenom_fr and photo for existing employees via Huwiyeti API"
   task backfill_huwiyeti: :environment do
-    employees = Employee.left_joins(:photo_attachment)
-                        .where(active_storage_attachments: { id: nil })
+    employees = Employee.includes(:photo_attachment).select { |e| !e.photo.attached? }
     total = employees.count
     puts "#{total} employees to backfill..."
 
