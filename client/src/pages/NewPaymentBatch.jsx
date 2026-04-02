@@ -76,9 +76,12 @@ export default function NewPaymentBatch() {
     setSelected(prev => ({ ...prev, [empId]: { ...prev[empId], months_count: months } }));
   };
 
-  const applyGlobalMonths = (value) => {
-    const months = Math.max(1, parseInt(value) || 1);
-    setGlobalMonths(months);
+  const applyGlobalMonths = () => {
+    const months = parseInt(globalMonths);
+    if (!months || months < 1) {
+      showAlert('عدد الأشهر يجب أن يكون رقماً صحيحاً أكبر من 0', 'error');
+      return;
+    }
     setSelected(prev => {
       const next = { ...prev };
       Object.keys(next).forEach(id => { next[id] = { ...next[id], months_count: months }; });
@@ -157,8 +160,12 @@ export default function NewPaymentBatch() {
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#475569' }}>
                     عدد الأشهر للجميع:
                     <input type="number" value={globalMonths} min="1"
-                      onChange={e => applyGlobalMonths(e.target.value)}
+                      onChange={e => setGlobalMonths(e.target.value)}
                       style={{ width: '60px', padding: '4px 8px', borderRadius: '4px', border: '1px solid #167bff', fontSize: '14px', fontWeight: '600', textAlign: 'center' }} />
+                    <button type="button" onClick={applyGlobalMonths} style={{
+                      padding: '4px 12px', borderRadius: '4px', border: 'none', cursor: 'pointer',
+                      backgroundColor: '#167bff', color: 'white', fontSize: '13px', fontWeight: '500'
+                    }}>تطبيق على الجميع</button>
                   </label>
                 </div>
 
