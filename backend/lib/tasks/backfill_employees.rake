@@ -8,7 +8,7 @@ namespace :employees do
     updated = 0
     failed  = 0
 
-    employees.find_each do |employee|
+    employees.each do |employee|
       person = HuwiyetiService.new.get_person_by_nni(employee.nni)
       employee.update_columns(
         pere_prenom_ar: person[:pere_prenom_ar],
