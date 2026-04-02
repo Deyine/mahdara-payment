@@ -17,6 +17,7 @@ export default function NewPaymentBatch() {
 
   // Selected employees: { [employee_id]: { months_count, amount } }
   const [selected, setSelected] = useState({});
+  const [globalMonths, setGlobalMonths] = useState(1);
 
   useEffect(() => { fetchEmployees(); }, []);
 
@@ -38,6 +39,27 @@ export default function NewPaymentBatch() {
       !search || e.full_name.toLowerCase().includes(search.toLowerCase()) || e.nni.includes(search)
     ), [allEmployees, search]);
 
+  const allFilteredSelected = filtered.length > 0 && filtered.every(e => !!selected[e.id]);
+  const someFilteredSelected = filtered.some(e => !!selected[e.id]);
+
+  const toggleAll = () => {
+    if (allFilteredSelected) {
+      setSelected(prev => {
+        const next = { ...prev };
+        filtered.forEach(e => delete next[e.id]);
+        return next;
+      });
+    } else {
+      setSelected(prev => {
+        const next = { ...prev };
+        filtered.forEach(e => {
+          if (!next[e.id]) next[e.id] = { months_count: globalMonths, amount: e.active_contract.amount };
+        });
+        return next;
+      });
+    }
+  };
+
   const toggleEmployee = (emp) => {
     setSelected(prev => {
       if (prev[emp.id]) {
@@ -45,19 +67,23 @@ export default function NewPaymentBatch() {
         delete next[emp.id];
         return next;
       }
-      return {
-        ...prev,
-        [emp.id]: {
-          months_count: 1,
-          amount: emp.active_contract.amount
-        }
-      };
+      return { ...prev, [emp.id]: { months_count: globalMonths, amount: emp.active_contract.amount } };
     });
   };
 
   const updateMonths = (empId, value) => {
     const months = Math.max(1, parseInt(value) || 1);
     setSelected(prev => ({ ...prev, [empId]: { ...prev[empId], months_count: months } }));
+  };
+
+  const applyGlobalMonths = (value) => {
+    const months = Math.max(1, parseInt(value) || 1);
+    setGlobalMonths(months);
+    setSelected(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(id => { next[id] = { ...next[id], months_count: months }; });
+      return next;
+    });
   };
 
   const total = useMemo(() =>
@@ -114,8 +140,27 @@ export default function NewPaymentBatch() {
                 <input type="text" value={search} onChange={e => setSearch(e.target.value)}
                   placeholder="البحث بالاسم أو الرقم الوطني..." style={{
                     width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
-                    fontSize: '14px', marginBottom: '16px', boxSizing: 'border-box'
+                    fontSize: '14px', marginBottom: '12px', boxSizing: 'border-box'
                   }} />
+
+                {/* Global controls */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px', padding: '10px 12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', direction: 'rtl' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#1e293b', fontWeight: '500' }}>
+                    <input type="checkbox"
+                      checked={allFilteredSelected}
+                      ref={el => { if (el) el.indeterminate = someFilteredSelected && !allFilteredSelected; }}
+                      onChange={toggleAll}
+                      style={{ width: '16px', height: '16px', accentColor: '#167bff', cursor: 'pointer' }} />
+                    تحديد الكل
+                  </label>
+                  <div style={{ width: '1px', height: '20px', backgroundColor: '#e2e8f0' }} />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#475569' }}>
+                    عدد الأشهر للجميع:
+                    <input type="number" value={globalMonths} min="1"
+                      onChange={e => applyGlobalMonths(e.target.value)}
+                      style={{ width: '60px', padding: '4px 8px', borderRadius: '4px', border: '1px solid #167bff', fontSize: '14px', fontWeight: '600', textAlign: 'center' }} />
+                  </label>
+                </div>
 
                 {loading ? (
                   <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>جارٍ التحميل...</div>
@@ -128,7 +173,8 @@ export default function NewPaymentBatch() {
                     <table dir="rtl" style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
                         <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
-                          <th style={{ padding: '10px', width: '40px' }}></th>
+                          <th style={{ padding: '10px', width: '40px', textAlign: 'center' }}>
+                          </th>
                           <th style={{ padding: '10px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>الموظف</th>
                           <th style={{ padding: '10px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>المبلغ/شهر</th>
                           <th style={{ padding: '10px', textAlign: 'center', fontSize: '13px', fontWeight: '600', color: '#64748b', width: '100px' }}>عدد الأشهر</th>
