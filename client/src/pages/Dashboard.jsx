@@ -49,19 +49,19 @@ export default function Dashboard() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px', color: '#64748b' }}>جارٍ التحميل...</div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', direction: 'rtl' }}>
             {cards.map(card => (
               <div key={card.title} onClick={card.onClick} className="bg-white rounded-lg shadow-sm p-6"
                 style={{ border: '1px solid #e2e8f0', cursor: 'pointer', transition: 'box-shadow 0.15s' }}
                 onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'}
                 onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}>
-                <div style={{ fontSize: '13px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
+                <div style={{ fontSize: '13px', fontWeight: '600', color: '#64748b', letterSpacing: '0.05em', marginBottom: '12px', textAlign: 'right' }}>
                   {card.title}
                 </div>
-                <div style={{ fontSize: '42px', fontWeight: 'bold', color: card.color, marginBottom: '4px' }}>
+                <div style={{ fontSize: '42px', fontWeight: 'bold', color: card.color, marginBottom: '4px', textAlign: 'right' }}>
                   {card.value}
                 </div>
-                <div style={{ fontSize: '13px', color: '#94a3b8' }}>{card.sub}</div>
+                <div style={{ fontSize: '13px', color: '#94a3b8', textAlign: 'right' }}>{card.sub}</div>
               </div>
             ))}
           </div>

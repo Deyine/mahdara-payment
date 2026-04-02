@@ -358,7 +358,8 @@ export default function Users() {
             borderRadius: '8px',
             padding: '30px',
             maxWidth: '450px',
-            width: '100%'
+            width: '100%',
+            direction: 'rtl'
           }}>
             <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold', textAlign: 'right' }}>
               {editingUser ? 'تعديل المستخدم' : 'مستخدم جديد'}

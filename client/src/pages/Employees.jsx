@@ -313,7 +313,7 @@ export default function Employees() {
           backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
           justifyContent: 'center', zIndex: 1000, overflowY: 'auto', padding: '20px'
         }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', maxWidth: '500px', width: '100%', margin: 'auto' }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', maxWidth: '500px', width: '100%', margin: 'auto', direction: 'rtl' }}>
             <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold', textAlign: 'right' }}>موظف جديد</h2>
 
             {/* NNI Lookup */}
