@@ -125,22 +125,22 @@ export default function NewPaymentBatch() {
     <div className="min-h-screen" style={{ backgroundColor: '#fafbfc' }}>
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div style={{ marginBottom: '24px' }}>
+        <div style={{ marginBottom: '24px', direction: 'rtl', textAlign: 'right' }}>
           <button onClick={() => navigate('/admin/payments')} style={{
             background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '14px', padding: 0, marginBottom: '12px'
-          }}>العودة إلى الدفعات →</button>
+          }}>← العودة إلى الدفعات</button>
           <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1e293b' }}>دفعة مرتبات جديدة</h1>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', alignItems: 'start', direction: 'ltr' }}>
             {/* Left: Employee Selection */}
             <div>
               <div className="bg-white rounded-lg shadow-sm p-6 mb-6" style={{ border: '1px solid #e2e8f0' }}>
-                <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>
+                <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold', color: '#1e293b', textAlign: 'right' }}>
                   اختر الموظفين
                 </h2>
-                <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+                <input type="text" dir="rtl" value={search} onChange={e => setSearch(e.target.value)}
                   placeholder="البحث بالاسم أو الرقم الوطني..." style={{
                     width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
                     fontSize: '14px', marginBottom: '12px', boxSizing: 'border-box'
@@ -240,11 +240,43 @@ export default function NewPaymentBatch() {
             </div>
 
             {/* Right: Summary & Batch Info */}
-            <div style={{ position: 'sticky', top: '20px' }}>
+            <div style={{ position: 'sticky', top: '20px', direction: 'rtl' }}>
+              {/* Batch Metadata */}
+              <div className="bg-white rounded-lg shadow-sm p-6 mb-6" style={{ border: '1px solid #e2e8f0' }}>
+                <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold', color: '#1e293b', textAlign: 'right' }}>
+                  معلومات الدفعة
+                </h2>
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>تاريخ الدفع *</label>
+                  <input type="date" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} required style={{
+                    width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box'
+                  }} />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>ملاحظات (اختياري)</label>
+                  <textarea dir="rtl" value={notes} onChange={e => setNotes(e.target.value)} rows={3} style={{
+                    width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', resize: 'vertical', boxSizing: 'border-box'
+                  }} placeholder="مثال: مرتبات يناير 2026..." />
+                </div>
+
+                <button type="submit" disabled={submitting || selectedCount === 0 || !paymentDate} style={{
+                  width: '100%', padding: '12px', borderRadius: '6px', border: 'none', fontSize: '15px', fontWeight: 'bold',
+                  cursor: (submitting || selectedCount === 0 || !paymentDate) ? 'not-allowed' : 'pointer',
+                  backgroundColor: (submitting || selectedCount === 0 || !paymentDate) ? '#94a3b8' : '#167bff',
+                  color: 'white'
+                }}>
+                  {submitting ? 'جارٍ الإنشاء...' : `إنشاء الدفعة (${selectedCount} موظف)`}
+                </button>
+                <button type="button" onClick={() => navigate('/admin/payments')} style={{
+                  width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
+                  backgroundColor: 'white', cursor: 'pointer', marginTop: '8px', fontSize: '14px'
+                }}>إلغاء</button>
+              </div>
+
               {/* Live Total Block */}
-              <div className="bg-white rounded-lg shadow-sm p-6 mb-6" style={{ border: '2px solid #167bff' }}>
+              <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '2px solid #167bff' }}>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '8px', letterSpacing: '0.05em' }}>
                     إجمالي الدفعة
                   </div>
                   <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#167bff', marginBottom: '8px' }}>
@@ -272,38 +304,6 @@ export default function NewPaymentBatch() {
                     })}
                   </div>
                 )}
-              </div>
-
-              {/* Batch Metadata */}
-              <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0' }}>
-                <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>
-                  معلومات الدفعة
-                </h2>
-                <div style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>تاريخ الدفع *</label>
-                  <input type="date" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} required style={{
-                    width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box'
-                  }} />
-                </div>
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>ملاحظات (اختياري)</label>
-                  <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} style={{
-                    width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', resize: 'vertical', boxSizing: 'border-box'
-                  }} placeholder="مثال: مرتبات يناير 2026..." />
-                </div>
-
-                <button type="submit" disabled={submitting || selectedCount === 0 || !paymentDate} style={{
-                  width: '100%', padding: '12px', borderRadius: '6px', border: 'none', fontSize: '15px', fontWeight: 'bold',
-                  cursor: (submitting || selectedCount === 0 || !paymentDate) ? 'not-allowed' : 'pointer',
-                  backgroundColor: (submitting || selectedCount === 0 || !paymentDate) ? '#94a3b8' : '#167bff',
-                  color: 'white'
-                }}>
-                  {submitting ? 'جارٍ الإنشاء...' : `إنشاء الدفعة (${selectedCount} موظف)`}
-                </button>
-                <button type="button" onClick={() => navigate('/admin/payments')} style={{
-                  width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
-                  backgroundColor: 'white', cursor: 'pointer', marginTop: '8px', fontSize: '14px'
-                }}>إلغاء</button>
               </div>
             </div>
           </div>
