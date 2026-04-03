@@ -95,6 +95,7 @@ const SearchableSelect = ({
       isClearable={isClearable}
       isDisabled={isDisabled}
       isSearchable={true}
+      isRtl={true}
       styles={customStyles}
       className={className}
       required={isRequired}

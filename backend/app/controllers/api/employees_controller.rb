@@ -3,11 +3,46 @@ class Api::EmployeesController < ApplicationController
   before_action :require_admin, only: [:create, :update, :destroy]
   before_action :set_employee, only: [:show, :update, :destroy]
 
+  SORT_COLUMNS = {
+    'nni'           => 'employees.nni',
+    'name'          => 'employees.last_name',
+    'employee_type' => 'employee_types.name',
+    'wilaya'        => 'wilayas.name'
+  }.freeze
+
   def index
-    @employees = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts,
-                                   mahdara: [:wilaya, :moughataa, :commune, :village, mahl_ilmi_attachment: :blob])
-                         .order(:last_name, :first_name)
-    render json: EmployeeSerializer.many(@employees)
+    scope = Employee.all
+
+    if params[:search].present?
+      term = "%#{params[:search].downcase}%"
+      scope = scope.where(
+        "lower(employees.nni) LIKE :t OR lower(employees.first_name) LIKE :t OR lower(employees.last_name) LIKE :t",
+        t: term
+      )
+    end
+    scope = scope.where(employee_type_id: params[:employee_type_id]) if params[:employee_type_id].present?
+    scope = scope.where(wilaya_id: params[:wilaya_id]) if params[:wilaya_id].present?
+
+    sort_col = SORT_COLUMNS.fetch(params[:sort_by], 'employees.last_name')
+    sort_dir = params[:sort_dir] == 'desc' ? 'DESC' : 'ASC'
+    scope = scope.left_joins(:employee_type) if params[:sort_by] == 'employee_type'
+    scope = scope.left_joins(:wilaya)        if params[:sort_by] == 'wilaya'
+    scope = scope.order(Arel.sql("#{sort_col} #{sort_dir}"))
+
+    total    = scope.unscope(:order).count
+    per_page = 20
+    page     = [params[:page].to_i, 1].max
+
+    employees = scope
+      .offset((page - 1) * per_page)
+      .limit(per_page)
+      .preload(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts,
+               mahdara: [:wilaya, :moughataa, :commune, :village, mahl_ilmi_attachment: :blob])
+
+    render json: {
+      employees: EmployeeSerializer.many(employees),
+      meta: { total: total, page: page, per_page: per_page, total_pages: (total.to_f / per_page).ceil }
+    }
   end
 
   def show

@@ -26,7 +26,7 @@ export default function NewPaymentBatch() {
       setLoading(true);
       const res = await employeesAPI.getAll();
       // Only active employees with active contracts
-      setAllEmployees(res.data.filter(e => e.active && e.active_contract));
+      setAllEmployees(res.data.employees.filter(e => e.active && e.active_contract));
     } catch {
       await showAlert('خطأ في تحميل الموظفين', 'error');
     } finally {

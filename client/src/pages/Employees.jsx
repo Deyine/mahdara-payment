@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
 import { employeesAPI, employeeTypesAPI, wilayasAPI, banksAPI, moughataaAPI, communesAPI, villagesAPI, mahdarasAPI } from '../services/api';
+import SearchableSelect from '../components/SearchableSelect';
 
 export default function Employees() {
   const navigate = useNavigate();
@@ -14,8 +15,15 @@ export default function Employees() {
   const [banks, setBanks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filterTypeId, setFilterTypeId] = useState('');
   const [filterWilayaId, setFilterWilayaId] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  const [sortDir, setSortDir] = useState('asc');
+  const [queryPage, setQueryPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [nniInput, setNniInput] = useState('');
   const [nniLoading, setNniLoading] = useState(false);
@@ -37,8 +45,40 @@ export default function Employees() {
   const [mahdaraCommunesList, setMahdaraCommunesList] = useState([]);
   const [mahdaraVillagesList, setMahdaraVillagesList] = useState([]);
 
+  // Debounce search — 300ms per convention
   useEffect(() => {
-    Promise.all([fetchEmployees(), fetchTypes(), fetchWilayas(), fetchBanks()]);
+    const t = setTimeout(() => { setDebouncedSearch(search); setQueryPage(1); }, 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // Server-side fetch whenever any query param changes
+  useEffect(() => {
+    let cancelled = false;
+    const doFetch = async () => {
+      setLoading(true);
+      try {
+        const params = { page: queryPage, sort_by: sortBy, sort_dir: sortDir };
+        if (debouncedSearch) params.search = debouncedSearch;
+        if (filterTypeId)    params.employee_type_id = filterTypeId;
+        if (filterWilayaId)  params.wilaya_id = filterWilayaId;
+        const res = await employeesAPI.getAll(params);
+        if (!cancelled) {
+          setEmployees(res.data.employees);
+          setTotalCount(res.data.meta.total);
+          setTotalPages(res.data.meta.total_pages);
+        }
+      } catch {
+        if (!cancelled) await showAlert('خطأ في التحميل', 'error');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    doFetch();
+    return () => { cancelled = true; };
+  }, [queryPage, debouncedSearch, filterTypeId, filterWilayaId, sortBy, sortDir, refreshKey]);
+
+  useEffect(() => {
+    Promise.all([fetchTypes(), fetchWilayas(), fetchBanks()]);
   }, []);
 
   useEffect(() => {
@@ -73,18 +113,6 @@ export default function Employees() {
       setMahdaraVillagesList([]);
     }
   }, [mahdaraCommuneId]);
-
-  const fetchEmployees = async () => {
-    try {
-      setLoading(true);
-      const res = await employeesAPI.getAll();
-      setEmployees(res.data);
-    } catch {
-      await showAlert('خطأ في التحميل', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchTypes = async () => {
     try { const res = await employeeTypesAPI.getAll(); setTypes(res.data); } catch { /* ignore */ }
@@ -172,16 +200,26 @@ export default function Employees() {
     try {
       await employeesAPI.delete(emp.id);
       await showAlert('تم حذف الموظف', 'success');
-      fetchEmployees();
+      setRefreshKey(k => k + 1);
     } catch (err) {
       await showAlert(err.response?.data?.error || 'خطأ', 'error');
     }
   };
 
+  const handleSort = (col) => {
+    if (sortBy === col) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(col);
+      setSortDir('asc');
+    }
+    setQueryPage(1);
+  };
+
   const handleExport = async () => {
     try {
       const params = {};
-      if (search) params.search = search;
+      if (debouncedSearch) params.search = debouncedSearch;
       if (filterTypeId) params.employee_type_id = filterTypeId;
       if (filterWilayaId) params.wilaya_id = filterWilayaId;
       const res = await employeesAPI.export(params);
@@ -196,12 +234,21 @@ export default function Employees() {
     }
   };
 
-  const filtered = employees.filter(e => {
-    const matchSearch = !search || e.full_name.toLowerCase().includes(search.toLowerCase()) || e.nni.includes(search);
-    const matchType = !filterTypeId || e.employee_type?.id === filterTypeId;
-    const matchWilaya = !filterWilayaId || e.wilaya?.id === filterWilayaId;
-    return matchSearch && matchType && matchWilaya;
+  const sortIcon = (col) => {
+    if (sortBy !== col) return <span style={{ color: '#cbd5e1', marginRight: '4px' }}>↕</span>;
+    return <span style={{ color: '#167bff', marginRight: '4px' }}>{sortDir === 'asc' ? '↑' : '↓'}</span>;
+  };
+
+  const thStyle = (col) => ({
+    padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600',
+    color: sortBy === col ? '#167bff' : '#64748b',
+    cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap'
   });
+
+  const typeOptions = types.map(t => ({ value: t.id, label: t.name }));
+  const wilayaOptions = wilayas.map(w => ({ value: w.id, label: w.name }));
+  const selectedType = typeOptions.find(o => o.value === filterTypeId) || null;
+  const selectedWilaya = wilayaOptions.find(o => o.value === filterWilayaId) || null;
 
   const inputStyle = {
     width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box'
@@ -214,7 +261,7 @@ export default function Employees() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', direction: 'rtl' }}>
           <div>
             <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1e293b' }}>الموظفون</h1>
-            <p style={{ margin: '4px 0 0', color: '#64748b' }}>{employees.length} موظف مسجل</p>
+            <p style={{ margin: '4px 0 0', color: '#64748b' }}>{totalCount} موظف مسجل</p>
           </div>
           {canWrite && (
             <button onClick={handleCreate} style={{
@@ -225,51 +272,62 @@ export default function Employees() {
         </div>
 
         {/* Filters */}
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', direction: 'rtl' }}>
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center', direction: 'rtl' }}>
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="البحث بالاسم أو الرقم الوطني..." style={{
-              padding: '10px 14px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', minWidth: '260px'
+              padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0',
+              fontSize: '14px', minWidth: '260px', outline: 'none', color: '#1e293b',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
             }} />
-          <select value={filterTypeId} onChange={e => setFilterTypeId(e.target.value)} style={{
-            padding: '10px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px'
-          }}>
-            <option value="">جميع الأنواع</option>
-            {types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-          <select value={filterWilayaId} onChange={e => setFilterWilayaId(e.target.value)} style={{
-            padding: '10px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px'
-          }}>
-            <option value="">جميع الولايات</option>
-            {wilayas.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-          </select>
+          <div style={{ minWidth: '200px' }}>
+            <SearchableSelect
+              options={typeOptions}
+              value={selectedType}
+              onChange={opt => { setFilterTypeId(opt?.value || ''); setQueryPage(1); }}
+              placeholder="جميع الأنواع"
+              isClearable={true}
+            />
+          </div>
+          <div style={{ minWidth: '200px' }}>
+            <SearchableSelect
+              options={wilayaOptions}
+              value={selectedWilaya}
+              onChange={opt => { setFilterWilayaId(opt?.value || ''); setQueryPage(1); }}
+              placeholder="جميع الولايات"
+              isClearable={true}
+            />
+          </div>
           <button onClick={handleExport} style={{
-            padding: '10px 16px', borderRadius: '6px', border: '1px solid #16a34a',
-            backgroundColor: 'white', color: '#16a34a', cursor: 'pointer', fontSize: '14px', fontWeight: '500',
-            whiteSpace: 'nowrap'
+            padding: '10px 16px', borderRadius: '8px', border: '1px solid #10b981',
+            backgroundColor: 'white', color: '#10b981', cursor: 'pointer', fontSize: '14px',
+            fontWeight: '500', whiteSpace: 'nowrap', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
           }}>↓ تصدير Excel</button>
         </div>
 
         {/* Table */}
         <div className="bg-white rounded-lg shadow-sm" style={{ border: '1px solid #e2e8f0' }}>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '60px', color: '#64748b' }}>جارٍ التحميل...</div>
-          ) : filtered.length === 0 ? (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '60px', gap: '12px', color: '#64748b' }}>
+              <div className="animate-spin rounded-full" style={{ width: '24px', height: '24px', border: '2px solid #e2e8f0', borderTopColor: '#167bff' }} />
+              جارٍ التحميل...
+            </div>
+          ) : employees.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px', color: '#64748b' }}>لا يوجد موظف.</div>
           ) : (
             <table dir="rtl" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
-                  <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>الرقم الوطني</th>
-                  <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>الاسم الكامل</th>
-                  <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>النوع</th>
-                  <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>الولاية</th>
+                  <th onClick={() => handleSort('nni')} style={thStyle('nni')}>{sortIcon('nni')}الرقم الوطني</th>
+                  <th onClick={() => handleSort('name')} style={thStyle('name')}>{sortIcon('name')}الاسم الكامل</th>
+                  <th onClick={() => handleSort('employee_type')} style={thStyle('employee_type')}>{sortIcon('employee_type')}النوع</th>
+                  <th onClick={() => handleSort('wilaya')} style={thStyle('wilaya')}>{sortIcon('wilaya')}الولاية</th>
                   <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>العقد النشط</th>
                   <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>الحالة</th>
                   <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>الإجراءات</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(emp => (
+                {employees.map(emp => (
                   <tr key={emp.id} style={{ borderBottom: '1px solid #e2e8f0' }}
                     onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
                     onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
@@ -293,7 +351,7 @@ export default function Employees() {
                             {emp.active_contract.contract_type}
                           </span>
                           <span style={{ marginRight: '8px', color: '#64748b' }}>
-                            {emp.active_contract.amount.toLocaleString()} MRU
+                            {Number(emp.active_contract.amount).toLocaleString()} MRU
                           </span>
                         </div>
                       ) : (
@@ -325,6 +383,36 @@ export default function Employees() {
                 ))}
               </tbody>
             </table>
+          )}
+
+          {/* Pagination */}
+          {!loading && totalPages > 0 && (
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '14px 20px', borderTop: '1px solid #e2e8f0', direction: 'rtl'
+            }}>
+              <span style={{ fontSize: '13px', color: '#64748b' }}>
+                {totalCount} نتيجة — صفحة {queryPage} من {totalPages}
+              </span>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  disabled={queryPage <= 1}
+                  onClick={() => setQueryPage(p => p - 1)}
+                  style={{
+                    padding: '6px 14px', borderRadius: '6px', fontSize: '13px', cursor: queryPage <= 1 ? 'default' : 'pointer',
+                    border: '1px solid #e2e8f0', backgroundColor: queryPage <= 1 ? '#f8fafc' : 'white',
+                    color: queryPage <= 1 ? '#94a3b8' : '#1e293b'
+                  }}>السابق</button>
+                <button
+                  disabled={queryPage >= totalPages}
+                  onClick={() => setQueryPage(p => p + 1)}
+                  style={{
+                    padding: '6px 14px', borderRadius: '6px', fontSize: '13px', cursor: queryPage >= totalPages ? 'default' : 'pointer',
+                    border: '1px solid #e2e8f0', backgroundColor: queryPage >= totalPages ? '#f8fafc' : 'white',
+                    color: queryPage >= totalPages ? '#94a3b8' : '#1e293b'
+                  }}>التالي</button>
+              </div>
+            </div>
           )}
         </div>
       </div>

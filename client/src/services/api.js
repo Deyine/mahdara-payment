@@ -44,7 +44,7 @@ export const employeeTypesAPI = {
 };
 
 export const employeesAPI = {
-  getAll: () => api.get('/employees'),
+  getAll: (params) => api.get('/employees', { params }),
   getById: (id) => api.get(`/employees/${id}`),
   create: (data) => api.post('/employees', { employee: data }),
   update: (id, data) => api.patch(`/employees/${id}`, { employee: data }),
