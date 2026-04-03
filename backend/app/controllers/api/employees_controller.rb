@@ -14,6 +14,61 @@ class Api::EmployeesController < ApplicationController
     render json: EmployeeSerializer.one(@employee, full: true)
   end
 
+  def export
+    scope = Employee.includes(:employee_type, :contracts, :wilaya)
+                    .order(:last_name, :first_name)
+
+    if params[:search].present?
+      term = "%#{params[:search].downcase}%"
+      scope = scope.where(
+        "lower(employees.nni) LIKE :t OR lower(employees.first_name) LIKE :t OR lower(employees.last_name) LIKE :t",
+        t: term
+      )
+    end
+    scope = scope.where(employee_type_id: params[:employee_type_id]) if params[:employee_type_id].present?
+    scope = scope.where(wilaya_id: params[:wilaya_id]) if params[:wilaya_id].present?
+
+    package = Axlsx::Package.new
+    wb = package.workbook
+    styles = wb.styles
+
+    header_style = styles.add_style(
+      bg_color: '1E5A8F', fg_color: 'FFFFFF', b: true,
+      alignment: { horizontal: :center, wrap_text: true },
+      font_name: 'Arial'
+    )
+    center_style = styles.add_style(alignment: { horizontal: :center }, font_name: 'Arial')
+    number_style = styles.add_style(
+      format_code: '#,##0', alignment: { horizontal: :center }, font_name: 'Arial'
+    )
+
+    wb.add_worksheet(name: 'الموظفون') do |sheet|
+      sheet.sheet_view.right_to_left = true
+
+      sheet.add_row(
+        ['الرقم الوطني', 'الإسم', 'المبلغ', 'النوع', 'نوع العقد'],
+        style: header_style
+      )
+      sheet.column_widths 16, 35, 14, 20, 12
+
+      scope.each do |emp|
+        active_contract = emp.contracts.find(&:active)
+        sheet.add_row([
+          emp.nni,
+          emp.full_name,
+          active_contract ? active_contract.amount.to_f.round : nil,
+          emp.employee_type&.name,
+          active_contract&.contract_type
+        ], style: [center_style, nil, number_style, center_style, center_style])
+      end
+    end
+
+    filename = "employes-#{Date.today}.xlsx"
+    send_data package.to_stream.read,
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              disposition: "attachment; filename=\"#{filename}\""
+  end
+
   def lookup_nni
     nni = params[:nni].to_s.strip
     return render json: { error: 'NNI requis' }, status: :bad_request if nni.blank?

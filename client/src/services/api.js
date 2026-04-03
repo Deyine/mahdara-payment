@@ -50,6 +50,7 @@ export const employeesAPI = {
   update: (id, data) => api.patch(`/employees/${id}`, { employee: data }),
   delete: (id) => api.delete(`/employees/${id}`),
   lookupNni: (nni) => api.get(`/employees/lookup_nni?nni=${nni}`),
+  export: (params) => api.get('/employees/export', { params, responseType: 'blob' }),
 };
 
 const buildMahdaraFD = (data, file) => {

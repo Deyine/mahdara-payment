@@ -178,6 +178,24 @@ export default function Employees() {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const params = {};
+      if (search) params.search = search;
+      if (filterTypeId) params.employee_type_id = filterTypeId;
+      if (filterWilayaId) params.wilaya_id = filterWilayaId;
+      const res = await employeesAPI.export(params);
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `employes-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      await showAlert('خطأ في التصدير', 'error');
+    }
+  };
+
   const filtered = employees.filter(e => {
     const matchSearch = !search || e.full_name.toLowerCase().includes(search.toLowerCase()) || e.nni.includes(search);
     const matchType = !filterTypeId || e.employee_type?.id === filterTypeId;
@@ -224,6 +242,11 @@ export default function Employees() {
             <option value="">جميع الولايات</option>
             {wilayas.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
           </select>
+          <button onClick={handleExport} style={{
+            padding: '10px 16px', borderRadius: '6px', border: '1px solid #16a34a',
+            backgroundColor: 'white', color: '#16a34a', cursor: 'pointer', fontSize: '14px', fontWeight: '500',
+            whiteSpace: 'nowrap'
+          }}>↓ تصدير Excel</button>
         </div>
 
         {/* Table */}

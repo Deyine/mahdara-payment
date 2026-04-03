@@ -9,7 +9,10 @@ Rails.application.routes.draw do
     resources :employee_types
     resources :banks
     resources :employees do
-      collection { get 'lookup_nni' }
+      collection do
+        get 'lookup_nni'
+        get 'export'
+      end
     end
     resources :mahdaras, only: [:create, :update] do
       member { get 'document' }
