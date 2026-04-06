@@ -4,7 +4,7 @@ import { useDialog } from '../context/DialogContext';
 import { employeeTypesAPI } from '../services/api';
 
 export default function EmployeeTypes() {
-  const { canWrite } = useAuth();
+  const { hasPermission } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +82,7 @@ export default function EmployeeTypes() {
         <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#1e293b' }}>
           أنواع الموظفين
         </h2>
-        {canWrite && (
+        {hasPermission('employee_types:create') && (
           <button onClick={handleCreate} style={{
             backgroundColor: '#167bff', color: 'white', padding: '8px 16px',
             borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold'
@@ -104,7 +104,7 @@ export default function EmployeeTypes() {
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>محظرة</th>
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>IMF</th>
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الحالة</th>
-              {canWrite && <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الإجراءات</th>}
+              {(hasPermission('employee_types:update') || hasPermission('employee_types:delete')) && <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الإجراءات</th>}
             </tr>
           </thead>
           <tbody>
@@ -134,7 +134,7 @@ export default function EmployeeTypes() {
                     color: type.active ? '#166534' : '#dc2626'
                   }}>{type.active ? 'نشط' : 'غير نشط'}</span>
                 </td>
-                {canWrite && (
+                {(hasPermission('employee_types:update') || hasPermission('employee_types:delete')) && (
                   <td style={{ padding: '12px', textAlign: 'left' }}>
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                       <button onClick={() => handleEdit(type)} style={{

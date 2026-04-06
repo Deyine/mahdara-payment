@@ -1,6 +1,10 @@
 class Api::EmployeesController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin, only: [:create, :update, :destroy]
+  before_action -> { require_permission('employees:read')   }, only: [:index, :show, :lookup_nni]
+  before_action -> { require_permission('employees:create') }, only: [:create]
+  before_action -> { require_permission('employees:update') }, only: [:update]
+  before_action -> { require_permission('employees:delete') }, only: [:destroy]
+  before_action -> { require_permission('employees:export') }, only: [:export]
   before_action :set_employee, only: [:show, :update, :destroy]
 
   SORT_COLUMNS = {

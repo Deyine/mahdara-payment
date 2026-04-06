@@ -1,6 +1,10 @@
 class Api::VillagesController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin, only: [:create, :update, :destroy, :import]
+  before_action -> { require_permission('villages:read')   }, only: [:index, :show]
+  before_action -> { require_permission('villages:create') }, only: [:create]
+  before_action -> { require_permission('villages:update') }, only: [:update]
+  before_action -> { require_permission('villages:delete') }, only: [:destroy]
+  before_action -> { require_permission('villages:import') }, only: [:import]
   before_action :set_village, only: [:show, :update, :destroy]
 
   def index

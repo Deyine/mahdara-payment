@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_04_02_011433) do
+ActiveRecord::Schema[8.0].define(version: 2026_04_06_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -159,6 +159,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_02_011433) do
     t.index ["created_by_id"], name: "index_payment_batches_on_created_by_id"
   end
 
+  create_table "roles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.string "description"
+    t.text "permissions", default: [], array: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_roles_on_name", unique: true
+  end
+
   create_table "salary_amounts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.integer "amount", null: false
     t.datetime "created_at", null: false
@@ -175,6 +184,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_02_011433) do
     t.jsonb "permissions", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "role_id"
+    t.index ["role_id"], name: "index_users_on_role_id"
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
@@ -213,5 +224,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_02_011433) do
   add_foreign_key "payment_batch_employees", "employees"
   add_foreign_key "payment_batch_employees", "payment_batches"
   add_foreign_key "payment_batches", "users", column: "created_by_id"
+  add_foreign_key "users", "roles", on_delete: :nullify
   add_foreign_key "villages", "communes"
 end

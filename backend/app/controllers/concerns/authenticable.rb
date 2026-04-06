@@ -17,7 +17,7 @@ module Authenticable
 
     begin
       @decoded = JsonWebToken.decode(token)
-      @current_user = User.find(@decoded[:user_id]) if @decoded
+      @current_user = User.includes(:assigned_role).find(@decoded[:user_id]) if @decoded
     rescue ActiveRecord::RecordNotFound, JWT::DecodeError
       render json: { error: 'Unauthorized' }, status: :unauthorized
     end
@@ -30,22 +30,15 @@ module Authenticable
   # Alias for compatibility
   alias_method :authenticate_user!, :authorize_request
 
-  def require_admin
-    unless current_user&.admin? || current_user&.super_admin?
-      render json: { error: 'Admin access required' }, status: :forbidden
-    end
-  end
-
   def require_super_admin
     unless current_user&.super_admin?
       render json: { error: 'Super Admin access required' }, status: :forbidden
     end
   end
 
-  def require_permission(feature)
-    unless current_user&.has_permission?(feature)
+  def require_permission(permission)
+    unless current_user&.has_permission?(permission)
       render json: { error: 'Access denied: missing permission' }, status: :forbidden
     end
   end
-
 end

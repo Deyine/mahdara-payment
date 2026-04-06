@@ -7,7 +7,7 @@ import { paymentBatchesAPI } from '../services/api';
 export default function PaymentBatchDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { canWrite } = useAuth();
+  const { hasPermission } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [batch, setBatch] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -117,13 +117,13 @@ export default function PaymentBatchDetail() {
                   color: '#10b981', backgroundColor: 'white', cursor: 'pointer', fontSize: '14px'
                 }}>⬇ تصدير Excel</button>
               )}
-              {canWrite && batch.status === 'draft' && (
+              {hasPermission('payment_batches:confirm') && batch.status === 'draft' && (
                 <button onClick={handleConfirm} style={{
                   padding: '8px 16px', borderRadius: '6px', border: 'none',
                   color: 'white', backgroundColor: '#167bff', cursor: 'pointer', fontSize: '14px', fontWeight: '600'
                 }}>تأكيد الدفعة</button>
               )}
-              {canWrite && batch.status === 'draft' && (
+              {hasPermission('payment_batches:delete') && batch.status === 'draft' && (
                 <button onClick={handleDelete} style={{
                   padding: '8px 16px', borderRadius: '6px', border: '1px solid #ef4444',
                   color: '#ef4444', backgroundColor: 'white', cursor: 'pointer', fontSize: '14px'

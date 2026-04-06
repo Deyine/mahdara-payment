@@ -1,6 +1,9 @@
 class Api::EmployeeTypesController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin, only: [:create, :update, :destroy]
+  before_action -> { require_permission('employee_types:read')   }, only: [:index, :show]
+  before_action -> { require_permission('employee_types:create') }, only: [:create]
+  before_action -> { require_permission('employee_types:update') }, only: [:update]
+  before_action -> { require_permission('employee_types:delete') }, only: [:destroy]
   before_action :set_employee_type, only: [:show, :update, :destroy]
 
   def index

@@ -1,6 +1,8 @@
 class Api::ContractsController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin
+  before_action -> { require_permission('contracts:create') }, only: [:create]
+  before_action -> { require_permission('contracts:update') }, only: [:update]
+  before_action -> { require_permission('contracts:delete') }, only: [:destroy]
   before_action :set_contract, only: [:update, :destroy]
 
   def create

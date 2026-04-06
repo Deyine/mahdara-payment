@@ -5,6 +5,7 @@ Rails.application.routes.draw do
     post 'auth/login', to: 'auth#login'
     get 'dashboard/statistics', to: 'dashboard#statistics'
 
+    resources :roles
     resources :users
     resources :employee_types
     resources :banks

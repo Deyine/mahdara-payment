@@ -134,4 +134,11 @@ export const usersAPI = {
   delete: (id) => api.delete(`/users/${id}`),
 };
 
+export const rolesAPI = {
+  getAll: () => api.get('/roles'),
+  create: (data) => api.post('/roles', { role: data }),
+  update: (id, data) => api.patch(`/roles/${id}`, { role: data }),
+  delete: (id) => api.delete(`/roles/${id}`),
+};
+
 export default api;

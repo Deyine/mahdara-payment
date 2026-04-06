@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
-import { usersAPI } from '../services/api';
+import { usersAPI, rolesAPI } from '../services/api';
 
 export default function Users() {
-  const { user: currentUser, canWrite, isSuperAdmin } = useAuth();
+  const { user: currentUser, hasPermission, isSuperAdmin } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -15,33 +16,38 @@ export default function Users() {
     username: '',
     password: '',
     role: 'user',
-    permissions: {}
+    role_id: null
   });
-
-  const ROLES = [
-    { value: 'user', label: 'مستخدم', description: 'قراءة فقط' },
-    { value: 'admin', label: 'مشرف', description: 'وصول كامل', requiresSuperAdmin: true },
-  ];
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+    if (isSuperAdmin) fetchRoles();
+  }, [isSuperAdmin]);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const response = await usersAPI.getAll();
       setUsers(response.data);
-    } catch (error) {
+    } catch {
       await showAlert('خطأ في تحميل المستخدمين', 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchRoles = async () => {
+    try {
+      const res = await rolesAPI.getAll();
+      setRoles(res.data.roles || []);
+    } catch {
+      // non-critical, silently ignore
+    }
+  };
+
   const handleCreate = () => {
     setEditingUser(null);
-    setFormData({ name: '', username: '', password: '', role: 'user', permissions: {} });
+    setFormData({ name: '', username: '', password: '', role: 'user', role_id: null });
     setShowForm(true);
   };
 
@@ -52,7 +58,7 @@ export default function Users() {
       username: user.username,
       password: '',
       role: user.role,
-      permissions: user.permissions || {}
+      role_id: user.role_id || null
     });
     setShowForm(true);
   };
@@ -63,9 +69,14 @@ export default function Users() {
     try {
       const dataToSend = { ...formData };
 
-      // Don't send empty password on update
       if (editingUser && !dataToSend.password) {
         delete dataToSend.password;
+      }
+
+      // Non-super-admins can't see the role selector — don't send role_id
+      // to avoid accidentally clearing an existing assignment
+      if (!isSuperAdmin) {
+        delete dataToSend.role_id;
       }
 
       if (editingUser) {
@@ -142,26 +153,14 @@ export default function Users() {
   const resetForm = () => {
     setShowForm(false);
     setEditingUser(null);
-    setFormData({ name: '', username: '', password: '', role: 'user', permissions: {} });
+    setFormData({ name: '', username: '', password: '', role: 'user', role_id: null });
   };
 
-  const getRoleBadge = (role) => {
-    switch (role) {
-      case 'super_admin':
-        return { label: 'مشرف عام', color: '#8b5cf6' };
-      case 'admin':
-        return { label: 'مشرف', color: '#167bff' };
-      case 'user':
-        return { label: 'مستخدم', color: '#10b981' };
-      default:
-        return { label: role, color: '#64748b' };
-    }
+  const getRoleBadge = (user) => {
+    if (user.role === 'super_admin') return { label: 'مشرف عام', color: '#8b5cf6' };
+    if (user.role_name) return { label: user.role_name, color: '#167bff' };
+    return { label: 'مستخدم', color: '#10b981' };
   };
-
-  const availableRoles = ROLES.filter(role => {
-    if (role.requiresSuperAdmin && !isSuperAdmin) return false;
-    return true;
-  });
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0' }}>
@@ -175,7 +174,7 @@ export default function Users() {
         <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#1e293b' }}>
           المستخدمون
         </h2>
-        {canWrite && (
+        {hasPermission('users:create') && (
           <button
             onClick={handleCreate}
             style={{
@@ -217,7 +216,7 @@ export default function Users() {
                 <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
                   الحالة
                 </th>
-                {canWrite && (
+                {(hasPermission('users:update') || hasPermission('users:delete')) && (
                   <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
                     الإجراءات
                   </th>
@@ -226,10 +225,10 @@ export default function Users() {
             </thead>
             <tbody>
               {users.map((user) => {
-                const badge = getRoleBadge(user.role);
+                const badge = getRoleBadge(user);
                 const isCurrentUser = user.id === currentUser?.id;
-                const canEditUser = canWrite && (isSuperAdmin || user.role !== 'super_admin');
-                const canDeleteUser = canWrite && !isCurrentUser && (isSuperAdmin || user.role !== 'super_admin');
+                const canEditUser = hasPermission('users:update') && (isSuperAdmin || user.role !== 'super_admin');
+                const canDeleteUser = hasPermission('users:delete') && !isCurrentUser && (isSuperAdmin || user.role !== 'super_admin');
 
                 return (
                   <tr key={user.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
@@ -277,7 +276,7 @@ export default function Users() {
                         {user.active ? 'نشط' : 'غير نشط'}
                       </span>
                     </td>
-                    {canWrite && (
+                    {(hasPermission('users:update') || hasPermission('users:delete')) && (
                       <td style={{ padding: '12px', textAlign: 'left' }}>
                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                           {canEditUser && (
@@ -426,13 +425,13 @@ export default function Users() {
                 />
               </div>
 
-              <div style={{ marginBottom: '20px' }}>
+              <div style={{ marginBottom: formData.role === 'user' ? '10px' : '20px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>
-                  الدور *
+                  نوع الحساب *
                 </label>
                 <select
                   value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value, role_id: null })}
                   required
                   disabled={editingUser && editingUser.id === currentUser?.id}
                   style={{
@@ -444,11 +443,8 @@ export default function Users() {
                     backgroundColor: (editingUser && editingUser.id === currentUser?.id) ? '#f1f5f9' : 'white'
                   }}
                 >
-                  {availableRoles.map((role) => (
-                    <option key={role.value} value={role.value}>
-                      {role.label} - {role.description}
-                    </option>
-                  ))}
+                  <option value="user">مستخدم عادي</option>
+                  {isSuperAdmin && <option value="super_admin">مشرف عام</option>}
                 </select>
                 {editingUser && editingUser.id === currentUser?.id && (
                   <p style={{ fontSize: '12px', color: '#64748b', marginTop: '5px' }}>
@@ -456,6 +452,32 @@ export default function Users() {
                   </p>
                 )}
               </div>
+
+              {formData.role === 'user' && isSuperAdmin && (
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>
+                    الدور (الصلاحيات)
+                  </label>
+                  <select
+                    value={formData.role_id || ''}
+                    onChange={(e) => setFormData({ ...formData, role_id: e.target.value || null })}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      borderRadius: '6px',
+                      border: '1px solid #ddd',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="">بدون دور (قراءة فقط)</option>
+                    {roles.map(r => (
+                      <option key={r.id} value={r.id}>
+                        {r.name}{r.description ? ` — ${r.description}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button

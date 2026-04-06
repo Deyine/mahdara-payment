@@ -1,6 +1,10 @@
 class Api::MoughataaController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin, only: [:create, :update, :destroy, :import]
+  before_action -> { require_permission('moughataa:read')   }, only: [:index, :show]
+  before_action -> { require_permission('moughataa:create') }, only: [:create]
+  before_action -> { require_permission('moughataa:update') }, only: [:update]
+  before_action -> { require_permission('moughataa:delete') }, only: [:destroy]
+  before_action -> { require_permission('moughataa:import') }, only: [:import]
   before_action :set_moughataa, only: [:show, :update, :destroy]
 
   def index

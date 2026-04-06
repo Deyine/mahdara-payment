@@ -4,7 +4,7 @@ import { useDialog } from '../context/DialogContext';
 import { moughataaAPI, wilayasAPI } from '../services/api';
 
 export default function Moughataa() {
-  const { canWrite } = useAuth();
+  const { hasPermission } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [items, setItems] = useState([]);
   const [wilayas, setWilayas] = useState([]);
@@ -106,17 +106,23 @@ export default function Moughataa() {
     <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', direction: 'rtl' }}>
         <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#1e293b' }}>المقاطعات</h2>
-        {canWrite && (
+        {(hasPermission('moughataa:create') || hasPermission('moughataa:import')) && (
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => setShowCsvHelp(true)} disabled={importing} style={{
-              padding: '8px 16px', borderRadius: '6px', border: '1px solid #167bff',
-              color: '#167bff', backgroundColor: 'white', cursor: 'pointer', fontSize: '14px'
-            }}>{importing ? 'جارٍ الاستيراد...' : 'استيراد CSV'}</button>
-            <input ref={fileRef} type="file" accept=".csv" onChange={handleImport} style={{ display: 'none' }} />
-            <button onClick={handleCreate} style={{
-              backgroundColor: '#167bff', color: 'white', padding: '8px 16px',
-              borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold'
-            }}>+ مقاطعة جديدة</button>
+            {hasPermission('moughataa:import') && (
+              <>
+                <button onClick={() => setShowCsvHelp(true)} disabled={importing} style={{
+                  padding: '8px 16px', borderRadius: '6px', border: '1px solid #167bff',
+                  color: '#167bff', backgroundColor: 'white', cursor: 'pointer', fontSize: '14px'
+                }}>{importing ? 'جارٍ الاستيراد...' : 'استيراد CSV'}</button>
+                <input ref={fileRef} type="file" accept=".csv" onChange={handleImport} style={{ display: 'none' }} />
+              </>
+            )}
+            {hasPermission('moughataa:create') && (
+              <button onClick={handleCreate} style={{
+                backgroundColor: '#167bff', color: 'white', padding: '8px 16px',
+                borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold'
+              }}>+ مقاطعة جديدة</button>
+            )}
           </div>
         )}
       </div>
@@ -140,7 +146,7 @@ export default function Moughataa() {
             <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الاسم</th>
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الولاية</th>
-              {canWrite && <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الإجراءات</th>}
+              {(hasPermission('moughataa:update') || hasPermission('moughataa:delete')) && <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الإجراءات</th>}
             </tr>
           </thead>
           <tbody>
@@ -148,17 +154,21 @@ export default function Moughataa() {
               <tr key={item.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
                 <td style={{ padding: '12px', fontSize: '14px', color: '#1e293b', fontWeight: '500' }}>{item.name}</td>
                 <td style={{ padding: '12px', fontSize: '14px', color: '#64748b' }}>{item.wilaya?.name || '—'}</td>
-                {canWrite && (
+                {(hasPermission('moughataa:update') || hasPermission('moughataa:delete')) && (
                   <td style={{ padding: '12px', textAlign: 'left' }}>
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                      <button onClick={() => handleEdit(item)} style={{
-                        padding: '6px 12px', fontSize: '13px', backgroundColor: 'white',
-                        border: '1px solid #167bff', color: '#167bff', borderRadius: '4px', cursor: 'pointer'
-                      }}>تعديل</button>
-                      <button onClick={() => handleDelete(item)} style={{
-                        padding: '6px 12px', fontSize: '13px', backgroundColor: 'white',
-                        border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer'
-                      }}>حذف</button>
+                      {hasPermission('moughataa:update') && (
+                        <button onClick={() => handleEdit(item)} style={{
+                          padding: '6px 12px', fontSize: '13px', backgroundColor: 'white',
+                          border: '1px solid #167bff', color: '#167bff', borderRadius: '4px', cursor: 'pointer'
+                        }}>تعديل</button>
+                      )}
+                      {hasPermission('moughataa:delete') && (
+                        <button onClick={() => handleDelete(item)} style={{
+                          padding: '6px 12px', fontSize: '13px', backgroundColor: 'white',
+                          border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer'
+                        }}>حذف</button>
+                      )}
                     </div>
                   </td>
                 )}

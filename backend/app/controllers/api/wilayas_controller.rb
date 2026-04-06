@@ -1,6 +1,10 @@
 class Api::WilayasController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin, only: [:create, :update, :destroy, :import]
+  before_action -> { require_permission('wilayas:read')   }, only: [:index, :show]
+  before_action -> { require_permission('wilayas:create') }, only: [:create]
+  before_action -> { require_permission('wilayas:update') }, only: [:update]
+  before_action -> { require_permission('wilayas:delete') }, only: [:destroy]
+  before_action -> { require_permission('wilayas:import') }, only: [:import]
   before_action :set_wilaya, only: [:show, :update, :destroy]
 
   def index
