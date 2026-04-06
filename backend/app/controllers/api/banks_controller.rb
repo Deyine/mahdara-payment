@@ -1,6 +1,9 @@
 class Api::BanksController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin, only: [:create, :update, :destroy]
+  before_action -> { require_permission('banks:read')   }, only: [:index, :show]
+  before_action -> { require_permission('banks:create') }, only: [:create]
+  before_action -> { require_permission('banks:update') }, only: [:update]
+  before_action -> { require_permission('banks:delete') }, only: [:destroy]
   before_action :set_bank, only: [:show, :update, :destroy]
 
   def index

@@ -19,9 +19,10 @@ import Villages from './pages/Villages';
 import Users from './pages/Users';
 import Banks from './pages/Banks';
 import SalaryAmounts from './pages/SalaryAmounts';
+import Roles from './pages/Roles';
 
-function PrivateRoute({ children, requireAdmin = false }) {
-  const { user, loading } = useAuth();
+function PrivateRoute({ children, superAdminOnly = false, requiredPermission = null }) {
+  const { user, loading, hasPermission } = useAuth();
 
   if (loading) {
     return (
@@ -35,7 +36,11 @@ function PrivateRoute({ children, requireAdmin = false }) {
     return <Navigate to="/admin/login" />;
   }
 
-  if (requireAdmin && user.role !== 'admin' && user.role !== 'super_admin') {
+  if (superAdminOnly && user.role !== 'super_admin') {
+    return <Navigate to="/admin" />;
+  }
+
+  if (requiredPermission && !hasPermission(requiredPermission)) {
     return <Navigate to="/admin" />;
   }
 
@@ -70,7 +75,7 @@ function AppRoutes() {
       <Route
         path="/admin/employees"
         element={
-          <PrivateRoute>
+          <PrivateRoute requiredPermission="employees:read">
             <Employees />
           </PrivateRoute>
         }
@@ -78,7 +83,7 @@ function AppRoutes() {
       <Route
         path="/admin/employees/:id"
         element={
-          <PrivateRoute>
+          <PrivateRoute requiredPermission="employees:read">
             <EmployeeDetail />
           </PrivateRoute>
         }
@@ -88,7 +93,7 @@ function AppRoutes() {
       <Route
         path="/admin/payments"
         element={
-          <PrivateRoute>
+          <PrivateRoute requiredPermission="payment_batches:read">
             <PaymentBatches />
           </PrivateRoute>
         }
@@ -96,7 +101,7 @@ function AppRoutes() {
       <Route
         path="/admin/payments/new"
         element={
-          <PrivateRoute requireAdmin>
+          <PrivateRoute requiredPermission="payment_batches:create">
             <NewPaymentBatch />
           </PrivateRoute>
         }
@@ -104,7 +109,7 @@ function AppRoutes() {
       <Route
         path="/admin/payments/:id"
         element={
-          <PrivateRoute>
+          <PrivateRoute requiredPermission="payment_batches:read">
             <PaymentBatchDetail />
           </PrivateRoute>
         }
@@ -114,7 +119,7 @@ function AppRoutes() {
       <Route
         path="/admin/settings"
         element={
-          <PrivateRoute requireAdmin>
+          <PrivateRoute>
             <Settings />
           </PrivateRoute>
         }
@@ -128,6 +133,7 @@ function AppRoutes() {
         <Route path="banks" element={<Banks />} />
         <Route path="salary-amounts" element={<SalaryAmounts />} />
         <Route path="users" element={<Users />} />
+        <Route path="roles" element={<Roles />} />
       </Route>
     </Routes>
   );

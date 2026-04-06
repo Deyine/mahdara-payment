@@ -1,22 +1,21 @@
 class User < ApplicationRecord
   has_secure_password
 
-  ROLES = %w[super_admin admin user].freeze
+  ROLES = %w[super_admin user].freeze
+
+  # Note: 'assigned_role' avoids collision with the 'role' string column
+  belongs_to :assigned_role, class_name: 'Role', foreign_key: :role_id, optional: true
 
   validates :username, presence: true, uniqueness: true
   validates :name, presence: true
   validates :role, inclusion: { in: ROLES }
 
-  def admin?
-    role == 'admin'
-  end
-
   def super_admin?
     role == 'super_admin'
   end
 
-  def has_permission?(feature)
-    return true if admin? || super_admin?
-    permissions&.dig(feature.to_s) == true
+  def has_permission?(permission)
+    return true if super_admin?
+    assigned_role&.permissions&.include?(permission.to_s) == true
   end
 end

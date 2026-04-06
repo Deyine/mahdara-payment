@@ -6,7 +6,7 @@ import { paymentBatchesAPI } from '../services/api';
 
 export default function PaymentBatches() {
   const navigate = useNavigate();
-  const { canWrite } = useAuth();
+  const { hasPermission } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +53,7 @@ export default function PaymentBatches() {
             <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1e293b' }}>دفعات المرتبات</h1>
             <p style={{ margin: '4px 0 0', color: '#64748b' }}>{batches.length} دفعة</p>
           </div>
-          {canWrite && (
+          {hasPermission('payment_batches:create') && (
             <button onClick={() => navigate('/admin/payments/new')} style={{
               backgroundColor: '#167bff', color: 'white', padding: '10px 20px',
               borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold'
@@ -67,7 +67,7 @@ export default function PaymentBatches() {
           ) : batches.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px', color: '#64748b' }}>
               <p style={{ fontSize: '16px', marginBottom: '12px' }}>لا توجد دفعات.</p>
-              {canWrite && (
+              {hasPermission('payment_batches:create') && (
                 <button onClick={() => navigate('/admin/payments/new')} style={{
                   backgroundColor: '#167bff', color: 'white', padding: '10px 20px',
                   borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold'
@@ -117,7 +117,7 @@ export default function PaymentBatches() {
                             padding: '6px 12px', fontSize: '13px', backgroundColor: 'white',
                             border: '1px solid #167bff', color: '#167bff', borderRadius: '4px', cursor: 'pointer'
                           }}>التفاصيل</button>
-                          {canWrite && batch.status === 'draft' && (
+                          {hasPermission('payment_batches:delete') && batch.status === 'draft' && (
                             <button onClick={() => handleDelete(batch)} style={{
                               padding: '6px 12px', fontSize: '13px', backgroundColor: 'white',
                               border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer'

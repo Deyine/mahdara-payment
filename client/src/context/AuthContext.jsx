@@ -16,7 +16,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
 
@@ -56,20 +55,25 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const hasPermission = (permission) => {
+    if (!user) return false;
+    if (user.role === 'super_admin') return true;
+    return Array.isArray(user.role_permissions) && user.role_permissions.includes(permission);
+  };
+
   const value = {
     user,
     login,
     logout,
     loading,
-    isAdmin: user?.role === 'admin' || user?.role === 'super_admin',
     isSuperAdmin: user?.role === 'super_admin',
-    canWrite: user?.role === 'admin' || user?.role === 'super_admin',
+    // isAdmin: true for any authenticated non-super_admin with a role assigned
+    isAdmin: user?.role === 'super_admin' || (user?.role === 'user' && !!user?.role_id),
+    // canWrite kept for backward compat during migration — true if user has any write permissions
+    canWrite: user?.role === 'super_admin' ||
+              (Array.isArray(user?.role_permissions) && user.role_permissions.some(p => !p.endsWith(':read'))),
     canRead: !!user,
-    hasPermission: (feature) => {
-      if (!user) return false;
-      if (user.role === 'admin' || user.role === 'super_admin') return true;
-      return user.permissions?.[feature] === true;
-    },
+    hasPermission,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

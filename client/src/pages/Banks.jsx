@@ -4,7 +4,7 @@ import { useDialog } from '../context/DialogContext';
 import { banksAPI } from '../services/api';
 
 export default function Banks() {
-  const { canWrite } = useAuth();
+  const { hasPermission } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [banks, setBanks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +80,7 @@ export default function Banks() {
     <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', direction: 'rtl' }}>
         <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#1e293b' }}>البنوك</h2>
-        {canWrite && (
+        {hasPermission('banks:create') && (
           <button onClick={handleCreate} style={{
             backgroundColor: '#167bff', color: 'white', padding: '8px 16px',
             borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold'
@@ -98,7 +98,7 @@ export default function Banks() {
             <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الاسم</th>
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الحالة</th>
-              {canWrite && <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الإجراءات</th>}
+              {(hasPermission('banks:update') || hasPermission('banks:delete')) && <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الإجراءات</th>}
             </tr>
           </thead>
           <tbody>
@@ -112,7 +112,7 @@ export default function Banks() {
                     color: bank.active ? '#166534' : '#dc2626'
                   }}>{bank.active ? 'نشط' : 'غير نشط'}</span>
                 </td>
-                {canWrite && (
+                {(hasPermission('banks:update') || hasPermission('banks:delete')) && (
                   <td style={{ padding: '12px', textAlign: 'left' }}>
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                       <button onClick={() => handleEdit(bank)} style={{

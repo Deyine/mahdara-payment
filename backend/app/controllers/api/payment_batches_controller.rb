@@ -1,6 +1,10 @@
 class Api::PaymentBatchesController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin, only: [:create, :destroy, :confirm]
+  before_action -> { require_permission('payment_batches:read')    }, only: [:index, :show]
+  before_action -> { require_permission('payment_batches:create')  }, only: [:create]
+  before_action -> { require_permission('payment_batches:confirm') }, only: [:confirm]
+  before_action -> { require_permission('payment_batches:delete')  }, only: [:destroy]
+  before_action -> { require_permission('payment_batches:export')  }, only: [:export]
   before_action :set_batch, only: [:show, :destroy, :confirm, :export]
 
   def index

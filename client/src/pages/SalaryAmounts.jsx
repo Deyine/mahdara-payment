@@ -4,7 +4,7 @@ import { useDialog } from '../context/DialogContext';
 import { salaryAmountsAPI } from '../services/api';
 
 export default function SalaryAmounts() {
-  const { canWrite } = useAuth();
+  const { hasPermission } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [amounts, setAmounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +60,7 @@ export default function SalaryAmounts() {
     <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', direction: 'rtl' }}>
         <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#1e293b' }}>مبالغ الرواتب</h2>
-        {canWrite && !showForm && (
+        {hasPermission('salary_amounts:create') && !showForm && (
           <button onClick={() => setShowForm(true)} style={{
             backgroundColor: '#167bff', color: 'white', padding: '8px 16px',
             borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold'
@@ -109,7 +109,7 @@ export default function SalaryAmounts() {
               backgroundColor: '#f8fafc', fontSize: '14px', fontWeight: '600', color: '#1e293b'
             }}>
               <span>{sa.amount.toLocaleString()} أوقية</span>
-              {canWrite && (
+              {hasPermission('salary_amounts:delete') && (
                 <button onClick={() => handleDelete(sa)} style={{
                   background: 'none', border: 'none', cursor: 'pointer',
                   color: '#ef4444', fontSize: '16px', lineHeight: 1, padding: '0 2px'

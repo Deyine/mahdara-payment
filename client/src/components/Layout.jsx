@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Layout({ children }) {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isSuperAdmin, hasPermission } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -18,11 +18,14 @@ export default function Layout({ children }) {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
+  const settingsPerms = ['employee_types:read','wilayas:read','moughataa:read','communes:read','villages:read','banks:read','salary_amounts:read','users:read','roles:read'];
+  const canSeeSettings = isSuperAdmin || settingsPerms.some(p => hasPermission(p));
+
   const navItems = [
-    { path: '/admin', label: 'لوحة التحكم', icon: '📊', adminOnly: false },
-    { path: '/admin/employees', label: 'الموظفون', icon: '👥', adminOnly: false },
-    { path: '/admin/payments', label: 'المدفوعات', icon: '💰', adminOnly: false },
-    { path: '/admin/settings', label: 'الإعدادات', icon: '⚙️', adminOnly: true },
+    { path: '/admin', label: 'لوحة التحكم', icon: '📊', show: true },
+    { path: '/admin/employees', label: 'الموظفون', icon: '👥', show: true },
+    { path: '/admin/payments', label: 'المدفوعات', icon: '💰', show: true },
+    { path: '/admin/settings', label: 'الإعدادات', icon: '⚙️', show: canSeeSettings },
   ];
 
   const handleNavClick = () => {
@@ -67,7 +70,7 @@ export default function Layout({ children }) {
               <div>
                 <p className="font-medium text-sm" style={{ color: '#1e293b' }}>{user?.name}</p>
                 <p className="text-xs" style={{ color: '#64748b' }}>
-                  {user?.role === 'super_admin' ? 'مشرف عام' : user?.role === 'admin' ? 'مشرف' : 'مدير'}
+                  {user?.role === 'super_admin' ? 'مشرف عام' : user?.role_name || 'مستخدم'}
                 </p>
               </div>
               <button
@@ -98,7 +101,7 @@ export default function Layout({ children }) {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-1" style={{ direction: 'rtl' }}>
             {navItems.map((item) => {
-              if (item.adminOnly && !isAdmin) return null;
+              if (!item.show) return null;
 
               return (
                 <Link
@@ -168,7 +171,7 @@ export default function Layout({ children }) {
                 <div className="flex-1">
                   <p className="font-medium text-sm" style={{ color: '#1e293b' }}>{user?.name}</p>
                   <p className="text-xs" style={{ color: '#64748b' }}>
-                    {user?.role === 'super_admin' ? 'مشرف عام' : user?.role === 'admin' ? 'مشرف' : 'مدير'}
+                    {user?.role === 'super_admin' ? 'مشرف عام' : user?.role_name || 'مستخدم'}
                   </p>
                 </div>
               </div>
@@ -176,7 +179,7 @@ export default function Layout({ children }) {
 
             <nav className="p-4">
               {navItems.map((item) => {
-                if (item.adminOnly && !isAdmin) return null;
+                if (!item.show) return null;
 
                 return (
                   <Link

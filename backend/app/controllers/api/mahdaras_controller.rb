@@ -1,6 +1,8 @@
 class Api::MahdarasController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin, only: [:create, :update]
+  before_action -> { require_permission('mahdaras:create')   }, only: [:create]
+  before_action -> { require_permission('mahdaras:update')   }, only: [:update]
+  before_action -> { require_permission('mahdaras:download') }, only: [:document]
   before_action :set_mahdara, only: [:update, :document]
 
   def create

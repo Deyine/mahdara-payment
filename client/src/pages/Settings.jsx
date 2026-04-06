@@ -1,7 +1,9 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Settings() {
   const location = useLocation();
+  const { isSuperAdmin } = useAuth();
 
   const isActive = (path) => {
     return location.pathname === path || location.pathname.startsWith(path);
@@ -16,6 +18,7 @@ export default function Settings() {
     { path: '/admin/settings/banks', label: 'البنوك', icon: '🏦' },
     { path: '/admin/settings/salary-amounts', label: 'مبالغ الرواتب', icon: '💰' },
     { path: '/admin/settings/users', label: 'المستخدمون', icon: '👤' },
+    ...(isSuperAdmin ? [{ path: '/admin/settings/roles', label: 'الأدوار', icon: '🔐' }] : []),
   ];
 
   return (

@@ -10,7 +10,7 @@ const labelStyle = { display: 'block', marginBottom: '5px', fontSize: '14px', fo
 export default function EmployeeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { canWrite } = useAuth();
+  const { hasPermission } = useAuth();
   const { showAlert, showConfirm } = useDialog();
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -271,7 +271,7 @@ export default function EmployeeDetail() {
                 backgroundColor: employee.active ? '#dcfce7' : '#fee2e2',
                 color: employee.active ? '#166534' : '#dc2626'
               }}>{employee.active ? 'نشط' : 'غير نشط'}</span>
-              {canWrite && (
+              {hasPermission('employees:update') && (
                 <button onClick={openEditForm} style={{
                   padding: '8px 16px', borderRadius: '6px', border: '1px solid #167bff',
                   color: '#167bff', backgroundColor: 'white', cursor: 'pointer', fontSize: '14px'
@@ -315,7 +315,7 @@ export default function EmployeeDetail() {
           <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0', direction: 'rtl' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', direction: 'rtl' }}>
               <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>العقود</h2>
-              {canWrite && (
+              {hasPermission('contracts:create') && (
                 <button onClick={() => openContractForm()} style={{
                   padding: '6px 14px', borderRadius: '6px', border: 'none',
                   backgroundColor: '#167bff', color: 'white', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold'
@@ -353,16 +353,20 @@ export default function EmployeeDetail() {
                           {c.duration_months && ` · ${c.duration_months} شهر`}
                         </div>
                       </div>
-                      {canWrite && (
+                      {(hasPermission('contracts:update') || hasPermission('contracts:delete')) && (
                         <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                          <button onClick={() => openContractForm(c)} style={{
-                            padding: '5px 10px', fontSize: '12px', backgroundColor: 'white',
-                            border: '1px solid #167bff', color: '#167bff', borderRadius: '4px', cursor: 'pointer'
-                          }}>تعديل</button>
-                          <button onClick={() => handleDeleteContract(c)} style={{
-                            padding: '5px 10px', fontSize: '12px', backgroundColor: 'white',
-                            border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer'
-                          }}>حذف</button>
+                          {hasPermission('contracts:update') && (
+                            <button onClick={() => openContractForm(c)} style={{
+                              padding: '5px 10px', fontSize: '12px', backgroundColor: 'white',
+                              border: '1px solid #167bff', color: '#167bff', borderRadius: '4px', cursor: 'pointer'
+                            }}>تعديل</button>
+                          )}
+                          {hasPermission('contracts:delete') && (
+                            <button onClick={() => handleDeleteContract(c)} style={{
+                              padding: '5px 10px', fontSize: '12px', backgroundColor: 'white',
+                              border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer'
+                            }}>حذف</button>
+                          )}
                         </div>
                       )}
                     </div>

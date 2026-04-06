@@ -5,8 +5,10 @@ class UserSerializer
       name: u.name,
       username: u.username,
       role: u.role,
+      role_id: u.role_id,
+      role_name: u.assigned_role&.name,
+      role_permissions: u.assigned_role&.permissions || [],
       active: u.active,
-      permissions: u.permissions || {},
       created_at: u.created_at,
       updated_at: u.updated_at
     }

@@ -1,6 +1,10 @@
 class Api::CommunesController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin, only: [:create, :update, :destroy, :import]
+  before_action -> { require_permission('communes:read')   }, only: [:index, :show]
+  before_action -> { require_permission('communes:create') }, only: [:create]
+  before_action -> { require_permission('communes:update') }, only: [:update]
+  before_action -> { require_permission('communes:delete') }, only: [:destroy]
+  before_action -> { require_permission('communes:import') }, only: [:import]
   before_action :set_commune, only: [:show, :update, :destroy]
 
   def index

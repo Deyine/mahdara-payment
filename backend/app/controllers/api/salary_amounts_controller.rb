@@ -1,6 +1,8 @@
 class Api::SalaryAmountsController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin, only: [:create, :destroy]
+  before_action -> { require_permission('salary_amounts:read')   }, only: [:index]
+  before_action -> { require_permission('salary_amounts:create') }, only: [:create]
+  before_action -> { require_permission('salary_amounts:delete') }, only: [:destroy]
 
   def index
     render json: SalaryAmount.order(:amount).map { |sa| { id: sa.id, amount: sa.amount } }
