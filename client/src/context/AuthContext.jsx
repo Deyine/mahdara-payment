@@ -67,12 +67,6 @@ export function AuthProvider({ children }) {
     logout,
     loading,
     isSuperAdmin: user?.role === 'super_admin',
-    // isAdmin: true for any authenticated non-super_admin with a role assigned
-    isAdmin: user?.role === 'super_admin' || (user?.role === 'user' && !!user?.role_id),
-    // canWrite kept for backward compat during migration — true if user has any write permissions
-    canWrite: user?.role === 'super_admin' ||
-              (Array.isArray(user?.role_permissions) && user.role_permissions.some(p => !p.endsWith(':read'))),
-    canRead: !!user,
     hasPermission,
   };
 

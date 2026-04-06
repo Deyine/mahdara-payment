@@ -8,8 +8,6 @@ import { PERMISSION_LABELS, ENTITY_LABELS } from '../constants/permissions';
 export default function Roles() {
   const { isSuperAdmin } = useAuth();
   const { showAlert, showConfirm } = useDialog();
-
-  if (!isSuperAdmin) return <Navigate to="/admin" replace />;
   const [roles, setRoles] = useState([]);
   const [availablePermissions, setAvailablePermissions] = useState({});
   const [loading, setLoading] = useState(true);
@@ -17,7 +15,9 @@ export default function Roles() {
   const [editingRole, setEditingRole] = useState(null);
   const [formData, setFormData] = useState({ name: '', description: '', permissions: [] });
 
-  useEffect(() => { fetchRoles(); }, []);
+  useEffect(() => { if (isSuperAdmin) fetchRoles(); }, [isSuperAdmin]);
+
+  if (!isSuperAdmin) return <Navigate to="/admin" replace />;
 
   const fetchRoles = async () => {
     try {

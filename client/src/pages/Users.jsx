@@ -21,8 +21,8 @@ export default function Users() {
 
   useEffect(() => {
     fetchUsers();
-    fetchRoles();
-  }, []);
+    if (isSuperAdmin) fetchRoles();
+  }, [isSuperAdmin]);
 
   const fetchUsers = async () => {
     try {
@@ -71,6 +71,12 @@ export default function Users() {
 
       if (editingUser && !dataToSend.password) {
         delete dataToSend.password;
+      }
+
+      // Non-super-admins can't see the role selector — don't send role_id
+      // to avoid accidentally clearing an existing assignment
+      if (!isSuperAdmin) {
+        delete dataToSend.role_id;
       }
 
       if (editingUser) {
@@ -447,7 +453,7 @@ export default function Users() {
                 )}
               </div>
 
-              {formData.role === 'user' && (
+              {formData.role === 'user' && isSuperAdmin && (
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' }}>
                     الدور (الصلاحيات)

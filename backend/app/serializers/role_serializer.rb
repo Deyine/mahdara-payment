@@ -5,7 +5,7 @@ class RoleSerializer
       name: r.name,
       description: r.description,
       permissions: r.permissions || [],
-      users_count: r.users.count,
+      users_count: r.try(:users_count).to_i,
       created_at: r.created_at,
       updated_at: r.updated_at
     }

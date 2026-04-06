@@ -5,7 +5,7 @@ module Api
     before_action :set_role, only: [:show, :update, :destroy]
 
     def index
-      @roles = Role.order(:name)
+      @roles = Role.left_joins(:users).group('roles.id').select('roles.*, COUNT(users.id) AS users_count').order(:name)
       render json: {
         roles: RoleSerializer.many(@roles),
         available_permissions: Permissions::BY_ENTITY
