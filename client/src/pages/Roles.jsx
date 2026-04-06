@@ -165,7 +165,7 @@ export default function Roles() {
             maxWidth: '720px', width: '100%', direction: 'rtl',
             maxHeight: '90vh', overflowY: 'auto'
           }}>
-            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold' }}>
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 'bold', textAlign: 'right' }}>
               {editingRole ? 'تعديل الدور' : 'دور جديد'}
             </h2>
 
