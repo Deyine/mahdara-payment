@@ -56,6 +56,21 @@ export default function PaymentBatchDetail() {
     }
   };
 
+  const handleRevert = async () => {
+    const ok = await showConfirm(
+      'سيتم إعادة الدفعة إلى حالة المسودة. هل تريد المتابعة؟',
+      'إعادة إلى مسودة'
+    );
+    if (!ok) return;
+    try {
+      const res = await paymentBatchesAPI.revert(batch.id);
+      setBatch(res.data);
+      await showAlert('تمت إعادة الدفعة إلى المسودة', 'success');
+    } catch (err) {
+      await showAlert(err.response?.data?.error || 'خطأ في الإعادة', 'error');
+    }
+  };
+
   const handleDelete = async () => {
     const confirmed = await showConfirm(
       `هل تريد حذف دفعة ${batch.payment_date}؟`,
@@ -116,6 +131,12 @@ export default function PaymentBatchDetail() {
                   padding: '8px 16px', borderRadius: '6px', border: '1px solid #10b981',
                   color: '#10b981', backgroundColor: 'white', cursor: 'pointer', fontSize: '14px'
                 }}>⬇ تصدير Excel</button>
+              )}
+              {hasPermission('payment_batches:confirm') && batch.status === 'confirmed' && (
+                <button onClick={handleRevert} style={{
+                  padding: '8px 16px', borderRadius: '6px', border: '1px solid #f59e0b',
+                  color: '#f59e0b', backgroundColor: 'white', cursor: 'pointer', fontSize: '14px'
+                }}>إعادة إلى مسودة</button>
               )}
               {hasPermission('payment_batches:confirm') && batch.status === 'draft' && (
                 <button onClick={handleConfirm} style={{

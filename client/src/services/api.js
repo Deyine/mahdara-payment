@@ -123,6 +123,7 @@ export const paymentBatchesAPI = {
   getById: (id) => api.get(`/payment_batches/${id}`),
   create: (batchData, employees) => api.post('/payment_batches', { payment_batch: batchData, employees }),
   confirm: (id) => api.patch(`/payment_batches/${id}/confirm`),
+  revert: (id) => api.patch(`/payment_batches/${id}/revert`),
   export: (id) => api.get(`/payment_batches/${id}/export`, { responseType: 'blob' }),
   delete: (id) => api.delete(`/payment_batches/${id}`),
 };
