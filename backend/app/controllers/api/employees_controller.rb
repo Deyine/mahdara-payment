@@ -33,19 +33,24 @@ class Api::EmployeesController < ApplicationController
     scope = scope.left_joins(:wilaya)        if params[:sort_by] == 'wilaya'
     scope = scope.order(Arel.sql("#{sort_col} #{sort_dir}"))
 
-    total    = scope.unscope(:order).count
-    per_page = 20
-    page     = [params[:page].to_i, 1].max
+    total = scope.unscope(:order).count
 
-    employees = scope
-      .offset((page - 1) * per_page)
-      .limit(per_page)
-      .preload(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts,
-               mahdara: [:wilaya, :moughataa, :commune, :village, mahl_ilmi_attachment: :blob])
+    employees = if params[:per_page] == 'all'
+      scope.preload(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts,
+                    mahdara: [:wilaya, :moughataa, :commune, :village, mahl_ilmi_attachment: :blob])
+    else
+      per_page = 20
+      page     = [params[:page].to_i, 1].max
+      scope
+        .offset((page - 1) * per_page)
+        .limit(per_page)
+        .preload(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts,
+                 mahdara: [:wilaya, :moughataa, :commune, :village, mahl_ilmi_attachment: :blob])
+    end
 
     render json: {
       employees: EmployeeSerializer.many(employees),
-      meta: { total: total, page: page, per_page: per_page, total_pages: (total.to_f / per_page).ceil }
+      meta: { total: total, page: page || 1, per_page: per_page || total, total_pages: per_page ? (total.to_f / per_page).ceil : 1 }
     }
   end
 
