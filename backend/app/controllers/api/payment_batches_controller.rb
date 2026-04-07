@@ -2,13 +2,14 @@ class Api::PaymentBatchesController < ApplicationController
   before_action :authenticate_user!
   before_action -> { require_permission('payment_batches:read')    }, only: [:index, :show]
   before_action -> { require_permission('payment_batches:create')  }, only: [:create]
-  before_action -> { require_permission('payment_batches:confirm') }, only: [:confirm]
+  before_action -> { require_permission('payment_batches:confirm') }, only: [:confirm, :revert]
   before_action -> { require_permission('payment_batches:delete')  }, only: [:destroy]
   before_action -> { require_permission('payment_batches:export')  }, only: [:export]
-  before_action :set_batch, only: [:show, :destroy, :confirm, :export]
+  before_action :set_batch, only: [:show, :destroy, :confirm, :revert, :export]
 
   def index
-    @batches = PaymentBatch.includes(:created_by, payment_batch_employees: :employee)
+    @batches = PaymentBatch.active
+                           .includes(:created_by, payment_batch_employees: :employee)
                            .order(created_at: :desc)
     render json: PaymentBatchSerializer.many(@batches)
   end
@@ -41,6 +42,12 @@ class Api::PaymentBatchesController < ApplicationController
   def confirm
     return render json: { error: 'La dفعة est déjà confirmée' }, status: :unprocessable_entity if @batch.confirmed?
     @batch.update!(status: 'confirmed')
+    render json: PaymentBatchSerializer.one(@batch, full: true)
+  end
+
+  def revert
+    return render json: { error: 'Seul un lot confirmé peut être réinitialisé en brouillon' }, status: :unprocessable_entity unless @batch.confirmed?
+    @batch.update!(status: 'draft')
     render json: PaymentBatchSerializer.one(@batch, full: true)
   end
 
@@ -102,14 +109,14 @@ class Api::PaymentBatchesController < ApplicationController
 
   def destroy
     return render json: { error: 'Seul un lot en brouillon peut être supprimé' }, status: :forbidden unless @batch.draft?
-    @batch.destroy
+    @batch.soft_delete!
     render json: { message: 'Lot supprimé' }
   end
 
   private
 
   def set_batch
-    @batch = PaymentBatch.includes(:created_by, payment_batch_employees: { employee: [:employee_type, :bank] }).find(params[:id])
+    @batch = PaymentBatch.active.includes(:created_by, payment_batch_employees: { employee: [:employee_type, :bank] }).find(params[:id])
   end
 
   def batch_params

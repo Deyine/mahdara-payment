@@ -5,6 +5,8 @@ class PaymentBatch < ApplicationRecord
 
   STATUSES = %w[draft confirmed].freeze
 
+  scope :active, -> { where(deleted_at: nil) }
+
   validates :payment_date, presence: true
   validates :status, inclusion: { in: STATUSES }
 
@@ -14,5 +16,16 @@ class PaymentBatch < ApplicationRecord
 
   def confirmed?
     status == 'confirmed'
+  end
+
+  def deleted?
+    deleted_at.present?
+  end
+
+  def soft_delete!
+    transaction do
+      payment_batch_employees.update_all(deleted_at: Time.current)
+      update!(deleted_at: Time.current)
+    end
   end
 end

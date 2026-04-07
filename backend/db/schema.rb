@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_04_06_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_04_07_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -144,6 +144,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_06_000002) do
     t.decimal "amount", precision: 15, scale: 2, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
     t.index ["employee_id"], name: "index_payment_batch_employees_on_employee_id"
     t.index ["payment_batch_id", "employee_id"], name: "index_pbe_on_batch_and_employee", unique: true
     t.index ["payment_batch_id"], name: "index_payment_batch_employees_on_payment_batch_id"
@@ -156,7 +157,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_06_000002) do
     t.uuid "created_by_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
     t.index ["created_by_id"], name: "index_payment_batches_on_created_by_id"
+    t.index ["deleted_at"], name: "index_payment_batches_on_deleted_at"
   end
 
   create_table "roles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

@@ -35,6 +35,7 @@ Rails.application.routes.draw do
     resources :payment_batches, only: [:index, :show, :create, :destroy] do
       member do
         patch 'confirm'
+        patch 'revert'
         get   'export'
       end
     end
