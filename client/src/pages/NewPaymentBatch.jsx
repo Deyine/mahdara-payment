@@ -24,7 +24,7 @@ export default function NewPaymentBatch() {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const res = await employeesAPI.getAll();
+      const res = await employeesAPI.getAll({ per_page: 'all' });
       // Only active employees with active contracts
       setAllEmployees(res.data.employees.filter(e => e.active && e.active_contract));
     } catch {
