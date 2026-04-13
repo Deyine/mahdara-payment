@@ -3,4 +3,8 @@ class EmployeeDocument < ApplicationRecord
   belongs_to :document_template
 
   has_one_attached :file
+
+  def file_attached?
+    file.attached?
+  end
 end
