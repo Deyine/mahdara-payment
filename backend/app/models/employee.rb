@@ -21,16 +21,13 @@ class Employee < ApplicationRecord
 
   scope :active, -> { where(active: true) }
 
-  private
-
-  def generate_employee_documents
+  def sync_document_slots
     return unless employee_type
+    existing_ids = employee_documents.pluck(:document_template_id)
     employee_type.document_templates.each do |template|
-      employee_documents.create!(document_template: template)
+      employee_documents.create!(document_template: template) unless existing_ids.include?(template.id)
     end
   end
-
-  public
 
   def active_contract
     contracts.find_by(active: true)

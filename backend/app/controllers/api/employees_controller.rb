@@ -55,6 +55,7 @@ class Api::EmployeesController < ApplicationController
   end
 
   def show
+    @employee.sync_document_slots
     render json: EmployeeSerializer.one(@employee, full: true)
   end
 
@@ -152,10 +153,13 @@ class Api::EmployeesController < ApplicationController
   private
 
   def set_employee
-    @employee = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts,
-                                  photo_attachment: :blob,
-                                  mahdara: [:wilaya, :moughataa, :commune, :village, mahl_ilmi_attachment: :blob],
-                                  employee_documents: { document_template: [], file_attachment: :blob }).find(params[:id])
+    @employee = Employee.includes(
+      { employee_type: :document_templates },
+      :wilaya, :moughataa, :commune, :village, :bank, :contracts,
+      photo_attachment: :blob,
+      mahdara: [:wilaya, :moughataa, :commune, :village, mahl_ilmi_attachment: :blob],
+      employee_documents: { document_template: [], file_attachment: :blob }
+    ).find(params[:id])
   end
 
   def attach_photo_from_huwiyeti(employee)
