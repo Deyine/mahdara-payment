@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
-import { employeesAPI, contractsAPI, employeeTypesAPI, wilayasAPI, moughataaAPI, communesAPI, villagesAPI, banksAPI, mahdarasAPI, salaryAmountsAPI } from '../services/api';
+import { employeesAPI, contractsAPI, employeeTypesAPI, wilayasAPI, moughataaAPI, communesAPI, villagesAPI, banksAPI, mahdarasAPI, salaryAmountsAPI, employeeDocumentsAPI } from '../services/api';
 
 const inputStyle = { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' };
 const labelStyle = { display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', textAlign: 'right' };
@@ -242,6 +242,32 @@ export default function EmployeeDetail() {
     }
   };
 
+  const handleUploadDocument = async (doc, file) => {
+    try {
+      const res = await employeeDocumentsAPI.upload(id, doc.id, file);
+      setEmployee(prev => ({
+        ...prev,
+        employee_documents: prev.employee_documents.map(d => d.id === doc.id ? res.data : d)
+      }));
+    } catch {
+      await showAlert('خطأ في رفع الملف', 'error');
+    }
+  };
+
+  const handleDeleteDocument = async (doc) => {
+    const confirmed = await showConfirm(`حذف رابط المستند "${doc.document_template.name}"؟`, 'حذف المستند');
+    if (!confirmed) return;
+    try {
+      await employeeDocumentsAPI.delete(id, doc.id);
+      setEmployee(prev => ({
+        ...prev,
+        employee_documents: prev.employee_documents.filter(d => d.id !== doc.id)
+      }));
+    } catch {
+      await showAlert('خطأ في الحذف', 'error');
+    }
+  };
+
   if (loading) return <div style={{ textAlign: 'center', padding: '80px', color: '#64748b' }}>جارٍ التحميل...</div>;
   if (!employee) return null;
 
@@ -260,12 +286,12 @@ export default function EmployeeDetail() {
           <button onClick={() => navigate('/admin/employees')} style={{
             background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '14px', padding: 0, marginBottom: '12px', display: 'block'
           }}>← العودة إلى الموظفين</button>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', direction: 'rtl' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', direction: 'rtl', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1e293b' }}>{employee.full_name}</h1>
+              <h1 style={{ margin: 0, fontSize: 'clamp(20px, 4vw, 28px)', fontWeight: 'bold', color: '#1e293b' }}>{employee.full_name}</h1>
               <p style={{ margin: '4px 0 0', color: '#64748b', fontFamily: 'monospace' }}>الرقم الوطني: {employee.nni}</p>
             </div>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <span style={{
                 padding: '6px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: '600',
                 backgroundColor: employee.active ? '#dcfce7' : '#fee2e2',
@@ -281,7 +307,7 @@ export default function EmployeeDetail() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: employee.mahdara ? '24px' : 0, direction: 'rtl' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: '24px', marginBottom: '24px', direction: 'rtl' }}>
           {/* Info Card */}
           <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0', direction: 'rtl' }}>
             <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '20px' }}>
@@ -332,7 +358,7 @@ export default function EmployeeDetail() {
                     padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0',
                     backgroundColor: c.active ? '#f0f9ff' : '#f8fafc'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                           <span style={{
@@ -379,7 +405,7 @@ export default function EmployeeDetail() {
 
         {/* Mahdara Card */}
         {(employee.mahdara || employee.employee_type?.is_mahdara) && (
-          <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #93c5fd', marginTop: '0', direction: 'rtl' }}>
+          <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #93c5fd', marginBottom: '24px', direction: 'rtl' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', direction: 'rtl' }}>
               <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1e40af' }}>بيانات المحظرة</h2>
               {employee.mahdara?.mahl_ilmi_attached && (
@@ -402,7 +428,7 @@ export default function EmployeeDetail() {
               )}
             </div>
             {employee.mahdara ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" style={{ gap: '16px' }}>
                 {infoRow('اسم المحظرة', employee.mahdara.nom)}
                 {infoRow('رقم الإفادة', employee.mahdara.numero_releve)}
                 {infoRow('نوع المحظرة', {
@@ -420,6 +446,54 @@ export default function EmployeeDetail() {
               <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>لم تُضف بيانات المحظرة بعد</div>
             )}
           </div>
+        )}
+
+        {/* Documents Section */}
+        {employee.employee_documents && employee.employee_documents.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm p-6" style={{ border: '1px solid #e2e8f0', direction: 'rtl' }}>
+          <h2 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 'bold', color: '#1e293b', textAlign: 'right' }}>المستندات المطلوبة</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" style={{ gap: '12px' }}>
+            {employee.employee_documents.map(doc => (
+              <div key={doc.id} style={{
+                border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px',
+                backgroundColor: doc.file_url ? '#f0fdf4' : '#fafafa',
+                borderColor: doc.file_url ? '#86efac' : '#e2e8f0'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '14px', fontWeight: '600', color: '#1e293b' }}>{doc.document_template.name}</span>
+                  <span style={{
+                    fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '10px',
+                    backgroundColor: doc.file_url ? '#dcfce7' : '#fee2e2',
+                    color: doc.file_url ? '#166534' : '#dc2626'
+                  }}>{doc.file_url ? 'مرفق' : 'غير مرفق'}</span>
+                </div>
+                {doc.file_url && (
+                  <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <a href={doc.file_url} target="_blank" rel="noreferrer" style={{ color: '#167bff', textDecoration: 'none', fontWeight: '500' }}>
+                      {doc.file_name}
+                    </a>
+                  </div>
+                )}
+                {hasPermission('employees:update') && (
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <label style={{ cursor: 'pointer' }}>
+                      <input type="file" style={{ display: 'none' }}
+                        onChange={e => { if (e.target.files[0]) handleUploadDocument(doc, e.target.files[0]); }} />
+                      <span style={{
+                        display: 'inline-block', padding: '5px 10px', borderRadius: '5px', fontSize: '12px',
+                        border: '1px solid #167bff', color: '#167bff', backgroundColor: 'white', cursor: 'pointer', fontWeight: '500'
+                      }}>{doc.file_url ? 'استبدال' : 'رفع ملف'}</span>
+                    </label>
+                    <button onClick={() => handleDeleteDocument(doc)} style={{
+                      padding: '5px 10px', borderRadius: '5px', fontSize: '12px',
+                      border: '1px solid #ef4444', color: '#ef4444', backgroundColor: 'white', cursor: 'pointer', fontWeight: '500'
+                    }}>حذف</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
         )}
       </div>
 

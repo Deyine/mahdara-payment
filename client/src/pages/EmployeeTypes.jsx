@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
-import { employeeTypesAPI } from '../services/api';
+import { employeeTypesAPI, documentTemplatesAPI } from '../services/api';
 
 export default function EmployeeTypes() {
   const { hasPermission } = useAuth();
@@ -11,6 +11,8 @@ export default function EmployeeTypes() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [formData, setFormData] = useState({ name: '', active: true, is_mahdara: false, apply_imf: false });
+  const [expandedTypeId, setExpandedTypeId] = useState(null);
+  const [newDocName, setNewDocName] = useState('');
 
   useEffect(() => { fetchTypes(); }, []);
 
@@ -70,6 +72,44 @@ export default function EmployeeTypes() {
     }
   };
 
+  const toggleDocuments = (typeId) => {
+    setExpandedTypeId(prev => prev === typeId ? null : typeId);
+    setNewDocName('');
+  };
+
+  const handleAddDocument = async (type) => {
+    if (!newDocName.trim()) return;
+    try {
+      const res = await documentTemplatesAPI.create(type.id, { name: newDocName.trim() });
+      setTypes(prev => prev.map(t => t.id === type.id
+        ? { ...t, document_templates: [...(t.document_templates || []), res.data] }
+        : t
+      ));
+      setNewDocName('');
+    } catch (err) {
+      await showAlert(err.response?.data?.errors?.[0] || 'خطأ في الحفظ', 'error');
+    }
+  };
+
+  const handleDeleteDocument = async (type, template) => {
+    const uploadedLine = template.uploaded_count > 0
+      ? `\nتنبيه: ${template.uploaded_count} موظف رفع ملفاً لهذا المستند — الملفات لن تُحذف لكن الرابط سيُزال.`
+      : template.employees_count > 0
+        ? `\nسيتم إزالته من ${template.employees_count} موظف.`
+        : '';
+    const confirmed = await showConfirm(`حذف المستند "${template.name}" ؟${uploadedLine}`, 'حذف المستند');
+    if (!confirmed) return;
+    try {
+      await documentTemplatesAPI.delete(type.id, template.id);
+      setTypes(prev => prev.map(t => t.id === type.id
+        ? { ...t, document_templates: t.document_templates.filter(d => d.id !== template.id) }
+        : t
+      ));
+    } catch {
+      await showAlert('خطأ في الحذف', 'error');
+    }
+  };
+
   const resetForm = () => {
     setShowForm(false);
     setEditing(null);
@@ -104,51 +144,116 @@ export default function EmployeeTypes() {
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>محظرة</th>
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>IMF</th>
               <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الحالة</th>
+              <th style={{ padding: '12px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>المستندات</th>
               {(hasPermission('employee_types:update') || hasPermission('employee_types:delete')) && <th style={{ padding: '12px', textAlign: 'left', fontSize: '14px', fontWeight: '600', color: '#64748b' }}>الإجراءات</th>}
             </tr>
           </thead>
           <tbody>
             {types.map(type => (
-              <tr key={type.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <td style={{ padding: '12px', fontSize: '14px', color: '#1e293b', fontWeight: '500' }}>{type.name}</td>
-                <td style={{ padding: '12px' }}>
-                  {type.is_mahdara && (
-                    <span style={{
-                      padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: '600',
-                      backgroundColor: '#eff6ff', color: '#1e40af', border: '1px solid #93c5fd'
-                    }}>محظرة</span>
-                  )}
-                </td>
-                <td style={{ padding: '12px' }}>
-                  {type.apply_imf && (
-                    <span style={{
-                      padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: '600',
-                      backgroundColor: '#fef9c3', color: '#854d0e', border: '1px solid #fde047'
-                    }}>IMF 2.5%</span>
-                  )}
-                </td>
-                <td style={{ padding: '12px' }}>
-                  <span style={{
-                    padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: '600',
-                    backgroundColor: type.active ? '#dcfce7' : '#fee2e2',
-                    color: type.active ? '#166534' : '#dc2626'
-                  }}>{type.active ? 'نشط' : 'غير نشط'}</span>
-                </td>
-                {(hasPermission('employee_types:update') || hasPermission('employee_types:delete')) && (
-                  <td style={{ padding: '12px', textAlign: 'left' }}>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                      <button onClick={() => handleEdit(type)} style={{
-                        padding: '6px 12px', fontSize: '13px', backgroundColor: 'white',
-                        border: '1px solid #167bff', color: '#167bff', borderRadius: '4px', cursor: 'pointer'
-                      }}>تعديل</button>
-                      <button onClick={() => handleDelete(type)} style={{
-                        padding: '6px 12px', fontSize: '13px', backgroundColor: 'white',
-                        border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer'
-                      }}>حذف</button>
-                    </div>
+              <>
+                <tr key={type.id} style={{ borderBottom: expandedTypeId === type.id ? 'none' : '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '12px', fontSize: '14px', color: '#1e293b', fontWeight: '500' }}>{type.name}</td>
+                  <td style={{ padding: '12px' }}>
+                    {type.is_mahdara && (
+                      <span style={{
+                        padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: '600',
+                        backgroundColor: '#eff6ff', color: '#1e40af', border: '1px solid #93c5fd'
+                      }}>محظرة</span>
+                    )}
                   </td>
+                  <td style={{ padding: '12px' }}>
+                    {type.apply_imf && (
+                      <span style={{
+                        padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: '600',
+                        backgroundColor: '#fef9c3', color: '#854d0e', border: '1px solid #fde047'
+                      }}>IMF 2.5%</span>
+                    )}
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    <span style={{
+                      padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: '600',
+                      backgroundColor: type.active ? '#dcfce7' : '#fee2e2',
+                      color: type.active ? '#166534' : '#dc2626'
+                    }}>{type.active ? 'نشط' : 'غير نشط'}</span>
+                  </td>
+                  <td style={{ padding: '12px' }}>
+                    <button onClick={() => toggleDocuments(type.id)} style={{
+                      padding: '4px 10px', fontSize: '12px', borderRadius: '4px', cursor: 'pointer',
+                      backgroundColor: expandedTypeId === type.id ? '#167bff' : 'white',
+                      color: expandedTypeId === type.id ? 'white' : '#167bff',
+                      border: '1px solid #167bff', fontWeight: '600'
+                    }}>
+                      {(type.document_templates || []).length} مستند
+                    </button>
+                  </td>
+                  {(hasPermission('employee_types:update') || hasPermission('employee_types:delete')) && (
+                    <td style={{ padding: '12px', textAlign: 'left' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button onClick={() => handleEdit(type)} style={{
+                          padding: '6px 12px', fontSize: '13px', backgroundColor: 'white',
+                          border: '1px solid #167bff', color: '#167bff', borderRadius: '4px', cursor: 'pointer'
+                        }}>تعديل</button>
+                        <button onClick={() => handleDelete(type)} style={{
+                          padding: '6px 12px', fontSize: '13px', backgroundColor: 'white',
+                          border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer'
+                        }}>حذف</button>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+                {expandedTypeId === type.id && (
+                  <tr key={`${type.id}-docs`} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+                    <td colSpan={hasPermission('employee_types:update') ? 6 : 5} style={{ padding: '16px 24px' }}>
+                      <div style={{ direction: 'rtl' }}>
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: '#475569', marginBottom: '10px' }}>
+                          المستندات المطلوبة لنوع "{type.name}"
+                        </div>
+                        {(type.document_templates || []).length === 0 ? (
+                          <div style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '10px' }}>لا توجد مستندات مضافة</div>
+                        ) : (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+                            {(type.document_templates || []).map(tmpl => (
+                              <span key={tmpl.id} style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                padding: '4px 10px', borderRadius: '20px', fontSize: '13px',
+                                backgroundColor: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd'
+                              }}>
+                                {tmpl.name}
+                                {hasPermission('employee_types:update') && (
+                                  <button onClick={() => handleDeleteDocument(type, tmpl)} style={{
+                                    background: 'none', border: 'none', cursor: 'pointer',
+                                    color: '#ef4444', fontWeight: 'bold', fontSize: '14px', lineHeight: 1, padding: 0
+                                  }}>×</button>
+                                )}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {hasPermission('employee_types:update') && (
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <input
+                              type="text"
+                              value={newDocName}
+                              onChange={e => setNewDocName(e.target.value)}
+                              onKeyDown={e => e.key === 'Enter' && handleAddDocument(type)}
+                              placeholder="اسم المستند المطلوب..."
+                              style={{
+                                padding: '7px 12px', borderRadius: '6px', border: '1px solid #cbd5e1',
+                                fontSize: '13px', width: '260px'
+                              }}
+                            />
+                            <button onClick={() => handleAddDocument(type)} style={{
+                              padding: '7px 14px', borderRadius: '6px', border: 'none',
+                              backgroundColor: '#167bff', color: 'white', fontSize: '13px',
+                              fontWeight: '600', cursor: 'pointer'
+                            }}>إضافة</button>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
                 )}
-              </tr>
+              </>
             ))}
           </tbody>
         </table>

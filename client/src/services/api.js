@@ -43,6 +43,20 @@ export const employeeTypesAPI = {
   delete: (id) => api.delete(`/employee_types/${id}`),
 };
 
+export const documentTemplatesAPI = {
+  create: (employeeTypeId, data) => api.post(`/employee_types/${employeeTypeId}/document_templates`, { document_template: data }),
+  delete: (employeeTypeId, id) => api.delete(`/employee_types/${employeeTypeId}/document_templates/${id}`),
+};
+
+export const employeeDocumentsAPI = {
+  upload: (employeeId, id, file) => {
+    const fd = new FormData();
+    fd.append('employee_document[file]', file);
+    return api.patch(`/employees/${employeeId}/employee_documents/${id}`, fd);
+  },
+  delete: (employeeId, id) => api.delete(`/employees/${employeeId}/employee_documents/${id}`),
+};
+
 export const employeesAPI = {
   getAll: (params) => api.get('/employees', { params }),
   getById: (id) => api.get(`/employees/${id}`),

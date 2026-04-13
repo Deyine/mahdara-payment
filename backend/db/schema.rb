@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_04_07_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_04_13_000941) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -69,6 +69,24 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_07_000001) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["employee_id"], name: "index_contracts_on_employee_id"
+  end
+
+  create_table "document_templates", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "employee_type_id", null: false
+    t.string "name", null: false
+    t.integer "position", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["employee_type_id"], name: "index_document_templates_on_employee_type_id"
+  end
+
+  create_table "employee_documents", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "employee_id", null: false
+    t.uuid "document_template_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_template_id"], name: "index_employee_documents_on_document_template_id"
+    t.index ["employee_id"], name: "index_employee_documents_on_employee_id"
   end
 
   create_table "employee_types", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -212,6 +230,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_07_000001) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "communes", "moughataa"
   add_foreign_key "contracts", "employees"
+  add_foreign_key "document_templates", "employee_types"
+  add_foreign_key "employee_documents", "document_templates"
+  add_foreign_key "employee_documents", "employees"
   add_foreign_key "employees", "banks"
   add_foreign_key "employees", "communes"
   add_foreign_key "employees", "employee_types"

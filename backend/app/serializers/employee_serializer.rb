@@ -27,6 +27,7 @@ class EmployeeSerializer
     }
     data[:photo_url] = e.photo.attached? ? Rails.application.routes.url_helpers.rails_blob_path(e.photo, only_path: true) : nil if full
     data[:contracts] = ContractSerializer.many(e.contracts) if full
+    data[:employee_documents] = EmployeeDocumentSerializer.many(e.employee_documents) if full
     data
   end
 
