@@ -255,13 +255,13 @@ export default function EmployeeDetail() {
   };
 
   const handleDeleteDocument = async (doc) => {
-    const confirmed = await showConfirm(`حذف رابط المستند "${doc.document_template.name}"؟`, 'حذف المستند');
+    const confirmed = await showConfirm(`إزالة الملف المرفق بـ "${doc.document_template.name}"؟`, 'إزالة الملف');
     if (!confirmed) return;
     try {
-      await employeeDocumentsAPI.delete(id, doc.id);
+      const res = await employeeDocumentsAPI.delete(id, doc.id);
       setEmployee(prev => ({
         ...prev,
-        employee_documents: prev.employee_documents.filter(d => d.id !== doc.id)
+        employee_documents: prev.employee_documents.map(d => d.id === doc.id ? res.data : d)
       }));
     } catch {
       await showAlert('خطأ في الحذف', 'error');
@@ -484,10 +484,10 @@ export default function EmployeeDetail() {
                         border: '1px solid #167bff', color: '#167bff', backgroundColor: 'white', cursor: 'pointer', fontWeight: '500'
                       }}>{doc.file_url ? 'استبدال' : 'رفع ملف'}</span>
                     </label>
-                    <button onClick={() => handleDeleteDocument(doc)} style={{
+                    {doc.file_url && <button onClick={() => handleDeleteDocument(doc)} style={{
                       padding: '5px 10px', borderRadius: '5px', fontSize: '12px',
                       border: '1px solid #ef4444', color: '#ef4444', backgroundColor: 'white', cursor: 'pointer', fontWeight: '500'
-                    }}>حذف</button>
+                    }}>إزالة</button>}
                   </div>
                 )}
               </div>

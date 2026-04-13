@@ -19,8 +19,7 @@ class Api::EmployeeDocumentsController < ApplicationController
 
   def destroy
     @employee_document.file.detach if @employee_document.file.attached?
-    @employee_document.destroy
-    render json: { message: 'تم حذف المستند' }
+    render json: EmployeeDocumentSerializer.one(@employee_document)
   end
 
   private
