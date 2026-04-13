@@ -1,5 +1,6 @@
 class EmployeeType < ApplicationRecord
   has_many :employees, dependent: :restrict_with_error
+  has_many :document_templates, dependent: :destroy
 
   validates :name, presence: true, uniqueness: true
   validate :cannot_unset_is_mahdara_with_existing_mahdara_employees

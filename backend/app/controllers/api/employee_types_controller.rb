@@ -7,12 +7,12 @@ class Api::EmployeeTypesController < ApplicationController
   before_action :set_employee_type, only: [:show, :update, :destroy]
 
   def index
-    @types = EmployeeType.order(:name)
-    render json: EmployeeTypeSerializer.many(@types)
+    @types = EmployeeType.includes(document_templates: { employee_documents: :file_attachment }).order(:name)
+    render json: @types.map { |t| EmployeeTypeSerializer.one(t, full: true) }
   end
 
   def show
-    render json: EmployeeTypeSerializer.one(@employee_type)
+    render json: EmployeeTypeSerializer.one(@employee_type, full: true)
   end
 
   def create
@@ -43,7 +43,7 @@ class Api::EmployeeTypesController < ApplicationController
   private
 
   def set_employee_type
-    @employee_type = EmployeeType.find(params[:id])
+    @employee_type = EmployeeType.includes(document_templates: { employee_documents: :file_attachment }).find(params[:id])
   end
 
   def employee_type_params

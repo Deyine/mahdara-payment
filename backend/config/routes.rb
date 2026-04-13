@@ -7,13 +7,16 @@ Rails.application.routes.draw do
 
     resources :roles
     resources :users
-    resources :employee_types
+    resources :employee_types do
+      resources :document_templates, only: [:create, :destroy]
+    end
     resources :banks
     resources :employees do
       collection do
         get 'lookup_nni'
         get 'export'
       end
+      resources :employee_documents, only: [:update, :destroy]
     end
     resources :mahdaras, only: [:create, :update] do
       member { get 'document' }

@@ -154,7 +154,8 @@ class Api::EmployeesController < ApplicationController
   def set_employee
     @employee = Employee.includes(:employee_type, :wilaya, :moughataa, :commune, :village, :bank, :contracts,
                                   photo_attachment: :blob,
-                                  mahdara: [:wilaya, :moughataa, :commune, :village, mahl_ilmi_attachment: :blob]).find(params[:id])
+                                  mahdara: [:wilaya, :moughataa, :commune, :village, mahl_ilmi_attachment: :blob],
+                                  employee_documents: { document_template: [], file_attachment: :blob }).find(params[:id])
   end
 
   def attach_photo_from_huwiyeti(employee)
