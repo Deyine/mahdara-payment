@@ -5,8 +5,8 @@ class DocumentTemplateSerializer
       name: t.name,
       position: t.position,
       employee_type_id: t.employee_type_id,
-      employees_count: t.employee_documents.count,
-      uploaded_count: t.employee_documents.joins(:file_attachment).count
+      employees_count: t.employee_documents.size,
+      uploaded_count: t.employee_documents.count(&:file_attached?)
     }
   end
 
