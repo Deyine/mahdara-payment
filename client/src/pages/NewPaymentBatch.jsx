@@ -18,6 +18,7 @@ export default function NewPaymentBatch() {
   // Selected employees: { [employee_id]: { months_count, amount } }
   const [selected, setSelected] = useState({});
   const [globalMonths, setGlobalMonths] = useState(1);
+  const [filterType, setFilterType] = useState('');
 
   useEffect(() => { fetchEmployees(); }, []);
 
@@ -34,10 +35,21 @@ export default function NewPaymentBatch() {
     }
   };
 
+  const employeeTypes = useMemo(() => {
+    const seen = new Map();
+    allEmployees.forEach(e => {
+      if (e.employee_type && !seen.has(e.employee_type.id))
+        seen.set(e.employee_type.id, e.employee_type.name);
+    });
+    return Array.from(seen.entries()).map(([id, name]) => ({ id, name }));
+  }, [allEmployees]);
+
   const filtered = useMemo(() =>
-    allEmployees.filter(e =>
-      !search || e.full_name.toLowerCase().includes(search.toLowerCase()) || e.nni.includes(search)
-    ), [allEmployees, search]);
+    allEmployees.filter(e => {
+      if (filterType && e.employee_type?.id !== filterType) return false;
+      if (search && !e.full_name.toLowerCase().includes(search.toLowerCase()) && !e.nni.includes(search)) return false;
+      return true;
+    }), [allEmployees, search, filterType]);
 
   const allFilteredSelected = filtered.length > 0 && filtered.every(e => !!selected[e.id]);
   const someFilteredSelected = filtered.some(e => !!selected[e.id]);
@@ -143,8 +155,30 @@ export default function NewPaymentBatch() {
                 <input type="text" dir="rtl" value={search} onChange={e => setSearch(e.target.value)}
                   placeholder="البحث بالاسم أو الرقم الوطني..." style={{
                     width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
-                    fontSize: '14px', marginBottom: '12px', boxSizing: 'border-box'
+                    fontSize: '14px', marginBottom: '10px', boxSizing: 'border-box'
                   }} />
+
+                {/* Employee type filter pills */}
+                {employeeTypes.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px', direction: 'rtl' }}>
+                    <button type="button" onClick={() => setFilterType('')} style={{
+                      padding: '4px 12px', borderRadius: '20px', fontSize: '13px', cursor: 'pointer',
+                      border: `1px solid ${filterType === '' ? '#167bff' : '#e2e8f0'}`,
+                      backgroundColor: filterType === '' ? '#167bff' : 'white',
+                      color: filterType === '' ? 'white' : '#475569',
+                      fontWeight: filterType === '' ? '600' : '400'
+                    }}>الكل</button>
+                    {employeeTypes.map(t => (
+                      <button key={t.id} type="button" onClick={() => setFilterType(t.id)} style={{
+                        padding: '4px 12px', borderRadius: '20px', fontSize: '13px', cursor: 'pointer',
+                        border: `1px solid ${filterType === t.id ? '#167bff' : '#e2e8f0'}`,
+                        backgroundColor: filterType === t.id ? '#167bff' : 'white',
+                        color: filterType === t.id ? 'white' : '#475569',
+                        fontWeight: filterType === t.id ? '600' : '400'
+                      }}>{t.name}</button>
+                    ))}
+                  </div>
+                )}
 
                 {/* Global controls */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px', padding: '10px 12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', direction: 'rtl' }}>
