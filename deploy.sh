@@ -22,7 +22,10 @@ if [ -s "/etc/profile.d/rvm.sh" ]; then source "/etc/profile.d/rvm.sh"; fi
 # asdf
 if [ -s "$HOME/.asdf/asdf.sh" ]; then source "$HOME/.asdf/asdf.sh"; fi
 # nvm
-if [ -s "$HOME/.nvm/nvm.sh" ]; then source "$HOME/.nvm/nvm.sh"; fi
+if [ -s "$HOME/.nvm/nvm.sh" ]; then
+  source "$HOME/.nvm/nvm.sh"
+  nvm use default 2>/dev/null || nvm use --lts 2>/dev/null || true
+fi
 
 # Colors for output
 RED='\033[0;31m'
