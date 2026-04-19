@@ -21,9 +21,13 @@ if [ -s "$HOME/.rvm/scripts/rvm" ]; then source "$HOME/.rvm/scripts/rvm"; fi
 if [ -s "/etc/profile.d/rvm.sh" ]; then source "/etc/profile.d/rvm.sh"; fi
 # asdf
 if [ -s "$HOME/.asdf/asdf.sh" ]; then source "$HOME/.asdf/asdf.sh"; fi
-# nvm
-if [ -s "$HOME/.nvm/nvm.sh" ]; then
-  source "$HOME/.nvm/nvm.sh"
+# nvm — directly inject the latest installed node into PATH (works in non-interactive SSH)
+NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+if [ -d "$NVM_DIR/versions/node" ]; then
+  NVM_NODE=$(ls -1 "$NVM_DIR/versions/node" | sort -V | tail -1)
+  export PATH="$NVM_DIR/versions/node/$NVM_NODE/bin:$PATH"
+elif [ -s "$NVM_DIR/nvm.sh" ]; then
+  source "$NVM_DIR/nvm.sh"
   nvm use default 2>/dev/null || nvm use --lts 2>/dev/null || true
 fi
 
