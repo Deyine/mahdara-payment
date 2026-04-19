@@ -13,7 +13,7 @@ class Employee < ApplicationRecord
   has_one :mahdara, dependent: :destroy
   has_many :employee_documents, dependent: :destroy
 
-  after_create :generate_employee_documents
+  after_create :sync_document_slots
 
   validates :nni, presence: true, uniqueness: true
   validates :first_name, presence: true
