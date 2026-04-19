@@ -60,7 +60,7 @@ class Api::EmployeesController < ApplicationController
   end
 
   def export
-    scope = Employee.includes(:employee_type, :contracts, :wilaya)
+    scope = Employee.includes(:employee_type, :contracts, :wilaya, :moughataa, :commune, :village, :bank)
                     .order(:last_name, :first_name)
 
     if params[:search].present?
@@ -91,20 +91,45 @@ class Api::EmployeesController < ApplicationController
       sheet.sheet_view.right_to_left = true
 
       sheet.add_row(
-        ['الرقم الوطني', 'الإسم', 'المبلغ', 'النوع', 'نوع العقد'],
+        ['الرقم الوطني', 'الاسم الأول (ع)', 'اسم الأب (ع)', 'اللقب (ع)',
+         'الاسم الأول (ف)', 'اسم الأب (ف)', 'اللقب (ف)',
+         'تاريخ الميلاد', 'الهاتف', 'الحالة',
+         'النوع', 'الولاية', 'المقاطعة', 'البلدية', 'القرية',
+         'البنك', 'رقم الحساب',
+         'نوع العقد', 'المبلغ'],
         style: header_style
       )
-      sheet.column_widths 16, 35, 14, 20, 12
+      sheet.column_widths 16, 18, 18, 18, 18, 18, 18, 14, 14, 10, 20, 16, 16, 16, 16, 20, 18, 14, 12
 
       scope.each do |emp|
         active_contract = emp.contracts.find(&:active)
         sheet.add_row([
           emp.nni,
-          emp.full_name,
-          active_contract ? active_contract.amount.to_f.round : nil,
+          emp.first_name,
+          emp.pere_prenom_ar,
+          emp.last_name,
+          emp.first_name_fr,
+          emp.pere_prenom_fr,
+          emp.last_name_fr,
+          emp.birth_date,
+          emp.phone,
+          emp.active ? 'نشط' : 'غير نشط',
           emp.employee_type&.name,
-          active_contract&.contract_type
-        ], style: [center_style, nil, number_style, center_style, center_style])
+          emp.wilaya&.name,
+          emp.moughataa&.name,
+          emp.commune&.name,
+          emp.village&.name,
+          emp.bank&.name,
+          emp.account_number,
+          active_contract&.contract_type,
+          active_contract ? active_contract.amount.to_f.round : nil
+        ], style: [
+          center_style, nil, nil, nil, nil, nil, nil,
+          center_style, center_style, center_style,
+          center_style, center_style, center_style, center_style, center_style,
+          center_style, center_style,
+          center_style, number_style
+        ])
       end
     end
 
