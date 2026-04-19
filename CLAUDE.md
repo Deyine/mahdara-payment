@@ -2,27 +2,23 @@
 
 ## Context Folder Usage
 
-The `context/` folder contains structured documentation organized into 5 focused files:
+The `context/` folder contains structured documentation organized into 6 focused files:
 
 - **00-project-identity.md** - What Mahdara is, business domain, users, problems solved
-- **01-architecture.md** - Tech stack, database schema, project structure, deployment
+- **01-architecture.md** - Tech stack, database schema, project structure
 - **02-conventions.md** - Design system, UI patterns, code style, naming conventions
 - **03-api-contracts.md** - Complete API documentation with endpoints, requests, responses
 - **04-boundaries.md** - Frontend ↔ Backend integration patterns and data flow
 - **05-operating-rules.md** - Business logic, workflows, and operational constraints
+- **06-deployment.md** - Server info, SSH alias, deploy command, deploy.sh gotchas
 
 ### Loading Strategy
 
 **DO NOT automatically read all context files at the start of each session.**
 
-Instead, follow this approach:
+Instead, **analyze each user prompt** to determine which context files are relevant, then load them silently before responding — but only if not already loaded in the current session.
 
-1. **At the start of a new session**, ASK the user which context file(s) they need:
-   - "Which context should I load for this task? (00-identity, 01-architecture, 02-conventions, 03-api, 04-boundaries, 05-rules)"
-
-2. **Wait for the user to specify** the relevant file(s) based on their task
-
-3. **Only load what's needed** to keep the session focused and avoid information overload
+Use the Context Selection Guide below to map the task type to the right file(s). Load the minimum needed.
 
 ### Context Selection Guide
 
@@ -47,6 +43,10 @@ Suggest appropriate contexts based on the task type:
 
 - `00-project-identity.md` (project scope and boundaries)
 - Relevant domain-specific files based on feature
+
+**For Deployment** → Load:
+
+- `06-deployment.md` (server, SSH, deploy command, gotchas)
 
 **For Bug Fixes** → Load only what's relevant to the bug area
 
