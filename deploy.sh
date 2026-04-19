@@ -9,6 +9,11 @@
 
 set -e  # Exit on any error
 
+# Make script self-sufficient regardless of how it's invoked (SSH, cron, etc.)
+export PATH="$HOME/.rbenv/bin:$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node 2>/dev/null | tail -1)/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+if command -v rbenv &>/dev/null; then eval "$(rbenv init - bash)"; fi
+if [ -s "$HOME/.nvm/nvm.sh" ]; then source "$HOME/.nvm/nvm.sh"; fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
