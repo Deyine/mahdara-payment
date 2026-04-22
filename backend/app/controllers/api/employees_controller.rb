@@ -26,6 +26,8 @@ class Api::EmployeesController < ApplicationController
     end
     scope = scope.where(employee_type_id: params[:employee_type_id]) if params[:employee_type_id].present?
     scope = scope.where(wilaya_id: params[:wilaya_id]) if params[:wilaya_id].present?
+    scope = scope.where(active: params[:active] == 'true') if params[:active] == 'true'
+    scope = scope.where(active: params[:active] == 'false') if params[:active] == 'false'
 
     sort_col = SORT_COLUMNS.fetch(params[:sort_by], 'employees.last_name')
     sort_dir = params[:sort_dir] == 'desc' ? 'DESC' : 'ASC'
@@ -72,6 +74,8 @@ class Api::EmployeesController < ApplicationController
     end
     scope = scope.where(employee_type_id: params[:employee_type_id]) if params[:employee_type_id].present?
     scope = scope.where(wilaya_id: params[:wilaya_id]) if params[:wilaya_id].present?
+    scope = scope.where(active: params[:active] == 'true') if params[:active] == 'true'
+    scope = scope.where(active: params[:active] == 'false') if params[:active] == 'false'
 
     package = Axlsx::Package.new
     wb = package.workbook

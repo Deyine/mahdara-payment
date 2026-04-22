@@ -18,6 +18,7 @@ export default function Employees() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filterTypeId, setFilterTypeId] = useState('');
   const [filterWilayaId, setFilterWilayaId] = useState('');
+  const [filterActive, setFilterActive] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortDir, setSortDir] = useState('asc');
   const [queryPage, setQueryPage] = useState(1);
@@ -61,6 +62,7 @@ export default function Employees() {
         if (debouncedSearch) params.search = debouncedSearch;
         if (filterTypeId)    params.employee_type_id = filterTypeId;
         if (filterWilayaId)  params.wilaya_id = filterWilayaId;
+        if (filterActive !== '') params.active = filterActive;
         const res = await employeesAPI.getAll(params);
         if (!cancelled) {
           setEmployees(res.data.employees);
@@ -75,7 +77,7 @@ export default function Employees() {
     };
     doFetch();
     return () => { cancelled = true; };
-  }, [queryPage, debouncedSearch, filterTypeId, filterWilayaId, sortBy, sortDir, refreshKey]);
+  }, [queryPage, debouncedSearch, filterTypeId, filterWilayaId, filterActive, sortBy, sortDir, refreshKey]);
 
   useEffect(() => {
     Promise.all([fetchTypes(), fetchWilayas(), fetchBanks()]);
@@ -222,6 +224,7 @@ export default function Employees() {
       if (debouncedSearch) params.search = debouncedSearch;
       if (filterTypeId) params.employee_type_id = filterTypeId;
       if (filterWilayaId) params.wilaya_id = filterWilayaId;
+      if (filterActive !== '') params.active = filterActive;
       const res = await employeesAPI.export(params);
       const url = URL.createObjectURL(new Blob([res.data]));
       const a = document.createElement('a');
@@ -296,6 +299,21 @@ export default function Employees() {
               placeholder="جميع الولايات"
               isClearable={true}
             />
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {[
+              { label: 'الكل', value: '' },
+              { label: 'نشط', value: 'true' },
+              { label: 'غير نشط', value: 'false' }
+            ].map(pill => (
+              <button key={pill.value} onClick={() => { setFilterActive(pill.value); setQueryPage(1); }} style={{
+                padding: '8px 14px', borderRadius: '20px', fontSize: '13px', fontWeight: '500',
+                cursor: 'pointer', whiteSpace: 'nowrap', border: '1px solid',
+                backgroundColor: filterActive === pill.value ? '#167bff' : 'white',
+                color: filterActive === pill.value ? 'white' : '#475569',
+                borderColor: filterActive === pill.value ? '#167bff' : '#e2e8f0'
+              }}>{pill.label}</button>
+            ))}
           </div>
           <button onClick={handleExport} style={{
             padding: '10px 16px', borderRadius: '8px', border: '1px solid #10b981',
