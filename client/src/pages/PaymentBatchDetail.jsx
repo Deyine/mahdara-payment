@@ -138,6 +138,12 @@ export default function PaymentBatchDetail() {
                   color: '#f59e0b', backgroundColor: 'white', cursor: 'pointer', fontSize: '14px'
                 }}>إعادة إلى مسودة</button>
               )}
+              {hasPermission('payment_batches:create') && batch.status === 'draft' && (
+                <button onClick={() => navigate(`/admin/payments/new?edit=${batch.id}`)} style={{
+                  padding: '8px 16px', borderRadius: '6px', border: '1px solid #167bff',
+                  color: '#167bff', backgroundColor: 'white', cursor: 'pointer', fontSize: '14px'
+                }}>تعديل</button>
+              )}
               {hasPermission('payment_batches:confirm') && batch.status === 'draft' && (
                 <button onClick={handleConfirm} style={{
                   padding: '8px 16px', borderRadius: '6px', border: 'none',

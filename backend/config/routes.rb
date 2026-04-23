@@ -35,7 +35,7 @@ Rails.application.routes.draw do
     resources :villages do
       collection { post 'import' }
     end
-    resources :payment_batches, only: [:index, :show, :create, :destroy] do
+    resources :payment_batches, only: [:index, :show, :create, :update, :destroy] do
       member do
         patch 'confirm'
         patch 'revert'

@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDialog } from '../context/DialogContext';
 import { employeesAPI, paymentBatchesAPI } from '../services/api';
 
 export default function NewPaymentBatch() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
   const { showAlert } = useDialog();
   const [allEmployees, setAllEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,11 +27,28 @@ export default function NewPaymentBatch() {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const res = await employeesAPI.getAll({ per_page: 'all' });
-      // Only active employees with active contracts
-      setAllEmployees(res.data.employees.filter(e => e.active && e.active_contract));
+      const [empRes, batchRes] = await Promise.all([
+        employeesAPI.getAll({ per_page: 'all' }),
+        editId ? paymentBatchesAPI.getById(editId) : null,
+      ]);
+      const employees = empRes.data.employees.filter(e => e.active && e.active_contract);
+      setAllEmployees(employees);
+
+      if (batchRes) {
+        const batch = batchRes.data;
+        setPaymentDate(batch.payment_date || '');
+        setNotes(batch.notes || '');
+        const preselected = {};
+        (batch.employees || []).forEach(entry => {
+          preselected[entry.employee_id] = {
+            months_count: entry.months_count,
+            amount: entry.amount,
+          };
+        });
+        setSelected(preselected);
+      }
     } catch {
-      await showAlert('خطأ في تحميل الموظفين', 'error');
+      await showAlert('خطأ في تحميل البيانات', 'error');
     } finally {
       setLoading(false);
     }
@@ -123,11 +142,17 @@ export default function NewPaymentBatch() {
         amount: parseFloat(data.amount)
       }));
 
-      await paymentBatchesAPI.create({ payment_date: paymentDate, notes }, employees);
-      await showAlert('تم إنشاء الدفعة بنجاح', 'success');
-      navigate('/admin/payments');
+      if (editId) {
+        await paymentBatchesAPI.update(editId, { payment_date: paymentDate, notes }, employees);
+        await showAlert('تم تحديث الدفعة بنجاح', 'success');
+        navigate(`/admin/payments/${editId}`);
+      } else {
+        await paymentBatchesAPI.create({ payment_date: paymentDate, notes }, employees);
+        await showAlert('تم إنشاء الدفعة بنجاح', 'success');
+        navigate('/admin/payments');
+      }
     } catch (err) {
-      await showAlert(err.response?.data?.errors?.[0] || 'خطأ في الإنشاء', 'error');
+      await showAlert(err.response?.data?.errors?.[0] || err.response?.data?.error || 'خطأ', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -141,7 +166,7 @@ export default function NewPaymentBatch() {
           <button onClick={() => navigate('/admin/payments')} style={{
             background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: '14px', padding: 0, marginBottom: '12px'
           }}>← العودة إلى الدفعات</button>
-          <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1e293b' }}>دفعة مرتبات جديدة</h1>
+          <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#1e293b' }}>{editId ? 'تعديل الدفعة' : 'دفعة مرتبات جديدة'}</h1>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -299,7 +324,10 @@ export default function NewPaymentBatch() {
                   backgroundColor: (submitting || selectedCount === 0 || !paymentDate) ? '#94a3b8' : '#167bff',
                   color: 'white'
                 }}>
-                  {submitting ? 'جارٍ الإنشاء...' : `إنشاء الدفعة (${selectedCount} موظف)`}
+                  {submitting
+                    ? (editId ? 'جارٍ الحفظ...' : 'جارٍ الإنشاء...')
+                    : (editId ? `حفظ التعديلات (${selectedCount} موظف)` : `إنشاء الدفعة (${selectedCount} موظف)`)
+                  }
                 </button>
                 <button type="button" onClick={() => navigate('/admin/payments')} style={{
                   width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd',

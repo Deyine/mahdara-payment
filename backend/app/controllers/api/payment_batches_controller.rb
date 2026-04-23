@@ -2,10 +2,11 @@ class Api::PaymentBatchesController < ApplicationController
   before_action :authenticate_user!
   before_action -> { require_permission('payment_batches:read')    }, only: [:index, :show]
   before_action -> { require_permission('payment_batches:create')  }, only: [:create]
+  before_action -> { require_permission('payment_batches:create')  }, only: [:update]
   before_action -> { require_permission('payment_batches:confirm') }, only: [:confirm, :revert]
   before_action -> { require_permission('payment_batches:delete')  }, only: [:destroy]
   before_action -> { require_permission('payment_batches:export')  }, only: [:export]
-  before_action :set_batch, only: [:show, :destroy, :confirm, :revert, :export]
+  before_action :set_batch, only: [:show, :update, :destroy, :confirm, :revert, :export]
 
   def index
     @batches = PaymentBatch.active
@@ -35,6 +36,26 @@ class Api::PaymentBatchesController < ApplicationController
     end
 
     render json: PaymentBatchSerializer.one(@batch, full: true), status: :created
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { errors: [e.message] }, status: :unprocessable_entity
+  end
+
+  def update
+    return render json: { error: 'لا يمكن تعديل دفعة مؤكدة' }, status: :forbidden unless @batch.draft?
+
+    ActiveRecord::Base.transaction do
+      @batch.update!(batch_params)
+      @batch.payment_batch_employees.destroy_all
+      (params[:employees] || []).each do |emp|
+        @batch.payment_batch_employees.create!(
+          employee_id: emp[:employee_id],
+          months_count: emp[:months_count],
+          amount: emp[:amount]
+        )
+      end
+    end
+
+    render json: PaymentBatchSerializer.one(@batch, full: true)
   rescue ActiveRecord::RecordInvalid => e
     render json: { errors: [e.message] }, status: :unprocessable_entity
   end
