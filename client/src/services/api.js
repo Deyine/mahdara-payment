@@ -92,6 +92,7 @@ export const contractsAPI = {
   create: (data) => api.post('/contracts', { contract: data }),
   update: (id, data) => api.patch(`/contracts/${id}`, { contract: data }),
   delete: (id) => api.delete(`/contracts/${id}`),
+  download: (id) => api.get(`/contracts/${id}/download`, { responseType: 'blob' }),
 };
 
 const buildImportFn = (path) => (file) => {

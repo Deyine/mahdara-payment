@@ -13,6 +13,7 @@ class EmployeeSerializer
       pere_prenom_ar: e.pere_prenom_ar,
       pere_prenom_fr: e.pere_prenom_fr,
       birth_date: e.birth_date,
+      birth_place: e.birth_place,
       phone: e.phone,
       active: e.active,
       employee_type: e.employee_type ? EmployeeTypeSerializer.one(e.employee_type) : nil,

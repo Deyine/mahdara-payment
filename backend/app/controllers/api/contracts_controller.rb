@@ -3,7 +3,8 @@ class Api::ContractsController < ApplicationController
   before_action -> { require_permission('contracts:create') }, only: [:create]
   before_action -> { require_permission('contracts:update') }, only: [:update]
   before_action -> { require_permission('contracts:delete') }, only: [:destroy]
-  before_action :set_contract, only: [:update, :destroy]
+  before_action -> { require_permission('contracts:download') }, only: [:download]
+  before_action :set_contract, only: [:update, :destroy, :download]
 
   def create
     employee = Employee.find(params[:contract][:employee_id])
@@ -28,6 +29,17 @@ class Api::ContractsController < ApplicationController
     render json: { message: 'Contrat supprimé' }
   end
 
+  def download
+    docx = ContractDocumentService.generate(@contract)
+    filename = "contrat-#{@contract.contract_type.downcase}-#{@contract.reference}.docx"
+    send_data docx,
+              filename: filename,
+              content_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              disposition: 'attachment'
+  rescue => e
+    render json: { error: e.message }, status: :internal_server_error
+  end
+
   private
 
   def set_contract
@@ -39,7 +51,7 @@ class Api::ContractsController < ApplicationController
   end
 
   def contract_json(c)
-    { id: c.id, employee_id: c.employee_id, contract_type: c.contract_type,
+    { id: c.id, reference: c.reference, employee_id: c.employee_id, contract_type: c.contract_type,
       amount: c.amount.to_f, start_date: c.start_date, duration_months: c.duration_months, active: c.active }
   end
 end

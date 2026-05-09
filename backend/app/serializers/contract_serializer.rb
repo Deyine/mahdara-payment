@@ -2,6 +2,7 @@ class ContractSerializer
   def self.one(c)
     {
       id: c.id,
+      reference: c.reference,
       contract_type: c.contract_type,
       amount: c.amount.to_f,
       start_date: c.start_date,

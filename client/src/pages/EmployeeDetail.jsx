@@ -230,6 +230,20 @@ export default function EmployeeDetail() {
     }
   };
 
+  const handleDownloadContract = async (contract) => {
+    try {
+      const res = await contractsAPI.download(contract.id);
+      const url = URL.createObjectURL(new Blob([res.data], { type: res.headers['content-type'] }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contrat-${contract.contract_type}-${contract.reference || contract.id}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      await showAlert('خطأ في تحميل العقد', 'error');
+    }
+  };
+
   const handleDeleteContract = async (contract) => {
     const confirmed = await showConfirm('حذف هذا العقد؟', 'حذف العقد');
     if (!confirmed) return;
@@ -379,8 +393,14 @@ export default function EmployeeDetail() {
                           {c.duration_months && ` · ${c.duration_months} شهر`}
                         </div>
                       </div>
-                      {(hasPermission('contracts:update') || hasPermission('contracts:delete')) && (
+                      {(hasPermission('contracts:update') || hasPermission('contracts:delete') || hasPermission('contracts:download')) && (
                         <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                          {hasPermission('contracts:download') && (
+                            <button onClick={() => handleDownloadContract(c)} style={{
+                              padding: '5px 10px', fontSize: '12px', backgroundColor: 'white',
+                              border: '1px solid #10b981', color: '#10b981', borderRadius: '4px', cursor: 'pointer'
+                            }}>↓ تحميل</button>
+                          )}
                           {hasPermission('contracts:update') && (
                             <button onClick={() => openContractForm(c)} style={{
                               padding: '5px 10px', fontSize: '12px', backgroundColor: 'white',

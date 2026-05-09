@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_04_13_000941) do
+ActiveRecord::Schema[8.0].define(version: 2026_05_09_184235) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -68,7 +68,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_13_000941) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "reference"
     t.index ["employee_id"], name: "index_contracts_on_employee_id"
+    t.index ["reference"], name: "index_contracts_on_reference", unique: true
   end
 
   create_table "document_templates", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -119,6 +121,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_13_000941) do
     t.string "account_number"
     t.string "pere_prenom_ar"
     t.string "pere_prenom_fr"
+    t.string "birth_place"
     t.index ["bank_id"], name: "index_employees_on_bank_id"
     t.index ["commune_id"], name: "index_employees_on_commune_id"
     t.index ["employee_type_id"], name: "index_employees_on_employee_type_id"
