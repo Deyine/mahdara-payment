@@ -236,7 +236,7 @@ export default function EmployeeDetail() {
       const url = URL.createObjectURL(new Blob([res.data], { type: res.headers['content-type'] }));
       const a = document.createElement('a');
       a.href = url;
-      a.download = `contrat-${contract.contract_type}-${contract.reference || contract.id}.docx`;
+      a.download = `contrat-${contract.contract_type}-${(contract.reference || contract.id).replace('/', '-')}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {

@@ -30,13 +30,14 @@ class Api::ContractsController < ApplicationController
   end
 
   def download
-    docx = ContractDocumentService.generate(@contract)
-    filename = "contrat-#{@contract.contract_type.downcase}-#{@contract.reference}.docx"
-    send_data docx,
+    pdf = ContractDocumentService.generate(@contract)
+    filename = "contrat-#{@contract.contract_type.downcase}-#{@contract.reference&.tr('/', '-')}.pdf"
+    send_data pdf,
               filename: filename,
-              content_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              content_type: 'application/pdf',
               disposition: 'attachment'
   rescue => e
+    Rails.logger.error("Contract download failed: #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}")
     render json: { error: e.message }, status: :internal_server_error
   end
 

@@ -135,8 +135,16 @@ def make_mergefield_runs(template_run, var_name):
     fc3.set(w("fldCharType"), "separate")
     runs.append(r3)
 
-    # display text
+    # display text — bold (b for LTR, bCs for Arabic/complex scripts)
     r4 = base_run()
+    rpr4 = r4.find(w("rPr"))
+    if rpr4 is None:
+        rpr4 = etree.SubElement(r4, w("rPr"))
+        r4.insert(0, rpr4)
+    if rpr4.find(w("b")) is None:
+        etree.SubElement(rpr4, w("b"))
+    if rpr4.find(w("bCs")) is None:
+        etree.SubElement(rpr4, w("bCs"))
     t4 = etree.SubElement(r4, w("t"))
     t4.text = f"«={var_name}»"
     runs.append(r4)
