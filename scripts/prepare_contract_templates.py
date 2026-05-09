@@ -38,38 +38,116 @@ def get_yellow_text(run):
 def is_yellow(run):
     return get_yellow_text(run) is not None
 
-def map_yellow_to_variable(text):
-    """Map merged yellow text content to Sablon variable replacement."""
+def map_yellow_to_segments(text):
+    """
+    Map merged yellow text to a list of segments. Each segment is either:
+      ("text", "literal text")
+      ("var",  "variable_name")
+    Returns None if no mapping found.
+    """
     t = text.strip()
 
     if "السيد(ة):" in t:
-        return "السيد(ة): {{employee_name}}"
+        return [("text", "السيد(ة): "), ("var", "employee_name")]
     if "تاريخ ومحل الميلاد" in t:
-        return "تاريخ ومحل الميلاد: {{birth_date}} - {{birth_place}}"
+        return [("text", "تاريخ ومحل الميلاد: "), ("var", "birth_date"),
+                ("text", " - "), ("var", "birth_place")]
     if "الرقم الوطني للتعريف" in t:
-        return "الرقم الوطني للتعريف: {{nni}}"
+        return [("text", "الرقم الوطني للتعريف: "), ("var", "nni")]
     if "الهاتف" in t and ("واتساب" in t or "ساب" in t):
-        return "الهاتف / واتساب: {{phone}}"
+        return [("text", "الهاتف / واتساب: "), ("var", "phone")]
     if "10,000" in t or "10.000" in t:
-        return "{{amount}} أوقية"
+        return [("var", "amount"), ("text", " أوقية")]
     if "المتتبع" in t and ("شيخ" in t or "عامل" in t):
-        return "{{job_title}}"
+        return [("var", "job_title")]
     if "شيخ" in t and "متتبع" in t:
-        return "{{job_title}}"
+        return [("var", "job_title")]
     if "نواكشوط" in t and "بتاريخ" in t:
-        return "حرر في نواكشوط بتاريخ {{signing_date}}"
+        return [("text", "حرر في نواكشوط بتاريخ "), ("var", "signing_date")]
     if "حرر في" in t:
-        return "حرر في نواكشوط بتاريخ {{signing_date}}"
+        return [("text", "حرر في نواكشوط بتاريخ "), ("var", "signing_date")]
     if "nom" in t:
-        return "{{employee_name_fr}}"
-    # Start date: dots followed by 2026
+        return [("var", "employee_name_fr")]
     if re.search(r'\.+\s*\d{4}', t):
-        return "{{start_date}}"
-    # Contract number: only dots, colons, spaces
+        return [("var", "start_date")]
     if re.match(r'^[:\s\.]+$', t) or re.match(r'^[\s\.]+\d{0,4}$', t):
-        return "{{contract_number}}"
-    # Fallback: keep as variable placeholder based on content
+        return [("var", "contract_number")]
     return None
+
+def make_text_run(template_run, text):
+    """Build a plain text run, copying formatting from template_run, with yellow removed."""
+    new_run = copy.deepcopy(template_run)
+    new_rpr = new_run.find(w("rPr"))
+    if new_rpr is not None:
+        hl = new_rpr.find(w("highlight"))
+        if hl is not None:
+            new_rpr.remove(hl)
+    for t_el in new_run.findall(w("t")):
+        new_run.remove(t_el)
+    t_new = etree.SubElement(new_run, w("t"))
+    t_new.text = text
+    if text != text.strip():
+        t_new.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+    return new_run
+
+def make_mergefield_runs(template_run, var_name):
+    """
+    Build a sequence of runs implementing a Word MERGEFIELD:
+      <w:r><w:fldChar w:fldCharType="begin"/></w:r>
+      <w:r><w:instrText> MERGEFIELD =var_name \\* MERGEFORMAT </w:instrText></w:r>
+      <w:r><w:fldChar w:fldCharType="separate"/></w:r>
+      <w:r>...display text «=var_name»...</w:r>
+      <w:r><w:fldChar w:fldCharType="end"/></w:r>
+    Returns a list of <w:r> elements. Formatting is copied from template_run.
+    """
+    def base_run():
+        r = copy.deepcopy(template_run)
+        # remove yellow highlight
+        rpr = r.find(w("rPr"))
+        if rpr is not None:
+            hl = rpr.find(w("highlight"))
+            if hl is not None:
+                rpr.remove(hl)
+        # strip text/instrText/fldChar children
+        for tag in ("t", "instrText", "fldChar"):
+            for child in r.findall(w(tag)):
+                r.remove(child)
+        return r
+
+    runs = []
+
+    # begin
+    r1 = base_run()
+    fc1 = etree.SubElement(r1, w("fldChar"))
+    fc1.set(w("fldCharType"), "begin")
+    runs.append(r1)
+
+    # instrText
+    r2 = base_run()
+    it = etree.SubElement(r2, w("instrText"))
+    it.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+    it.text = f" MERGEFIELD ={var_name} \\* MERGEFORMAT "
+    runs.append(r2)
+
+    # separate
+    r3 = base_run()
+    fc3 = etree.SubElement(r3, w("fldChar"))
+    fc3.set(w("fldCharType"), "separate")
+    runs.append(r3)
+
+    # display text
+    r4 = base_run()
+    t4 = etree.SubElement(r4, w("t"))
+    t4.text = f"«={var_name}»"
+    runs.append(r4)
+
+    # end
+    r5 = base_run()
+    fc5 = etree.SubElement(r5, w("fldChar"))
+    fc5.set(w("fldCharType"), "end")
+    runs.append(r5)
+
+    return runs
 
 def merge_yellow_runs_in_para(para):
     """
@@ -104,38 +182,28 @@ def merge_yellow_runs_in_para(para):
             j += 1
 
         merged_text = "".join(get_yellow_text(r) for r in yellow_runs)
-        replacement = map_yellow_to_variable(merged_text)
+        segments = map_yellow_to_segments(merged_text)
 
-        if replacement is not None:
-            # Build a single replacement run using the rPr of the first yellow run,
-            # but with yellow highlight removed
+        if segments is not None:
             first_run = yellow_runs[0]
-            new_run = copy.deepcopy(first_run)
-
-            # Remove highlight from rPr
-            new_rpr = new_run.find(w("rPr"))
-            if new_rpr is not None:
-                hl = new_rpr.find(w("highlight"))
-                if hl is not None:
-                    new_rpr.remove(hl)
-
-            # Set text
-            for t_el in new_run.findall(w("t")):
-                new_run.remove(t_el)
-            t_new = etree.SubElement(new_run, w("t"))
-            t_new.text = replacement
-            if replacement.startswith(" ") or replacement.endswith(" "):
-                t_new.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
-
-            # Replace yellow runs with single new run
-            insert_idx = list(para).index(yellow_runs[0])
+            insert_idx = list(para).index(first_run)
             for r in yellow_runs:
                 para.remove(r)
-            para.insert(insert_idx, new_run)
 
-            # Refresh children list
+            offset = 0
+            for kind, value in segments:
+                if kind == "text":
+                    new_run = make_text_run(first_run, value)
+                    para.insert(insert_idx + offset, new_run)
+                    offset += 1
+                else:  # var
+                    mf_runs = make_mergefield_runs(first_run, value)
+                    for mr in mf_runs:
+                        para.insert(insert_idx + offset, mr)
+                        offset += 1
+
             children = list(para)
-            i = insert_idx + 1
+            i = insert_idx + offset
             modified = True
         else:
             # No mapping found — just remove the yellow highlight styling but keep text

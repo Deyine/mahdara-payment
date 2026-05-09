@@ -10,7 +10,7 @@ class ContractDocumentService
 
     employee = contract.employee
     template = Sablon.template(template_path.to_s)
-    context = Sablon.context(
+    context = {
       contract_number:  contract.reference.to_s,
       employee_name:    employee.full_name,
       birth_date:       employee.birth_date&.strftime('%d/%m/%Y') || '...',
@@ -22,7 +22,7 @@ class ContractDocumentService
       start_date:       contract.start_date.strftime('%d/%m/%Y'),
       signing_date:     Date.today.strftime('%d/%m/%Y'),
       employee_name_fr: employee.full_name_fr
-    )
+    }
     template.render_to_string(context)
   end
 end
