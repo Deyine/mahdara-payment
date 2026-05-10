@@ -30,7 +30,7 @@ class HuwiyetiService
       pere_prenom_fr: personne['perePrenomFr'],
       birth_date: parse_date(personne['dateNaissance']),
       gender: personne['sexeCode'],
-      birth_place: personne['lieuNaissanceFr'],
+      birth_place: personne['lieuNaissanceAr'],
       photo: data['photo']
     }
   rescue HTTParty::Error, Net::ReadTimeout, SocketError => e
