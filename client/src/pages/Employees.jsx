@@ -31,7 +31,7 @@ export default function Employees() {
   const [formData, setFormData] = useState({
     nni: '', first_name: '', last_name: '', first_name_fr: '', last_name_fr: '',
     pere_prenom_ar: '', pere_prenom_fr: '', photo: '',
-    birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true,
+    birth_date: '', birth_place: '', phone: '', employee_type_id: '', wilaya_id: '', active: true,
     bank_id: '', account_number: ''
   });
   // Mahdara-specific state for create form
@@ -144,7 +144,8 @@ export default function Employees() {
         pere_prenom_ar: data.pere_prenom_ar || '',
         pere_prenom_fr: data.pere_prenom_fr || '',
         photo: data.photo || '',
-        birth_date: data.birth_date || ''
+        birth_date: data.birth_date || '',
+        birth_place: data.birth_place || ''
       }));
       if (data.first_name || data.first_name_fr) {
         await showAlert(`تم العثور على: ${data.first_name || ''} ${data.last_name || ''}`, 'success');
@@ -158,7 +159,7 @@ export default function Employees() {
 
   const handleCreate = () => {
     setNniInput('');
-    setFormData({ nni: '', first_name: '', last_name: '', first_name_fr: '', last_name_fr: '', pere_prenom_ar: '', pere_prenom_fr: '', photo: '', birth_date: '', phone: '', employee_type_id: '', wilaya_id: '', active: true, bank_id: '', account_number: '' });
+    setFormData({ nni: '', first_name: '', last_name: '', first_name_fr: '', last_name_fr: '', pere_prenom_ar: '', pere_prenom_fr: '', photo: '', birth_date: '', birth_place: '', phone: '', employee_type_id: '', wilaya_id: '', active: true, bank_id: '', account_number: '' });
     setMahdaraForm({ nom: '', numero_releve: '', mahdara_type: '', nombre_etudiants: '' });
     setMahdaraFile(null);
     setMahdaraWilayaId(''); setMahdaraMoughataaId(''); setMahdaraCommuneId(''); setMahdaraVillageId('');
