@@ -55,6 +55,8 @@ Returns `{ "message": "Type supprimé" }`. Blocked if employees exist.
 ## Employees
 
 ### GET /api/employees
+Query params: `search`, `employee_type_id`, `wilaya_id`, `active` (`true`/`false`), `sort_by`, `sort_dir`, `page`, `per_page` (`all` for full list).
+
 ```json
 [{
   "id": "uuid", "nni": "1234567890",
@@ -98,11 +100,12 @@ Calls Mauritanian Gov API (Huwiyeti). Returns:
   "first_name": "Ahmed", "last_name": "Ould Mohamed",
   "birth_date": "1985-04-12",
   "first_name_ar": "أحمد", "last_name_ar": "ولد محمد",
-  "gender": "M", "birth_place": "Nouakchott",
+  "gender": "M", "birth_place": "آمرج",
   "photo": "base64...",
   "source": "gov_api"
 }
 ```
+`birth_place` is the Arabic value (`lieuNaissanceAr` from Huwiyeti). Frontend must include it in the create payload — it is NOT auto-populated server-side on create.
 Returns `404 { "error": "NNI introuvable" }` if not found.
 
 ---
@@ -126,6 +129,15 @@ For CDD: `"contract_type": "CDD"`, `"duration_months": 12`.
 
 ### PATCH /api/contracts/:id — same fields
 ### DELETE /api/contracts/:id
+
+### GET /api/contracts/:id/download
+Returns a PDF of the filled contract template. Requires `contracts:download` permission.
+- Response: `application/pdf` binary, `Content-Disposition: attachment`
+- Filename: `contrat-cdd-0001-2026.pdf`
+- Template files: `backend/lib/templates/contract_cdd.docx` / `contract_cdi.docx` (Sablon MERGEFIELD format)
+- Rendered via `ContractDocumentService` → LibreOffice headless PDF conversion
+- Date format in PDF: `YYYY/MM/DD` (RTL-friendly for Arabic documents)
+- Variables: `contract_number`, `employee_name`, `birth_date`, `birth_place`, `nni`, `phone`, `job_title`, `amount`, `start_date`, `signing_date`, `employee_name_fr` (mapped to Arabic name in signing section)
 
 ---
 
@@ -237,6 +249,17 @@ Request: {
 }
 ```
 `total` is computed server-side as `sum(amount * months_count)`.
+
+### PATCH /api/payment_batches/:id — only if status is `draft`
+Same body as POST. Atomically replaces all employee entries.
+```json
+Request: {
+  "payment_batch": { "payment_date": "2026-03-01", "notes": "..." },
+  "employees": [
+    { "employee_id": "uuid", "months_count": 1, "amount": 50000.0 }
+  ]
+}
+```
 
 ### DELETE /api/payment_batches/:id — only if status is `draft`
 

@@ -50,6 +50,17 @@ validates :duration_months, presence: true, if: -> { contract_type == 'CDD' }
 ### Amount
 The `amount` field on the contract is the employee's **monthly salary** in MRU.
 
+### Reference Number
+Auto-generated on `before_create`: format `0001/2026` (sequential per calendar year). Never editable after creation.
+
+### Contract PDF Download
+- `GET /api/contracts/:id/download` — requires `contracts:download` permission
+- `ContractDocumentService` renders Sablon MERGEFIELD template → LibreOffice headless converts to PDF
+- Templates: `backend/lib/templates/contract_cdd.docx` / `contract_cdi.docx`
+- `SOFFICE_BIN` env var overrides the soffice path (set to `/usr/local/bin/soffice` on prod — systemd has empty PATH)
+- Dates formatted as `YYYY/MM/DD` for RTL Arabic rendering
+- `employee_name_fr` variable in templates is intentionally mapped to `employee.full_name` (Arabic name) for the signing section
+
 ---
 
 ## Payment Batch Rules
@@ -74,8 +85,11 @@ const total = useMemo(() =>
 ```
 
 ### Status
-- `draft` — can be deleted
+- `draft` — can be edited and deleted
 - `confirmed` — immutable
+
+### Editing
+Only `draft` batches can be edited. The update action atomically replaces all `PaymentBatchEmployee` records (destroy_all + recreate) within a transaction.
 
 ### Deletion
 Only `draft` batches can be deleted.

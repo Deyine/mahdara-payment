@@ -81,6 +81,13 @@
 - Navigate to creation page with `?edit=<id>` param
 - Page loads in edit mode with pre-populated data; saves then navigates back with `?view=<id>`
 
+### Filter Pills
+- Pill-style toggle buttons for client-side category filtering (e.g. employee type in payment batch)
+- Always include an "الكل" (all) pill as the default active state
+- Active pill: `#167bff` bg, white text, matching border; inactive: white bg, `#e2e8f0` border, `#475569` text
+- Render pills only when there are multiple categories (`employeeTypes.length > 0`)
+- Derived from loaded data with `useMemo` — no extra API call
+
 ### Debounced Search
 - 300ms debounce on search inputs to reduce API calls
 - Show "create new" option when no results found
@@ -198,3 +205,5 @@
 | BCrypt invalid hash | Password stored as plain text | Use `has_secure_password` with `:password` |
 | Modal won't close on overlay click | By design | Do NOT add overlay click handler |
 | Production calls localhost API | Built without `.env.production` | Rebuild after updating env file |
+| `soffice` not found in production | systemd has empty PATH | Set `SOFFICE_BIN=/usr/local/bin/soffice` in `backend/.env` |
+| `birth_place` blank on existing employees | Field added after initial import | Re-run backfill via `HuwiyetiService` rails runner |
