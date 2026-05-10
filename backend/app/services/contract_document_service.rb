@@ -31,7 +31,7 @@ class ContractDocumentService
       amount:           ActionController::Base.helpers.number_with_delimiter(contract.amount.to_i, delimiter: ','),
       start_date:       contract.start_date.strftime('%d/%m/%Y'),
       signing_date:     Date.today.strftime('%d/%m/%Y'),
-      employee_name_fr: employee.full_name_fr
+      employee_name_fr: employee.full_name
     }
     template.render_to_string(context)
   end
