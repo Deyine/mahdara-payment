@@ -2,7 +2,7 @@ module Permissions
   ALL = %w[
     employees:read        employees:create      employees:update
     employees:delete      employees:export
-    contracts:create      contracts:update      contracts:delete
+    contracts:create      contracts:update      contracts:delete      contracts:download
     mahdaras:create       mahdaras:update       mahdaras:download
     payment_batches:read  payment_batches:create  payment_batches:confirm
     payment_batches:delete  payment_batches:export
