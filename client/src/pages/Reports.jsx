@@ -11,6 +11,27 @@ const SECTIONS = [
   { key: 'same_bank_account',     id: 'sec-bank',      title: 'موظفون بنفس الحساب البنكي', color: '#167bff', type: 'groups' },
 ];
 
+function EmployeePhoto({ url, name }) {
+  const [open, setOpen] = useState(false);
+
+  if (!url) {
+    return <div style={{ width: 36, height: 44, borderRadius: 4, backgroundColor: '#f1f5f9', flexShrink: 0 }} />;
+  }
+
+  return (
+    <>
+      <img src={url} alt={name || 'صورة'} onClick={() => setOpen(true)}
+        style={{ width: 36, height: 44, objectFit: 'cover', borderRadius: 4, border: '1px solid #e2e8f0', cursor: 'pointer', flexShrink: 0 }} />
+      {open && (
+        <div onClick={() => setOpen(false)}
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, cursor: 'zoom-out' }}>
+          <img src={url} alt={name || 'صورة'} style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 8 }} />
+        </div>
+      )}
+    </>
+  );
+}
+
 function EmployeeLink({ id, name }) {
   return (
     <Link to={`/admin/employees/${id}`} style={{ color: '#167bff', fontWeight: 600 }}>
@@ -114,6 +135,7 @@ function YoungestTable({ rows }) {
       <table dir="rtl" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
         <thead>
           <tr style={{ color: '#64748b', fontSize: '13px' }}>
+            <th style={th}>الصورة</th>
             <th style={th}>الاسم</th>
             <th style={th}>الرقم الوطني</th>
             <th style={th}>تاريخ الميلاد</th>
@@ -124,6 +146,7 @@ function YoungestTable({ rows }) {
         <tbody>
           {rows.map(r => (
             <tr key={r.employee_id} style={{ borderTop: '1px solid #f1f5f9' }}>
+              <td style={td}><EmployeePhoto url={r.photo_url} name={r.full_name} /></td>
               <td style={td}><EmployeeLink id={r.employee_id} name={r.full_name} /></td>
               <td style={td}>{r.nni}</td>
               <td style={td}>{r.birth_date}</td>
@@ -148,6 +171,7 @@ function Group({ group, color }) {
         <tbody>
           {group.employees.map(e => (
             <tr key={e.employee_id} style={{ borderTop: '1px solid #f1f5f9' }}>
+              <td style={td}><EmployeePhoto url={e.photo_url} name={e.full_name} /></td>
               <td style={td}><EmployeeLink id={e.employee_id} name={e.full_name} /></td>
               <td style={td}>{e.nni}</td>
               <td style={td}>{e.employee_type || '—'}</td>

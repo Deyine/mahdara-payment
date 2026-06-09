@@ -20,7 +20,7 @@ class Api::ReportsController < ApplicationController
 
   # --- Indicator 1: the youngest employees (most recent birth dates) ---
   def youngest_section
-    Employee.includes(:employee_type)
+    Employee.includes(:employee_type, photo_attachment: :blob)
             .where.not(birth_date: nil)
             .order(birth_date: :desc)
             .limit(YOUNGEST_LIMIT)
@@ -54,7 +54,7 @@ class Api::ReportsController < ApplicationController
   # No dedicated father-family-name column exists; the patronyme (last_name) is the
   # inherited lineage name, so we pair it with the father's first name (pere_prenom_ar).
   def same_father_section
-    employees = Employee.includes(:employee_type)
+    employees = Employee.includes(:employee_type, photo_attachment: :blob)
                         .where.not(last_name: [nil, ''])
                         .where.not(pere_prenom_ar: [nil, ''])
     grouped = employees.group_by { |e| [normalize(e.last_name), normalize(e.pere_prenom_ar)] }
@@ -68,7 +68,7 @@ class Api::ReportsController < ApplicationController
 
   # --- Indicator 5: employees sharing the same bank account ---
   def same_bank_account_section
-    employees = Employee.includes(:employee_type, :bank).where.not(account_number: [nil, ''])
+    employees = Employee.includes(:employee_type, :bank, photo_attachment: :blob).where.not(account_number: [nil, ''])
     grouped = employees.group_by { |e| [e.bank_id, e.account_number.to_s.strip] }
                        .select { |_, es| es.size > 1 }
     grouped.values.map do |es|
@@ -81,7 +81,7 @@ class Api::ReportsController < ApplicationController
   # --- helpers ---
 
   def mahdara_scope
-    Mahdara.includes(:wilaya, :moughataa, :commune, :village, employee: :employee_type)
+    Mahdara.includes(:wilaya, :moughataa, :commune, :village, employee: [:employee_type, { photo_attachment: :blob }])
   end
 
   def employee_brief(e)
@@ -89,7 +89,8 @@ class Api::ReportsController < ApplicationController
       employee_id: e.id,
       full_name: e.full_name,
       nni: e.nni,
-      employee_type: e.employee_type&.name
+      employee_type: e.employee_type&.name,
+      photo_url: e.photo.attached? ? Rails.application.routes.url_helpers.rails_blob_path(e.photo, only_path: true) : nil
     }
   end
 
