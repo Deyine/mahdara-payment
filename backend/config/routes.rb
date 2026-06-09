@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   namespace :api do
     post 'auth/login', to: 'auth#login'
     get 'dashboard/statistics', to: 'dashboard#statistics'
+    get 'reports/review', to: 'reports#review'
 
     resources :roles
     resources :users

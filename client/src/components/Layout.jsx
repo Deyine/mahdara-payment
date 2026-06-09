@@ -25,6 +25,7 @@ export default function Layout({ children }) {
     { path: '/admin', label: 'لوحة التحكم', icon: '📊', show: true },
     { path: '/admin/employees', label: 'الموظفون', icon: '👥', show: true },
     { path: '/admin/payments', label: 'المدفوعات', icon: '💰', show: true },
+    { path: '/admin/reports', label: 'التقارير', icon: '🔍', show: isSuperAdmin || hasPermission('reports:read') },
     { path: '/admin/settings', label: 'الإعدادات', icon: '⚙️', show: canSeeSettings },
   ];
 

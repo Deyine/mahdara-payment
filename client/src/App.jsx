@@ -10,6 +10,7 @@ import EmployeeDetail from './pages/EmployeeDetail';
 import PaymentBatches from './pages/PaymentBatches';
 import NewPaymentBatch from './pages/NewPaymentBatch';
 import PaymentBatchDetail from './pages/PaymentBatchDetail';
+import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import EmployeeTypes from './pages/EmployeeTypes';
 import Wilayas from './pages/Wilayas';
@@ -111,6 +112,16 @@ function AppRoutes() {
         element={
           <PrivateRoute requiredPermission="payment_batches:read">
             <PaymentBatchDetail />
+          </PrivateRoute>
+        }
+      />
+
+      {/* Reports */}
+      <Route
+        path="/admin/reports"
+        element={
+          <PrivateRoute requiredPermission="reports:read">
+            <Reports />
           </PrivateRoute>
         }
       />

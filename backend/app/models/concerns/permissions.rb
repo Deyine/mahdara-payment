@@ -15,6 +15,7 @@ module Permissions
     salary_amounts:read   salary_amounts:create   salary_amounts:delete
     users:read            users:create            users:update            users:delete
     roles:read            roles:create            roles:update            roles:delete
+    reports:read
   ].freeze
 
   BY_ENTITY = ALL.group_by { |p| p.split(':').first }.freeze

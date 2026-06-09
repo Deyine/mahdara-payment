@@ -29,6 +29,10 @@ export const dashboardAPI = {
   getStatistics: () => api.get('/dashboard/statistics'),
 };
 
+export const reportsAPI = {
+  getReview: () => api.get('/reports/review'),
+};
+
 export const banksAPI = {
   getAll: () => api.get('/banks'),
   create: (data) => api.post('/banks', { bank: data }),
