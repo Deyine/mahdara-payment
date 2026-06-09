@@ -4,7 +4,7 @@ import { reportsAPI } from '../services/api';
 
 // Neutral framing on purpose — these are "cases needing review", not accusations.
 const SECTIONS = [
-  { key: 'underage',              id: 'sec-underage',  title: 'الموظفون دون سن 18',        color: '#ef4444', type: 'list' },
+  { key: 'youngest',              id: 'sec-youngest',  title: 'أصغر الموظفين سناً',        color: '#ef4444', type: 'list' },
   { key: 'same_mahdara_name',     id: 'sec-mname',     title: 'محاظر بنفس الاسم',          color: '#f59e0b', type: 'groups' },
   { key: 'same_mahdara_location', id: 'sec-mloc',      title: 'محاظر بنفس الموقع',         color: '#f59e0b', type: 'groups' },
   { key: 'same_father',           id: 'sec-father',    title: 'موظفون بنفس الأب (إخوة محتملون)', color: '#8b5cf6', type: 'groups' },
@@ -98,7 +98,7 @@ function Section({ meta, items }) {
       {items.length === 0 ? (
         <div style={{ padding: '24px 20px', color: '#94a3b8', textAlign: 'center' }}>لا توجد حالات</div>
       ) : meta.type === 'list' ? (
-        <UnderageTable rows={items} />
+        <YoungestTable rows={items} />
       ) : (
         <div style={{ padding: '12px 20px' }}>
           {items.map((g, i) => <Group key={i} group={g} color={meta.color} />)}
@@ -108,7 +108,7 @@ function Section({ meta, items }) {
   );
 }
 
-function UnderageTable({ rows }) {
+function YoungestTable({ rows }) {
   return (
     <div style={{ overflowX: 'auto' }}>
       <table dir="rtl" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>

@@ -2,11 +2,13 @@ class Api::ReportsController < ApplicationController
   before_action :authenticate_user!
   before_action -> { require_permission('reports:read') }
 
+  YOUNGEST_LIMIT = 20
+
   # Integrity / review report across ALL employees.
   # Surfaces cases that warrant a manual review (neutral framing on purpose).
   def review
     render json: {
-      underage:              underage_section,
+      youngest:              youngest_section,
       same_mahdara_name:     same_mahdara_name_section,
       same_mahdara_location: same_mahdara_location_section,
       same_father:           same_father_section,
@@ -16,13 +18,12 @@ class Api::ReportsController < ApplicationController
 
   private
 
-  # --- Indicator 1: employees younger than 18 ---
-  def underage_section
-    cutoff = 18.years.ago.to_date # born after this date => younger than 18
+  # --- Indicator 1: the youngest employees (most recent birth dates) ---
+  def youngest_section
     Employee.includes(:employee_type)
             .where.not(birth_date: nil)
-            .where('birth_date > ?', cutoff)
             .order(birth_date: :desc)
+            .limit(YOUNGEST_LIMIT)
             .map { |e| employee_brief(e).merge(birth_date: e.birth_date, age: age_for(e.birth_date)) }
   end
 
