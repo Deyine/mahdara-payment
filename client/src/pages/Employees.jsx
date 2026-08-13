@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
 import { employeesAPI, employeeTypesAPI, wilayasAPI, banksAPI, moughataaAPI, communesAPI, villagesAPI, mahdarasAPI } from '../services/api';
 import SearchableSelect from '../components/SearchableSelect';
+import DateRangePicker from '../components/DateRangePicker';
 
 export default function Employees() {
   const navigate = useNavigate();
@@ -322,22 +323,12 @@ export default function Employees() {
               }}>{pill.label}</button>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', color: '#64748b', whiteSpace: 'nowrap' }}>تاريخ الإنشاء:</span>
-            <input type="date" value={filterCreatedFrom}
-              onChange={e => { setFilterCreatedFrom(e.target.value); setQueryPage(1); }}
-              style={{
-                padding: '9px 10px', borderRadius: '8px', border: '1px solid #e2e8f0',
-                fontSize: '14px', outline: 'none', color: '#1e293b'
-              }} />
-            <span style={{ color: '#94a3b8' }}>—</span>
-            <input type="date" value={filterCreatedTo}
-              onChange={e => { setFilterCreatedTo(e.target.value); setQueryPage(1); }}
-              style={{
-                padding: '9px 10px', borderRadius: '8px', border: '1px solid #e2e8f0',
-                fontSize: '14px', outline: 'none', color: '#1e293b'
-              }} />
-          </div>
+          <DateRangePicker
+            from={filterCreatedFrom}
+            to={filterCreatedTo}
+            placeholder="تاريخ الإنشاء"
+            onChange={({ from, to }) => { setFilterCreatedFrom(from); setFilterCreatedTo(to); setQueryPage(1); }}
+          />
           <button onClick={handleExport} style={{
             padding: '10px 16px', borderRadius: '8px', border: '1px solid #10b981',
             backgroundColor: 'white', color: '#10b981', cursor: 'pointer', fontSize: '14px',
