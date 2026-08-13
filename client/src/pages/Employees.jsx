@@ -19,6 +19,8 @@ export default function Employees() {
   const [filterTypeId, setFilterTypeId] = useState('');
   const [filterWilayaId, setFilterWilayaId] = useState('');
   const [filterActive, setFilterActive] = useState('');
+  const [filterCreatedFrom, setFilterCreatedFrom] = useState('');
+  const [filterCreatedTo, setFilterCreatedTo] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortDir, setSortDir] = useState('asc');
   const [queryPage, setQueryPage] = useState(1);
@@ -63,6 +65,8 @@ export default function Employees() {
         if (filterTypeId)    params.employee_type_id = filterTypeId;
         if (filterWilayaId)  params.wilaya_id = filterWilayaId;
         if (filterActive !== '') params.active = filterActive;
+        if (filterCreatedFrom) params.created_from = filterCreatedFrom;
+        if (filterCreatedTo)   params.created_to = filterCreatedTo;
         const res = await employeesAPI.getAll(params);
         if (!cancelled) {
           setEmployees(res.data.employees);
@@ -77,7 +81,7 @@ export default function Employees() {
     };
     doFetch();
     return () => { cancelled = true; };
-  }, [queryPage, debouncedSearch, filterTypeId, filterWilayaId, filterActive, sortBy, sortDir, refreshKey]);
+  }, [queryPage, debouncedSearch, filterTypeId, filterWilayaId, filterActive, filterCreatedFrom, filterCreatedTo, sortBy, sortDir, refreshKey]);
 
   useEffect(() => {
     Promise.all([fetchTypes(), fetchWilayas(), fetchBanks()]);
@@ -226,6 +230,8 @@ export default function Employees() {
       if (filterTypeId) params.employee_type_id = filterTypeId;
       if (filterWilayaId) params.wilaya_id = filterWilayaId;
       if (filterActive !== '') params.active = filterActive;
+      if (filterCreatedFrom) params.created_from = filterCreatedFrom;
+      if (filterCreatedTo)   params.created_to = filterCreatedTo;
       const res = await employeesAPI.export(params);
       const url = URL.createObjectURL(new Blob([res.data]));
       const a = document.createElement('a');
@@ -316,6 +322,22 @@ export default function Employees() {
               }}>{pill.label}</button>
             ))}
           </div>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <span style={{ fontSize: '13px', color: '#64748b', whiteSpace: 'nowrap' }}>تاريخ الإنشاء:</span>
+            <input type="date" value={filterCreatedFrom}
+              onChange={e => { setFilterCreatedFrom(e.target.value); setQueryPage(1); }}
+              style={{
+                padding: '9px 10px', borderRadius: '8px', border: '1px solid #e2e8f0',
+                fontSize: '14px', outline: 'none', color: '#1e293b'
+              }} />
+            <span style={{ color: '#94a3b8' }}>—</span>
+            <input type="date" value={filterCreatedTo}
+              onChange={e => { setFilterCreatedTo(e.target.value); setQueryPage(1); }}
+              style={{
+                padding: '9px 10px', borderRadius: '8px', border: '1px solid #e2e8f0',
+                fontSize: '14px', outline: 'none', color: '#1e293b'
+              }} />
+          </div>
           <button onClick={handleExport} style={{
             padding: '10px 16px', borderRadius: '8px', border: '1px solid #10b981',
             backgroundColor: 'white', color: '#10b981', cursor: 'pointer', fontSize: '14px',
@@ -342,6 +364,7 @@ export default function Employees() {
                   <th onClick={() => handleSort('wilaya')} style={thStyle('wilaya')}>{sortIcon('wilaya')}الولاية</th>
                   <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>العقد النشط</th>
                   <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>الحالة</th>
+                  <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>تاريخ الإنشاء</th>
                   <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: '#64748b' }}>الإجراءات</th>
                 </tr>
               </thead>
@@ -383,6 +406,9 @@ export default function Employees() {
                         backgroundColor: emp.active ? '#dcfce7' : '#fee2e2',
                         color: emp.active ? '#166534' : '#dc2626'
                       }}>{emp.active ? 'نشط' : 'غير نشط'}</span>
+                    </td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: '#64748b' }}>
+                      {emp.created_at ? new Date(emp.created_at).toLocaleDateString('fr-FR') : '—'}
                     </td>
                     <td style={{ padding: '14px 16px', textAlign: 'left' }}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>

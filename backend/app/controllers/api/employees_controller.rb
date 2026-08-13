@@ -28,6 +28,7 @@ class Api::EmployeesController < ApplicationController
     scope = scope.where(wilaya_id: params[:wilaya_id]) if params[:wilaya_id].present?
     scope = scope.where(active: true) if params[:active] == 'true'
     scope = scope.where(active: false) if params[:active] == 'false'
+    scope = apply_created_at_range(scope, params)
 
     sort_col = SORT_COLUMNS.fetch(params[:sort_by], 'employees.last_name')
     sort_dir = params[:sort_dir] == 'desc' ? 'DESC' : 'ASC'
@@ -76,6 +77,7 @@ class Api::EmployeesController < ApplicationController
     scope = scope.where(wilaya_id: params[:wilaya_id]) if params[:wilaya_id].present?
     scope = scope.where(active: true) if params[:active] == 'true'
     scope = scope.where(active: false) if params[:active] == 'false'
+    scope = apply_created_at_range(scope, params)
 
     package = Axlsx::Package.new
     wb = package.workbook
@@ -100,10 +102,10 @@ class Api::EmployeesController < ApplicationController
          'تاريخ الميلاد', 'الهاتف', 'الحالة',
          'النوع', 'الولاية', 'المقاطعة', 'البلدية', 'القرية',
          'البنك', 'رقم الحساب',
-         'نوع العقد', 'المبلغ'],
+         'نوع العقد', 'المبلغ', 'تاريخ الإنشاء'],
         style: header_style
       )
-      sheet.column_widths 16, 18, 18, 18, 18, 18, 18, 14, 14, 10, 20, 16, 16, 16, 16, 20, 18, 14, 12
+      sheet.column_widths 16, 18, 18, 18, 18, 18, 18, 14, 14, 10, 20, 16, 16, 16, 16, 20, 18, 14, 12, 14
 
       scope.each do |emp|
         active_contract = emp.contracts.find(&:active)
@@ -126,13 +128,14 @@ class Api::EmployeesController < ApplicationController
           emp.bank&.name,
           emp.account_number,
           active_contract&.contract_type,
-          active_contract ? active_contract.amount.to_f.round : nil
+          active_contract ? active_contract.amount.to_f.round : nil,
+          emp.created_at&.strftime('%Y-%m-%d')
         ], style: [
           center_style, nil, nil, nil, nil, nil, nil,
           center_style, center_style, center_style,
           center_style, center_style, center_style, center_style, center_style,
           center_style, center_style,
-          center_style, number_style
+          center_style, number_style, center_style
         ])
       end
     end
@@ -180,6 +183,20 @@ class Api::EmployeesController < ApplicationController
   end
 
   private
+
+  def apply_created_at_range(scope, params)
+    if params[:created_from].present?
+      from = Date.parse(params[:created_from]).beginning_of_day
+      scope = scope.where('employees.created_at >= ?', from)
+    end
+    if params[:created_to].present?
+      to = Date.parse(params[:created_to]).end_of_day
+      scope = scope.where('employees.created_at <= ?', to)
+    end
+    scope
+  rescue ArgumentError
+    scope
+  end
 
   def set_employee
     @employee = Employee.includes(

@@ -24,7 +24,8 @@ class EmployeeSerializer
       bank: e.bank ? BankSerializer.one(e.bank) : nil,
       account_number: e.account_number,
       active_contract: active_contract ? ContractSerializer.one(active_contract) : nil,
-      mahdara: MahdaraSerializer.one(e.mahdara)
+      mahdara: MahdaraSerializer.one(e.mahdara),
+      created_at: e.created_at
     }
     data[:photo_url] = e.photo.attached? ? Rails.application.routes.url_helpers.rails_blob_path(e.photo, only_path: true) : nil if full
     data[:contracts] = ContractSerializer.many(e.contracts) if full
