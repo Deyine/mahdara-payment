@@ -1,4 +1,6 @@
 class EmployeeType < ApplicationRecord
+  has_paper_trail
+
   has_many :employees, dependent: :restrict_with_error
   has_many :document_templates, dependent: :destroy
 

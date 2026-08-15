@@ -1,4 +1,6 @@
 class Moughataa < ApplicationRecord
+  has_paper_trail
+
   belongs_to :wilaya
   has_many :communes, dependent: :restrict_with_error
   has_many :employees

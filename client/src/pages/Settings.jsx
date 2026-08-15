@@ -100,6 +100,7 @@ export default function Settings() {
       items: [
         { path: '/admin/settings/users', label: 'المستخدمون', icon: '👤' },
         ...(isSuperAdmin ? [{ path: '/admin/settings/roles', label: 'الأدوار', icon: '🔐' }] : []),
+        ...(isSuperAdmin ? [{ path: '/admin/settings/audit-log', label: 'سجل التغييرات', icon: '📜' }] : []),
       ],
     },
   ];

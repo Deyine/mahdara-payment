@@ -1,4 +1,6 @@
 class Wilaya < ApplicationRecord
+  has_paper_trail
+
   has_many :moughataa, dependent: :restrict_with_error
   has_many :employees
 

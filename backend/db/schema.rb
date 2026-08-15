@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_05_09_184235) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_15_114614) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -211,6 +211,22 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_09_184235) do
     t.uuid "role_id"
     t.index ["role_id"], name: "index_users_on_role_id"
     t.index ["username"], name: "index_users_on_username", unique: true
+  end
+
+  create_table "versions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "item_type", null: false
+    t.uuid "item_id", null: false
+    t.string "event", null: false
+    t.string "whodunnit"
+    t.jsonb "object"
+    t.jsonb "object_changes"
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "created_at"
+    t.index ["created_at"], name: "index_versions_on_created_at"
+    t.index ["event"], name: "index_versions_on_event"
+    t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
+    t.index ["whodunnit"], name: "index_versions_on_whodunnit"
   end
 
   create_table "villages", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

@@ -1,4 +1,6 @@
 class PaymentBatchEmployee < ApplicationRecord
+  has_paper_trail
+
   belongs_to :payment_batch
   belongs_to :employee
 

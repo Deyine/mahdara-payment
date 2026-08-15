@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  has_paper_trail skip: [:password_digest]
+
   has_secure_password
 
   ROLES = %w[super_admin user].freeze

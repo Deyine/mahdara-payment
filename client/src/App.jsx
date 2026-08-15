@@ -21,6 +21,7 @@ import Users from './pages/Users';
 import Banks from './pages/Banks';
 import SalaryAmounts from './pages/SalaryAmounts';
 import Roles from './pages/Roles';
+import AuditLog from './pages/AuditLog';
 
 function PrivateRoute({ children, superAdminOnly = false, requiredPermission = null }) {
   const { user, loading, hasPermission } = useAuth();
@@ -145,6 +146,7 @@ function AppRoutes() {
         <Route path="salary-amounts" element={<SalaryAmounts />} />
         <Route path="users" element={<Users />} />
         <Route path="roles" element={<Roles />} />
+        <Route path="audit-log" element={<AuditLog />} />
       </Route>
     </Routes>
   );

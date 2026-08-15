@@ -1,4 +1,6 @@
 class Employee < ApplicationRecord
+  has_paper_trail
+
   belongs_to :employee_type
   belongs_to :wilaya, optional: true
   belongs_to :moughataa, optional: true

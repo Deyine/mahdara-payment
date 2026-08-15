@@ -1,4 +1,6 @@
 class DocumentTemplate < ApplicationRecord
+  has_paper_trail
+
   belongs_to :employee_type
   has_many :employee_documents, dependent: :destroy
 

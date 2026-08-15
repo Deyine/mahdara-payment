@@ -7,6 +7,7 @@ Rails.application.routes.draw do
     get 'reports/review', to: 'reports#review'
 
     resources :roles
+    resources :audit_logs, only: [:index]
     resources :users
     resources :employee_types do
       resources :document_templates, only: [:create, :destroy]

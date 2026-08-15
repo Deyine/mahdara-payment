@@ -162,4 +162,8 @@ export const rolesAPI = {
   delete: (id) => api.delete(`/roles/${id}`),
 };
 
+export const auditLogsAPI = {
+  getAll: (params) => api.get('/audit_logs', { params }),
+};
+
 export default api;

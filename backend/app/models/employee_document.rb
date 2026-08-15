@@ -1,4 +1,6 @@
 class EmployeeDocument < ApplicationRecord
+  has_paper_trail
+
   belongs_to :employee
   belongs_to :document_template
 

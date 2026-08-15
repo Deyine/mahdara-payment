@@ -1,4 +1,6 @@
 class Contract < ApplicationRecord
+  has_paper_trail
+
   belongs_to :employee
 
   CONTRACT_TYPES = %w[CDI CDD].freeze
