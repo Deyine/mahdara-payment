@@ -13,9 +13,10 @@ class Employee < ApplicationRecord
   has_many :contracts, dependent: :destroy
   has_many :payment_batch_employees, dependent: :restrict_with_error
   has_one :mahdara, dependent: :destroy
-  has_many :employee_documents, dependent: :destroy
+  has_many :employee_documents
 
   after_create :sync_document_slots
+  before_destroy :destroy_employee_documents_silently
 
   validates :nni, presence: true, uniqueness: true
   validates :first_name, presence: true
@@ -44,5 +45,13 @@ class Employee < ApplicationRecord
 
   def full_name_fr
     [first_name_fr, pere_prenom_fr, last_name_fr].reject(&:blank?).join(' ')
+  end
+
+  private
+
+  # System-managed slots, not a user action — keep the cascade out of the audit trail
+  # (their creation is already silenced in #sync_document_slots).
+  def destroy_employee_documents_silently
+    PaperTrail.request(enabled: false) { employee_documents.destroy_all }
   end
 end
