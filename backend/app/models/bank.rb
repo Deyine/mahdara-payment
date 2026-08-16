@@ -1,5 +1,5 @@
 class Bank < ApplicationRecord
-  has_paper_trail
+  has_paper_trail on: [:create, :update, :destroy]
 
   has_many :employees, dependent: :restrict_with_error
 

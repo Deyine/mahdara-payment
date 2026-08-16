@@ -1,5 +1,5 @@
 class Commune < ApplicationRecord
-  has_paper_trail
+  has_paper_trail on: [:create, :update, :destroy]
 
   belongs_to :moughataa
   has_many :villages, dependent: :restrict_with_error

@@ -1,5 +1,5 @@
 class Moughataa < ApplicationRecord
-  has_paper_trail
+  has_paper_trail on: [:create, :update, :destroy]
 
   belongs_to :wilaya
   has_many :communes, dependent: :restrict_with_error

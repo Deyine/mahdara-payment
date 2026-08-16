@@ -1,5 +1,5 @@
 class Employee < ApplicationRecord
-  has_paper_trail
+  has_paper_trail on: [:create, :update, :destroy]
 
   belongs_to :employee_type
   belongs_to :wilaya, optional: true
@@ -26,8 +26,11 @@ class Employee < ApplicationRecord
   def sync_document_slots
     return unless employee_type
     existing_ids = employee_documents.pluck(:document_template_id)
-    employee_type.document_templates.each do |template|
-      employee_documents.create!(document_template: template) unless existing_ids.include?(template.id)
+    # System-generated placeholder slots, not a user action — keep them out of the audit trail.
+    PaperTrail.request(enabled: false) do
+      employee_type.document_templates.each do |template|
+        employee_documents.create!(document_template: template) unless existing_ids.include?(template.id)
+      end
     end
   end
 

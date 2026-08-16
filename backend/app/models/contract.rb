@@ -1,5 +1,5 @@
 class Contract < ApplicationRecord
-  has_paper_trail
+  has_paper_trail on: [:create, :update, :destroy]
 
   belongs_to :employee
 

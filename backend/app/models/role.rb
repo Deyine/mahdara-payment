@@ -1,5 +1,5 @@
 class Role < ApplicationRecord
-  has_paper_trail
+  has_paper_trail on: [:create, :update, :destroy]
 
   has_many :users, foreign_key: :role_id, dependent: :nullify
 

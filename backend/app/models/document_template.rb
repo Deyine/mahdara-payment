@@ -1,5 +1,5 @@
 class DocumentTemplate < ApplicationRecord
-  has_paper_trail
+  has_paper_trail on: [:create, :update, :destroy]
 
   belongs_to :employee_type
   has_many :employee_documents, dependent: :destroy
