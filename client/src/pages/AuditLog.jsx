@@ -226,9 +226,9 @@ export default function AuditLog() {
                 <tbody>
                   {Object.entries(selectedLog.changes || {}).map(([field, [oldVal, newVal]]) => (
                     <tr key={field} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '10px 12px', fontFamily: 'monospace', color: '#1e293b' }}>{field}</td>
-                      <td style={{ padding: '10px 12px', color: '#dc2626' }}>{oldVal === null || oldVal === undefined ? '—' : String(oldVal)}</td>
-                      <td style={{ padding: '10px 12px', color: '#166534' }}>{newVal === null || newVal === undefined ? '—' : String(newVal)}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'monospace', color: '#1e293b' }}>{field}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#dc2626' }}>{oldVal === null || oldVal === undefined ? '—' : String(oldVal)}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#166534' }}>{newVal === null || newVal === undefined ? '—' : String(newVal)}</td>
                     </tr>
                   ))}
                 </tbody>
