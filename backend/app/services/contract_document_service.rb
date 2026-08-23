@@ -8,11 +8,12 @@ class ContractDocumentService
 
   SOFFICE_BIN = ENV['SOFFICE_BIN'] || 'soffice'
 
-  MAHDARA_LEVEL_LABELS = {
-    'jamia' => 'جامعة',
-    'mutakhassisa' => 'متخصصة',
-    'quraniya' => 'قرآنية',
-    'awwaliya' => 'أولية'
+  # Values only (no leading "المستوى") since the template text already reads
+  # "... المستوي «=mahdara_level» ..." — the label word is literal in the docx.
+  MAHDARA_NIVEAU_LABELS = {
+    '1' => 'الأول',
+    '2' => 'الثاني',
+    '3' => 'الثالث'
   }.freeze
 
   def self.generate(contract, format: :pdf)
@@ -42,7 +43,7 @@ class ContractDocumentService
       signing_date:     Date.today.strftime('%Y/%m/%d'),
       employee_name_fr: employee.full_name_fr.presence || employee.full_name,
       mahdara_location: mahdara_location(mahdara),
-      mahdara_level:    mahdara && MAHDARA_LEVEL_LABELS[mahdara.mahdara_type] || '...'
+      mahdara_level:    mahdara && MAHDARA_NIVEAU_LABELS[mahdara.niveau] || '...'
     }
     template.render_to_string(context)
   end

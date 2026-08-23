@@ -48,6 +48,9 @@ gem "prawn-table", "~> 0.2"
 # Excel generation
 gem "caxlsx", "~> 3.4"
 
+# Excel reading (candidate list imports)
+gem "roo", "~> 2.10"
+
 # DOCX template rendering
 gem "sablon"
 

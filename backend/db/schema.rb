@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_08_15_114614) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_23_233636) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -143,6 +143,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_15_114614) do
     t.integer "nombre_etudiants"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "niveau"
     t.index ["commune_id"], name: "index_mahdaras_on_commune_id"
     t.index ["employee_id"], name: "index_mahdaras_on_employee_id", unique: true
     t.index ["moughataa_id"], name: "index_mahdaras_on_moughataa_id"
