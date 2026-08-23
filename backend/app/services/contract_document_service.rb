@@ -8,6 +8,13 @@ class ContractDocumentService
 
   SOFFICE_BIN = ENV['SOFFICE_BIN'] || 'soffice'
 
+  MAHDARA_LEVEL_LABELS = {
+    'jamia' => 'جامعة',
+    'mutakhassisa' => 'متخصصة',
+    'quraniya' => 'قرآنية',
+    'awwaliya' => 'أولية'
+  }.freeze
+
   def self.generate(contract, format: :pdf)
     docx = render_docx(contract)
     return docx if format == :docx
@@ -19,6 +26,7 @@ class ContractDocumentService
     raise "Template not found for #{contract.contract_type}: #{template_path}" unless File.exist?(template_path)
 
     employee = contract.employee
+    mahdara = employee.mahdara
     template = Sablon.template(template_path.to_s)
     context = {
       contract_number:  contract.reference.to_s,
@@ -29,11 +37,22 @@ class ContractDocumentService
       phone:            employee.phone.presence || '...',
       job_title:        employee.employee_type.name,
       amount:           ActionController::Base.helpers.number_with_delimiter(contract.amount.to_i, delimiter: ','),
+      amount_words:     ArabicNumberToWords.spell(contract.amount.to_i),
       start_date:       contract.start_date.strftime('%Y/%m/%d'),
       signing_date:     Date.today.strftime('%Y/%m/%d'),
-      employee_name_fr: employee.full_name
+      employee_name_fr: employee.full_name_fr.presence || employee.full_name,
+      mahdara_location: mahdara_location(mahdara),
+      mahdara_level:    mahdara && MAHDARA_LEVEL_LABELS[mahdara.mahdara_type] || '...'
     }
     template.render_to_string(context)
+  end
+
+  def self.mahdara_location(mahdara)
+    return '...' unless mahdara
+
+    [mahdara.village, mahdara.commune, mahdara.moughataa, mahdara.wilaya]
+      .filter_map { |place| place&.name }
+      .then { |names| names.any? ? names.join('، ') : '...' }
   end
 
   def self.convert_to_pdf(docx_bytes)
