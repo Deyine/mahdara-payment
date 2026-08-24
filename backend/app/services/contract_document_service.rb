@@ -41,7 +41,7 @@ class ContractDocumentService
       amount_words:     ArabicNumberToWords.spell(contract.amount.to_i),
       start_date:       contract.start_date.strftime('%Y/%m/%d'),
       signing_date:     Date.today.strftime('%Y/%m/%d'),
-      employee_name_fr: employee.full_name_fr.presence || employee.full_name,
+      employee_name_fr: employee.full_name,
       mahdara_location: mahdara_location(mahdara),
       mahdara_level:    mahdara && MAHDARA_NIVEAU_LABELS[mahdara.niveau] || '...'
     }
