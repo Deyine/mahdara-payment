@@ -65,6 +65,31 @@ ssh prcm.prod 'export PATH="$HOME/.rbenv/bin:$HOME/.rbenv/shims:$PATH" && cd /va
 - **PATH setup**: deploy.sh is self-sufficient — it injects rbenv and nvm paths at the top so it works in non-interactive SSH sessions (no need to source `.bashrc`).
 - **ssh-agent wrapper**: the deploy command must be wrapped in `ssh-agent bash -c "..."` so the SSH key can be added inside the non-interactive session.
 
+## Arabic Font for Contract PDFs (server-level, not in git)
+
+`ContractDocumentService` uses LibreOffice headless to convert the Sablon-rendered
+`.docx` to PDF. The contract templates specify `Arial` for all runs (including
+complex-script/Arabic), but the prod server (CentOS Stream 9) has no real Arial.
+Fontconfig's default fallback for Arabic in that case is DejaVu Sans, which has
+Arabic *codepoints* but no letter-joining (GSUB) tables — Arabic text renders as
+disconnected/garbled glyphs ("police en carton").
+
+**Fix applied directly on the server** (not deployed via git/deploy.sh):
+
+- Government font `Louguiya`/`Louguiya-Bold` (source: `hajj-webapp` project,
+  `app/assets/fonts/Louguiya*.ttf`) installed to `/usr/local/share/fonts/louguiya/`
+- Fontconfig rule at `/etc/fonts/conf.d/99-louguiya-arabic.conf`: for any text
+  with `lang` containing `ar`, prepend `Louguiya` to the family list (`mode="prepend"
+  binding="strong"`), regardless of which family was actually requested (`Arial`).
+- Applied with `fc-cache -f`. Verify with `fc-match "Arial:lang=ar"` → should
+  print `Louguiya.ttf: "Louguiya" "Regular"`.
+
+**Gotcha**: if the server is ever rebuilt/reprovisioned, this font + config file
+must be reinstalled manually — nothing in the repo or deploy.sh provisions it.
+Since the PDF embeds/subsets glyphs at generation time, this is a server-side-only
+fix — client fonts never matter for already-generated PDFs, but a regeneration on
+an unpatched server will reproduce the bug.
+
 ## Logs
 
 - **Puma (Rails) logs**: `/var/www/mahdara-payment/backend/log/puma.stdout.log`
