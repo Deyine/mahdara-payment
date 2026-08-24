@@ -38,6 +38,7 @@ class ContractDocumentService
       phone:            employee.phone.presence || '...',
       job_title:        employee.employee_type.name,
       amount:           ActionController::Base.helpers.number_with_delimiter(contract.amount.to_i, delimiter: ','),
+      amount_words:     ArabicNumberToWords.spell(contract.amount.to_i),
       start_date:       contract.start_date.strftime('%Y/%m/%d'),
       signing_date:     Date.today.strftime('%Y/%m/%d'),
       employee_name_fr: employee.full_name,
