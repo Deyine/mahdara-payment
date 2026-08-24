@@ -38,7 +38,6 @@ class ContractDocumentService
       phone:            employee.phone.presence || '...',
       job_title:        employee.employee_type.name,
       amount:           ActionController::Base.helpers.number_with_delimiter(contract.amount.to_i, delimiter: ','),
-      amount_words:     ArabicNumberToWords.spell(contract.amount.to_i),
       start_date:       contract.start_date.strftime('%Y/%m/%d'),
       signing_date:     Date.today.strftime('%Y/%m/%d'),
       employee_name_fr: employee.full_name,
@@ -48,12 +47,21 @@ class ContractDocumentService
     template.render_to_string(context)
   end
 
+  LOCATION_LABELS = {
+    village:   'القرية',
+    commune:   'البلدية',
+    moughataa: 'المقاطعة',
+    wilaya:    'الولاية'
+  }.freeze
+
   def self.mahdara_location(mahdara)
     return '...' unless mahdara
 
-    [mahdara.village, mahdara.commune, mahdara.moughataa, mahdara.wilaya]
-      .filter_map { |place| place&.name }
-      .then { |names| names.any? ? names.join('، ') : '...' }
+    parts = LOCATION_LABELS.filter_map do |method, label|
+      place = mahdara.public_send(method)
+      "#{label}: #{place.name}" if place
+    end
+    parts.any? ? parts.join('، ') : '...'
   end
 
   def self.convert_to_pdf(docx_bytes)
