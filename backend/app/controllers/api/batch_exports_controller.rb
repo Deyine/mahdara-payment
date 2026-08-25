@@ -7,11 +7,33 @@ class Api::BatchExportsController < ApplicationController
     recruitment_batch = params[:recruitment_batch].to_s.strip
     return render json: { error: 'الرجاء اختيار مسابقة' }, status: :bad_request if recruitment_batch.blank?
 
-    unless Contract.exists?(recruitment_batch: recruitment_batch)
-      return render json: { error: 'لا توجد عقود لهذه المسابقة' }, status: :not_found
+    scope = Contract.where(recruitment_batch: recruitment_batch)
+
+    wilaya = nil
+    if params[:wilaya_id].present?
+      wilaya = Wilaya.find_by(id: params[:wilaya_id])
+      return render json: { error: 'الولاية غير موجودة' }, status: :not_found unless wilaya
+      scope = scope.joins(:employee).where(employees: { wilaya_id: wilaya.id })
     end
 
-    batch_export = BatchExport.create!(recruitment_batch: recruitment_batch, requested_by: current_user)
+    niveau = params[:niveau].presence
+    if niveau
+      unless Mahdara::NIVEAUX.include?(niveau)
+        return render json: { error: 'مستوى غير صالح' }, status: :bad_request
+      end
+      scope = scope.joins(employee: :mahdara).where(mahdaras: { niveau: niveau })
+    end
+
+    unless scope.exists?
+      return render json: { error: 'لا توجد عقود مطابقة' }, status: :not_found
+    end
+
+    batch_export = BatchExport.create!(
+      recruitment_batch: recruitment_batch,
+      wilaya: wilaya,
+      niveau: niveau,
+      requested_by: current_user
+    )
     ContractBatchExportJob.perform_later(batch_export.id)
     render json: batch_export_json(batch_export), status: :created
   end
@@ -36,6 +58,8 @@ class Api::BatchExportsController < ApplicationController
     {
       id: b.id,
       recruitment_batch: b.recruitment_batch,
+      wilaya_id: b.wilaya_id,
+      niveau: b.niveau,
       status: b.status,
       error: b.error,
       ready: b.status == 'done' && b.zip_file.attached?,

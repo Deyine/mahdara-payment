@@ -32,8 +32,10 @@ export default function Employees() {
   const [showBatchExportModal, setShowBatchExportModal] = useState(false);
   const [recruitmentBatches, setRecruitmentBatches] = useState([]);
   const [selectedBatch, setSelectedBatch] = useState('');
-  const [batchExportJob, setBatchExportJob] = useState(null);
-  const [batchExportLoading, setBatchExportLoading] = useState(false);
+  const [batchBreakdown, setBatchBreakdown] = useState([]);
+  const [breakdownLoading, setBreakdownLoading] = useState(false);
+  const [selectedWilayaId, setSelectedWilayaId] = useState('');
+  const [niveauJobs, setNiveauJobs] = useState({});
   const [nniInput, setNniInput] = useState('');
   const [nniLoading, setNniLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -250,10 +252,14 @@ export default function Employees() {
     }
   };
 
+  const NIVEAU_LABELS = { '1': 'المستوى الأول', '2': 'المستوى الثاني', '3': 'المستوى الثالث' };
+
   const openBatchExportModal = async () => {
     setShowBatchExportModal(true);
     setSelectedBatch('');
-    setBatchExportJob(null);
+    setSelectedWilayaId('');
+    setBatchBreakdown([]);
+    setNiveauJobs({});
     try {
       const res = await contractsAPI.recruitmentBatches();
       setRecruitmentBatches(res.data);
@@ -264,45 +270,78 @@ export default function Employees() {
 
   const closeBatchExportModal = () => {
     setShowBatchExportModal(false);
-    setBatchExportJob(null);
-    setBatchExportLoading(false);
+    setNiveauJobs({});
   };
 
-  const startBatchExport = async () => {
-    if (!selectedBatch) return;
-    setBatchExportLoading(true);
+  const selectBatch = async (batch) => {
+    setSelectedBatch(batch);
+    setSelectedWilayaId('');
+    setNiveauJobs({});
+    setBatchBreakdown([]);
+    if (!batch) return;
+    setBreakdownLoading(true);
     try {
-      const res = await batchExportsAPI.create(selectedBatch);
-      setBatchExportJob(res.data);
+      const res = await contractsAPI.recruitmentBatchBreakdown(batch);
+      setBatchBreakdown(res.data);
+    } catch {
+      await showAlert('تعذر تحميل بيانات المسابقة', 'error');
+    } finally {
+      setBreakdownLoading(false);
+    }
+  };
+
+  const selectWilaya = (wilayaId) => {
+    setSelectedWilayaId(wilayaId);
+    setNiveauJobs({});
+  };
+
+  const startNiveauExport = async (niveau) => {
+    setNiveauJobs(prev => ({ ...prev, [niveau]: { status: 'starting' } }));
+    try {
+      const res = await batchExportsAPI.create(selectedBatch, selectedWilayaId, niveau);
+      setNiveauJobs(prev => ({ ...prev, [niveau]: res.data }));
     } catch (err) {
-      await showAlert(err.response?.data?.error || 'تعذر بدء التصدير', 'error');
-      setBatchExportLoading(false);
+      setNiveauJobs(prev => ({
+        ...prev,
+        [niveau]: { status: 'failed', error: err.response?.data?.error || 'تعذر بدء التصدير' }
+      }));
     }
   };
 
   useEffect(() => {
-    if (!batchExportJob || batchExportJob.status === 'done' || batchExportJob.status === 'failed') {
-      setBatchExportLoading(false);
-      return;
-    }
+    const active = Object.entries(niveauJobs).filter(
+      ([, job]) => job.id && (job.status === 'pending' || job.status === 'processing')
+    );
+    if (active.length === 0) return;
+
     const timer = setTimeout(async () => {
-      try {
-        const res = await batchExportsAPI.getById(batchExportJob.id);
-        setBatchExportJob(res.data);
-      } catch {
-        setBatchExportJob({ ...batchExportJob, status: 'failed', error: 'تعذر التحقق من حالة التصدير' });
-      }
+      const updates = await Promise.all(active.map(async ([niveau, job]) => {
+        try {
+          const res = await batchExportsAPI.getById(job.id);
+          return [niveau, res.data];
+        } catch {
+          return [niveau, { ...job, status: 'failed', error: 'تعذر التحقق من حالة التصدير' }];
+        }
+      }));
+      setNiveauJobs(prev => {
+        const next = { ...prev };
+        updates.forEach(([niveau, data]) => { next[niveau] = data; });
+        return next;
+      });
     }, 3000);
     return () => clearTimeout(timer);
-  }, [batchExportJob]);
+  }, [niveauJobs]);
 
-  const downloadBatchExportZip = async () => {
+  const downloadNiveauZip = async (niveau) => {
+    const job = niveauJobs[niveau];
+    if (!job?.id) return;
     try {
-      const res = await batchExportsAPI.download(batchExportJob.id);
+      const res = await batchExportsAPI.download(job.id);
       const url = URL.createObjectURL(new Blob([res.data]));
       const a = document.createElement('a');
+      const wilayaName = batchBreakdown.find(w => w.wilaya_id === selectedWilayaId)?.wilaya_name || '';
       a.href = url;
-      a.download = `${batchExportJob.recruitment_batch}.zip`;
+      a.download = `${selectedBatch} - ${wilayaName} - ${NIVEAU_LABELS[niveau]}.zip`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -734,86 +773,103 @@ export default function Employees() {
           backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
           justifyContent: 'center', zIndex: 1000, overflowY: 'auto', padding: '20px'
         }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', maxWidth: '440px', width: '100%', margin: 'auto', direction: 'rtl' }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', maxWidth: '480px', width: '100%', margin: 'auto', direction: 'rtl' }}>
             <h2 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold', textAlign: 'right' }}>تصدير عقود مسابقة</h2>
             <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b', textAlign: 'right' }}>
-              يُنشئ ملف مضغوط (ZIP) يحتوي على عقد كل موظف تم استيراده ضمن المسابقة المختارة.
+              اختر المسابقة ثم الولاية، ثم حمّل ملف العقود (ZIP) لكل مستوى على حدة.
             </p>
 
-            {!batchExportJob && (
-              <>
-                <label style={labelStyle}>المسابقة</label>
-                {recruitmentBatches.length === 0 ? (
-                  <p style={{ fontSize: '14px', color: '#94a3b8', textAlign: 'right' }}>لا توجد مسابقات مستوردة بعد.</p>
-                ) : (
-                  <select value={selectedBatch} onChange={e => setSelectedBatch(e.target.value)} style={inputStyle}>
-                    <option value="">اختر المسابقة...</option>
-                    {recruitmentBatches.map(b => (
-                      <option key={b.recruitment_batch} value={b.recruitment_batch}>
-                        {b.recruitment_batch} ({b.count} موظف)
-                      </option>
-                    ))}
-                  </select>
-                )}
-
-                <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
-                  <button
-                    onClick={startBatchExport}
-                    disabled={!selectedBatch || batchExportLoading}
-                    style={{
-                      flex: 1, padding: '10px', borderRadius: '6px', border: 'none',
-                      backgroundColor: selectedBatch ? '#7c3aed' : '#cbd5e1', color: 'white',
-                      cursor: selectedBatch ? 'pointer' : 'not-allowed', fontWeight: 'bold'
-                    }}>{batchExportLoading ? 'جارٍ البدء...' : 'تصدير'}</button>
-                  <button onClick={closeBatchExportModal} style={{
-                    flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
-                    backgroundColor: 'white', cursor: 'pointer'
-                  }}>إلغاء</button>
-                </div>
-              </>
+            <label style={labelStyle}>المسابقة</label>
+            {recruitmentBatches.length === 0 ? (
+              <p style={{ fontSize: '14px', color: '#94a3b8', textAlign: 'right' }}>لا توجد مسابقات مستوردة بعد.</p>
+            ) : (
+              <select value={selectedBatch} onChange={e => selectBatch(e.target.value)} style={inputStyle}>
+                <option value="">اختر المسابقة...</option>
+                {recruitmentBatches.map(b => (
+                  <option key={b.recruitment_batch} value={b.recruitment_batch}>
+                    {b.recruitment_batch} ({b.count} موظف)
+                  </option>
+                ))}
+              </select>
             )}
 
-            {batchExportJob && (batchExportJob.status === 'pending' || batchExportJob.status === 'processing') && (
-              <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                <div style={{
-                  width: '36px', height: '36px', margin: '0 auto 14px', borderRadius: '50%',
-                  border: '3px solid #ede9fe', borderTopColor: '#7c3aed',
-                  animation: 'spin 0.8s linear infinite'
-                }} />
+            {selectedBatch && breakdownLoading && (
+              <p style={{ fontSize: '13px', color: '#94a3b8', textAlign: 'right', marginTop: '14px' }}>جارٍ التحميل...</p>
+            )}
+
+            {selectedBatch && !breakdownLoading && batchBreakdown.length > 0 && (
+              <div style={{ marginTop: '18px' }}>
+                <label style={labelStyle}>الولاية</label>
+                <select value={selectedWilayaId} onChange={e => selectWilaya(e.target.value)} style={inputStyle}>
+                  <option value="">اختر الولاية...</option>
+                  {batchBreakdown.map(w => (
+                    <option key={w.wilaya_id} value={w.wilaya_id}>
+                      {w.wilaya_name} ({w.niveaux.reduce((sum, n) => sum + n.count, 0)} موظف)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {selectedBatch && !breakdownLoading && batchBreakdown.length === 0 && (
+              <p style={{ fontSize: '14px', color: '#94a3b8', textAlign: 'right', marginTop: '14px' }}>
+                لا توجد عقود بولاية ومستوى محددين ضمن هذه المسابقة.
+              </p>
+            )}
+
+            {selectedWilayaId && (
+              <div style={{ marginTop: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {(batchBreakdown.find(w => w.wilaya_id === selectedWilayaId)?.niveaux || []).map(({ niveau, count }) => {
+                  const job = niveauJobs[niveau];
+                  return (
+                    <div key={niveau} style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '10px 14px', borderRadius: '6px', border: '1px solid #e2e8f0'
+                    }}>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{NIVEAU_LABELS[niveau] || niveau}</div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>{count} موظف</div>
+                      </div>
+
+                      {(!job || job.status === 'failed') && (
+                        <button onClick={() => startNiveauExport(niveau)} style={{
+                          padding: '7px 14px', borderRadius: '6px', border: 'none',
+                          backgroundColor: '#7c3aed', color: 'white', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px'
+                        }}>{job?.status === 'failed' ? 'إعادة المحاولة' : 'تصدير'}</button>
+                      )}
+
+                      {job && (job.status === 'starting' || job.status === 'pending' || job.status === 'processing') && (
+                        <div style={{
+                          width: '18px', height: '18px', borderRadius: '50%',
+                          border: '2px solid #ede9fe', borderTopColor: '#7c3aed',
+                          animation: 'spin 0.8s linear infinite'
+                        }} />
+                      )}
+
+                      {job && job.status === 'done' && (
+                        <button onClick={() => downloadNiveauZip(niveau)} style={{
+                          padding: '7px 14px', borderRadius: '6px', border: 'none',
+                          backgroundColor: '#16a34a', color: 'white', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px'
+                        }}>تحميل</button>
+                      )}
+                    </div>
+                  );
+                })}
                 <style>{'@keyframes spin { to { transform: rotate(360deg); } }'}</style>
-                <p style={{ fontSize: '14px', color: '#475569', margin: 0 }}>
-                  جارٍ إنشاء الملف... قد يستغرق الأمر بضع دقائق حسب عدد العقود.
-                </p>
+                {Object.values(niveauJobs).some(j => j.status === 'failed' && j.error) && (
+                  <p style={{ fontSize: '12px', color: '#b91c1c', textAlign: 'right', margin: 0 }}>
+                    {Object.values(niveauJobs).find(j => j.status === 'failed' && j.error)?.error}
+                  </p>
+                )}
               </div>
             )}
 
-            {batchExportJob && batchExportJob.status === 'done' && (
-              <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                <p style={{ fontSize: '14px', color: '#166534', margin: '0 0 18px' }}>✓ الملف جاهز للتحميل</p>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button onClick={downloadBatchExportZip} style={{
-                    flex: 1, padding: '10px', borderRadius: '6px', border: 'none',
-                    backgroundColor: '#7c3aed', color: 'white', cursor: 'pointer', fontWeight: 'bold'
-                  }}>تحميل الملف</button>
-                  <button onClick={closeBatchExportModal} style={{
-                    flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
-                    backgroundColor: 'white', cursor: 'pointer'
-                  }}>إغلاق</button>
-                </div>
-              </div>
-            )}
-
-            {batchExportJob && batchExportJob.status === 'failed' && (
-              <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                <p style={{ fontSize: '14px', color: '#b91c1c', margin: '0 0 18px' }}>
-                  تعذر إنشاء الملف{batchExportJob.error ? `: ${batchExportJob.error}` : ''}
-                </p>
-                <button onClick={closeBatchExportModal} style={{
-                  width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
-                  backgroundColor: 'white', cursor: 'pointer'
-                }}>إغلاق</button>
-              </div>
-            )}
+            <div style={{ marginTop: '24px' }}>
+              <button onClick={closeBatchExportModal} style={{
+                width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
+                backgroundColor: 'white', cursor: 'pointer'
+              }}>إغلاق</button>
+            </div>
           </div>
         </div>
       )}

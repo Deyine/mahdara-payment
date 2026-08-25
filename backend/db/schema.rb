@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_08_25_103258) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_25_114614) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -58,7 +58,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_25_103258) do
     t.uuid "requested_by_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "wilaya_id"
+    t.string "niveau"
     t.index ["requested_by_id"], name: "index_batch_exports_on_requested_by_id"
+    t.index ["wilaya_id"], name: "index_batch_exports_on_wilaya_id"
   end
 
   create_table "communes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -260,6 +263,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_25_103258) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "batch_exports", "wilayas"
   add_foreign_key "communes", "moughataa"
   add_foreign_key "contracts", "employees"
   add_foreign_key "document_templates", "employee_types"

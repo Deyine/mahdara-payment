@@ -4,7 +4,7 @@ class Api::ContractsController < ApplicationController
   before_action -> { require_permission('contracts:update') }, only: [:update]
   before_action -> { require_permission('contracts:delete') }, only: [:destroy]
   before_action -> { require_permission('contracts:download') }, only: [:download]
-  before_action -> { require_permission('contracts:export') }, only: [:recruitment_batches]
+  before_action -> { require_permission('contracts:export') }, only: [:recruitment_batches, :recruitment_batch_breakdown]
   before_action :set_contract, only: [:update, :destroy, :download]
 
   # Distinct recruitment batches (e.g. ministry competitions) with how many
@@ -15,6 +15,29 @@ class Api::ContractsController < ApplicationController
                       .count
     render json: counts.map { |batch, count| { recruitment_batch: batch, count: count } }
                         .sort_by { |b| -b[:count] }
+  end
+
+  # Per-wilaya, per-niveau contract counts within a batch, for the
+  # wilaya -> niveau download picker.
+  def recruitment_batch_breakdown
+    recruitment_batch = params[:recruitment_batch].to_s.strip
+    return render json: { error: 'الرجاء اختيار مسابقة' }, status: :bad_request if recruitment_batch.blank?
+
+    rows = Contract.joins(employee: [:wilaya, :mahdara])
+                    .where(recruitment_batch: recruitment_batch)
+                    .group('wilayas.id', 'wilayas.name', 'mahdaras.niveau')
+                    .count
+
+    wilayas = {}
+    rows.each do |(wilaya_id, wilaya_name, niveau), count|
+      next if niveau.nil?
+
+      wilayas[wilaya_id] ||= { wilaya_id: wilaya_id, wilaya_name: wilaya_name, niveaux: [] }
+      wilayas[wilaya_id][:niveaux] << { niveau: niveau, count: count }
+    end
+
+    wilayas.each_value { |w| w[:niveaux].sort_by! { |n| n[:niveau] } }
+    render json: wilayas.values.sort_by { |w| w[:wilaya_name] }
   end
 
   def create

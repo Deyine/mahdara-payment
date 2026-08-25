@@ -26,7 +26,10 @@ Rails.application.routes.draw do
     resources :salary_amounts, only: [:index, :create, :destroy]
     resources :contracts, only: [:create, :update, :destroy] do
       member { get 'download' }
-      collection { get 'recruitment_batches' }
+      collection do
+        get 'recruitment_batches'
+        get 'recruitment_batch_breakdown'
+      end
     end
     resources :batch_exports, only: [:create, :show] do
       member { get 'download' }

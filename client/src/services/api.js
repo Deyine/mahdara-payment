@@ -98,10 +98,13 @@ export const contractsAPI = {
   delete: (id) => api.delete(`/contracts/${id}`),
   download: (id) => api.get(`/contracts/${id}/download`, { responseType: 'blob' }),
   recruitmentBatches: () => api.get('/contracts/recruitment_batches'),
+  recruitmentBatchBreakdown: (recruitmentBatch) =>
+    api.get('/contracts/recruitment_batch_breakdown', { params: { recruitment_batch: recruitmentBatch } }),
 };
 
 export const batchExportsAPI = {
-  create: (recruitmentBatch) => api.post('/batch_exports', { recruitment_batch: recruitmentBatch }),
+  create: (recruitmentBatch, wilayaId, niveau) =>
+    api.post('/batch_exports', { recruitment_batch: recruitmentBatch, wilaya_id: wilayaId, niveau }),
   getById: (id) => api.get(`/batch_exports/${id}`),
   download: (id) => api.get(`/batch_exports/${id}/download`, { responseType: 'blob' }),
 };
