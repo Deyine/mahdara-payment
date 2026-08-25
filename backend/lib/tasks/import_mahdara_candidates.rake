@@ -184,6 +184,12 @@ namespace :mahdara do
         next
       end
 
+      if mahdara_nom.to_s.strip.empty?
+        skipped += 1
+        puts "[SKIP] #{nni} — #{full_name} (no mahdara name given)"
+        next
+      end
+
       begin
         wilaya_raw = wilaya_name.to_s.strip
         wilaya = Wilaya.find_by!(name: WILAYA_ALIAS.fetch(wilaya_raw, wilaya_raw))
