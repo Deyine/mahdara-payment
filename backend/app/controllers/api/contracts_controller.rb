@@ -4,7 +4,18 @@ class Api::ContractsController < ApplicationController
   before_action -> { require_permission('contracts:update') }, only: [:update]
   before_action -> { require_permission('contracts:delete') }, only: [:destroy]
   before_action -> { require_permission('contracts:download') }, only: [:download]
+  before_action -> { require_permission('contracts:export') }, only: [:recruitment_batches]
   before_action :set_contract, only: [:update, :destroy, :download]
+
+  # Distinct recruitment batches (e.g. ministry competitions) with how many
+  # contracts each has, for the batch-export picker.
+  def recruitment_batches
+    counts = Contract.where.not(recruitment_batch: nil)
+                      .group(:recruitment_batch)
+                      .count
+    render json: counts.map { |batch, count| { recruitment_batch: batch, count: count } }
+                        .sort_by { |b| -b[:count] }
+  end
 
   def create
     employee = Employee.find(params[:contract][:employee_id])

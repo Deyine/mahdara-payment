@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDialog } from '../context/DialogContext';
-import { employeesAPI, employeeTypesAPI, wilayasAPI, banksAPI, moughataaAPI, communesAPI, villagesAPI, mahdarasAPI } from '../services/api';
+import { employeesAPI, employeeTypesAPI, wilayasAPI, banksAPI, moughataaAPI, communesAPI, villagesAPI, mahdarasAPI, contractsAPI, batchExportsAPI } from '../services/api';
 import SearchableSelect from '../components/SearchableSelect';
 import DateRangePicker from '../components/DateRangePicker';
 
@@ -29,6 +29,11 @@ export default function Employees() {
   const [totalPages, setTotalPages] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showForm, setShowForm] = useState(false);
+  const [showBatchExportModal, setShowBatchExportModal] = useState(false);
+  const [recruitmentBatches, setRecruitmentBatches] = useState([]);
+  const [selectedBatch, setSelectedBatch] = useState('');
+  const [batchExportJob, setBatchExportJob] = useState(null);
+  const [batchExportLoading, setBatchExportLoading] = useState(false);
   const [nniInput, setNniInput] = useState('');
   const [nniLoading, setNniLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -245,6 +250,66 @@ export default function Employees() {
     }
   };
 
+  const openBatchExportModal = async () => {
+    setShowBatchExportModal(true);
+    setSelectedBatch('');
+    setBatchExportJob(null);
+    try {
+      const res = await contractsAPI.recruitmentBatches();
+      setRecruitmentBatches(res.data);
+    } catch {
+      await showAlert('تعذر تحميل قائمة المسابقات', 'error');
+    }
+  };
+
+  const closeBatchExportModal = () => {
+    setShowBatchExportModal(false);
+    setBatchExportJob(null);
+    setBatchExportLoading(false);
+  };
+
+  const startBatchExport = async () => {
+    if (!selectedBatch) return;
+    setBatchExportLoading(true);
+    try {
+      const res = await batchExportsAPI.create(selectedBatch);
+      setBatchExportJob(res.data);
+    } catch (err) {
+      await showAlert(err.response?.data?.error || 'تعذر بدء التصدير', 'error');
+      setBatchExportLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!batchExportJob || batchExportJob.status === 'done' || batchExportJob.status === 'failed') {
+      setBatchExportLoading(false);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await batchExportsAPI.getById(batchExportJob.id);
+        setBatchExportJob(res.data);
+      } catch {
+        setBatchExportJob({ ...batchExportJob, status: 'failed', error: 'تعذر التحقق من حالة التصدير' });
+      }
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [batchExportJob]);
+
+  const downloadBatchExportZip = async () => {
+    try {
+      const res = await batchExportsAPI.download(batchExportJob.id);
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${batchExportJob.recruitment_batch}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      await showAlert('تعذر تحميل الملف', 'error');
+    }
+  };
+
   const sortIcon = (col) => {
     if (sortBy !== col) return <span style={{ color: '#cbd5e1', marginRight: '4px' }}>↕</span>;
     return <span style={{ color: '#167bff', marginRight: '4px' }}>{sortDir === 'asc' ? '↑' : '↓'}</span>;
@@ -334,6 +399,13 @@ export default function Employees() {
             backgroundColor: 'white', color: '#10b981', cursor: 'pointer', fontSize: '14px',
             fontWeight: '500', whiteSpace: 'nowrap', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
           }}>↓ تصدير Excel</button>
+          {hasPermission('contracts:export') && (
+            <button onClick={openBatchExportModal} style={{
+              padding: '10px 16px', borderRadius: '8px', border: '1px solid #7c3aed',
+              backgroundColor: 'white', color: '#7c3aed', cursor: 'pointer', fontSize: '14px',
+              fontWeight: '500', whiteSpace: 'nowrap', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+            }}>↓ تصدير عقود مسابقة</button>
+          )}
         </div>
 
         {/* Table */}
@@ -651,6 +723,97 @@ export default function Employees() {
                 }}>إلغاء</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Batch Contract Export Modal */}
+      {showBatchExportModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', zIndex: 1000, overflowY: 'auto', padding: '20px'
+        }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', maxWidth: '440px', width: '100%', margin: 'auto', direction: 'rtl' }}>
+            <h2 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold', textAlign: 'right' }}>تصدير عقود مسابقة</h2>
+            <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b', textAlign: 'right' }}>
+              يُنشئ ملف مضغوط (ZIP) يحتوي على عقد كل موظف تم استيراده ضمن المسابقة المختارة.
+            </p>
+
+            {!batchExportJob && (
+              <>
+                <label style={labelStyle}>المسابقة</label>
+                {recruitmentBatches.length === 0 ? (
+                  <p style={{ fontSize: '14px', color: '#94a3b8', textAlign: 'right' }}>لا توجد مسابقات مستوردة بعد.</p>
+                ) : (
+                  <select value={selectedBatch} onChange={e => setSelectedBatch(e.target.value)} style={inputStyle}>
+                    <option value="">اختر المسابقة...</option>
+                    {recruitmentBatches.map(b => (
+                      <option key={b.recruitment_batch} value={b.recruitment_batch}>
+                        {b.recruitment_batch} ({b.count} موظف)
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
+                  <button
+                    onClick={startBatchExport}
+                    disabled={!selectedBatch || batchExportLoading}
+                    style={{
+                      flex: 1, padding: '10px', borderRadius: '6px', border: 'none',
+                      backgroundColor: selectedBatch ? '#7c3aed' : '#cbd5e1', color: 'white',
+                      cursor: selectedBatch ? 'pointer' : 'not-allowed', fontWeight: 'bold'
+                    }}>{batchExportLoading ? 'جارٍ البدء...' : 'تصدير'}</button>
+                  <button onClick={closeBatchExportModal} style={{
+                    flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
+                    backgroundColor: 'white', cursor: 'pointer'
+                  }}>إلغاء</button>
+                </div>
+              </>
+            )}
+
+            {batchExportJob && (batchExportJob.status === 'pending' || batchExportJob.status === 'processing') && (
+              <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                <div style={{
+                  width: '36px', height: '36px', margin: '0 auto 14px', borderRadius: '50%',
+                  border: '3px solid #ede9fe', borderTopColor: '#7c3aed',
+                  animation: 'spin 0.8s linear infinite'
+                }} />
+                <style>{'@keyframes spin { to { transform: rotate(360deg); } }'}</style>
+                <p style={{ fontSize: '14px', color: '#475569', margin: 0 }}>
+                  جارٍ إنشاء الملف... قد يستغرق الأمر بضع دقائق حسب عدد العقود.
+                </p>
+              </div>
+            )}
+
+            {batchExportJob && batchExportJob.status === 'done' && (
+              <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                <p style={{ fontSize: '14px', color: '#166534', margin: '0 0 18px' }}>✓ الملف جاهز للتحميل</p>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={downloadBatchExportZip} style={{
+                    flex: 1, padding: '10px', borderRadius: '6px', border: 'none',
+                    backgroundColor: '#7c3aed', color: 'white', cursor: 'pointer', fontWeight: 'bold'
+                  }}>تحميل الملف</button>
+                  <button onClick={closeBatchExportModal} style={{
+                    flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
+                    backgroundColor: 'white', cursor: 'pointer'
+                  }}>إغلاق</button>
+                </div>
+              </div>
+            )}
+
+            {batchExportJob && batchExportJob.status === 'failed' && (
+              <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                <p style={{ fontSize: '14px', color: '#b91c1c', margin: '0 0 18px' }}>
+                  تعذر إنشاء الملف{batchExportJob.error ? `: ${batchExportJob.error}` : ''}
+                </p>
+                <button onClick={closeBatchExportModal} style={{
+                  width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
+                  backgroundColor: 'white', cursor: 'pointer'
+                }}>إغلاق</button>
+              </div>
+            )}
           </div>
         </div>
       )}

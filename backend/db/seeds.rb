@@ -13,7 +13,7 @@ Role.find_or_create_by!(name: 'مشغّل') do |r|
   r.description = 'إنشاء وتعديل الموظفين والمدفوعات'
   r.permissions = %w[
     employees:read       employees:create     employees:update    employees:export
-    contracts:create     contracts:update
+    contracts:create     contracts:update     contracts:export
     mahdaras:create      mahdaras:update      mahdaras:download
     payment_batches:read payment_batches:create payment_batches:confirm payment_batches:export
     employee_types:read  wilayas:read         moughataa:read

@@ -116,9 +116,10 @@ end
 
 namespace :mahdara do
   desc "Import accepted competition candidates from a وزارة الشؤون الإسلامية candidate list (.xlsx) as employees, mahdaras and CDD contracts"
-  task :import_candidates, [:xlsx_path] => :environment do |_, args|
+  task :import_candidates, [:xlsx_path, :recruitment_batch] => :environment do |_, args|
     xlsx_path = args[:xlsx_path]
-    abort "Usage: rails mahdara:import_candidates[path/to/file.xlsx]" if xlsx_path.blank?
+    abort "Usage: rails mahdara:import_candidates[path/to/file.xlsx,'batch label']" if xlsx_path.blank?
+    recruitment_batch = args[:recruitment_batch].presence || "مسابقة المحاظر 2026"
 
     WILAYA_ALIAS = {
       "الترارزة"          => "اترارزة",
@@ -246,11 +247,12 @@ namespace :mahdara do
           )
 
           Contract.create!(
-            employee:         employee,
-            contract_type:    "CDD",
-            amount:           amount,
-            start_date:       CONTRACT_START_DATE,
-            duration_months:  CONTRACT_DURATION_MONTHS
+            employee:          employee,
+            contract_type:     "CDD",
+            amount:            amount,
+            start_date:        CONTRACT_START_DATE,
+            duration_months:   CONTRACT_DURATION_MONTHS,
+            recruitment_batch: recruitment_batch
           )
         end
 

@@ -54,6 +54,9 @@ gem "roo", "~> 2.10"
 # DOCX template rendering
 gem "sablon"
 
+# Zip archive generation (batch contract exports)
+gem "rubyzip", "~> 2.4", require: "zip"
+
 # Pretty print Ruby objects with proper indentation and colors
 gem "awesome_print", require: "ap"
 

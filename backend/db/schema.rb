@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_08_23_233636) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_25_103258) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -51,6 +51,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_23_233636) do
     t.index ["name"], name: "index_banks_on_name", unique: true
   end
 
+  create_table "batch_exports", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "recruitment_batch", null: false
+    t.string "status", default: "pending", null: false
+    t.text "error"
+    t.uuid "requested_by_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["requested_by_id"], name: "index_batch_exports_on_requested_by_id"
+  end
+
   create_table "communes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name", null: false
     t.uuid "moughataa_id", null: false
@@ -69,7 +79,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_08_23_233636) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "reference"
+    t.string "recruitment_batch"
     t.index ["employee_id"], name: "index_contracts_on_employee_id"
+    t.index ["recruitment_batch"], name: "index_contracts_on_recruitment_batch"
     t.index ["reference"], name: "index_contracts_on_reference", unique: true
   end
 

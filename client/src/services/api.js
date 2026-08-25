@@ -97,6 +97,13 @@ export const contractsAPI = {
   update: (id, data) => api.patch(`/contracts/${id}`, { contract: data }),
   delete: (id) => api.delete(`/contracts/${id}`),
   download: (id) => api.get(`/contracts/${id}/download`, { responseType: 'blob' }),
+  recruitmentBatches: () => api.get('/contracts/recruitment_batches'),
+};
+
+export const batchExportsAPI = {
+  create: (recruitmentBatch) => api.post('/batch_exports', { recruitment_batch: recruitmentBatch }),
+  getById: (id) => api.get(`/batch_exports/${id}`),
+  download: (id) => api.get(`/batch_exports/${id}/download`, { responseType: 'blob' }),
 };
 
 const buildImportFn = (path) => (file) => {
