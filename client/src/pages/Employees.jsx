@@ -36,6 +36,9 @@ export default function Employees() {
   const [breakdownLoading, setBreakdownLoading] = useState(false);
   const [selectedWilayaId, setSelectedWilayaId] = useState('');
   const [niveauJobs, setNiveauJobs] = useState({});
+  const [showFullExportModal, setShowFullExportModal] = useState(false);
+  const [fullExport, setFullExport] = useState({ recruitment_batch: '', wilaya_id: '', niveau: '' });
+  const [fullExportLoading, setFullExportLoading] = useState(false);
   const [nniInput, setNniInput] = useState('');
   const [nniLoading, setNniLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -252,6 +255,36 @@ export default function Employees() {
     }
   };
 
+  const openFullExportModal = async () => {
+    setFullExport({ recruitment_batch: '', wilaya_id: '', niveau: '' });
+    setShowFullExportModal(true);
+    try {
+      const res = await contractsAPI.recruitmentBatches();
+      setRecruitmentBatches(res.data);
+    } catch {
+      await showAlert('تعذر تحميل قائمة المسابقات', 'error');
+    }
+  };
+
+  const downloadFullExport = async () => {
+    setFullExportLoading(true);
+    try {
+      const params = {};
+      Object.entries(fullExport).forEach(([k, v]) => { if (v) params[k] = v; });
+      const res = await employeesAPI.exportFull(params);
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `export-complet-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      await showAlert('خطأ في التصدير', 'error');
+    } finally {
+      setFullExportLoading(false);
+    }
+  };
+
   const NIVEAU_LABELS = { '1': 'المستوى الأول', '2': 'المستوى الثاني', '3': 'المستوى الثالث' };
 
   const openBatchExportModal = async () => {
@@ -438,6 +471,13 @@ export default function Employees() {
             backgroundColor: 'white', color: '#10b981', cursor: 'pointer', fontSize: '14px',
             fontWeight: '500', whiteSpace: 'nowrap', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
           }}>↓ تصدير Excel</button>
+          {hasPermission('employees:export') && (
+            <button onClick={openFullExportModal} style={{
+              padding: '10px 16px', borderRadius: '8px', border: '1px solid #0ea5e9',
+              backgroundColor: 'white', color: '#0ea5e9', cursor: 'pointer', fontSize: '14px',
+              fontWeight: '500', whiteSpace: 'nowrap', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+            }}>↓ تصدير كامل</button>
+          )}
           {hasPermission('contracts:export') && (
             <button onClick={openBatchExportModal} style={{
               padding: '10px 16px', borderRadius: '8px', border: '1px solid #7c3aed',
@@ -762,6 +802,58 @@ export default function Employees() {
                 }}>إلغاء</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Full Export Modal */}
+      {showFullExportModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', zIndex: 1000, overflowY: 'auto', padding: '20px'
+        }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', maxWidth: '480px', width: '100%', margin: 'auto', direction: 'rtl' }}>
+            <h2 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold', textAlign: 'right' }}>تصدير كامل</h2>
+            <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b', textAlign: 'right' }}>
+              ملف Excel واحد يضم جميع حقول الموظف والمحظرة والعقد النشط، للتصفية والمعالجة. اترك الحقول فارغة لتصدير الجميع.
+            </p>
+
+            <label style={labelStyle}>المسابقة</label>
+            <select value={fullExport.recruitment_batch} onChange={e => setFullExport({ ...fullExport, recruitment_batch: e.target.value })} style={inputStyle}>
+              <option value="">الكل</option>
+              {recruitmentBatches.map(b => (
+                <option key={b.recruitment_batch} value={b.recruitment_batch}>{b.recruitment_batch} ({b.count} موظف)</option>
+              ))}
+            </select>
+
+            <div style={{ marginTop: '14px' }}>
+              <label style={labelStyle}>الولاية</label>
+              <select value={fullExport.wilaya_id} onChange={e => setFullExport({ ...fullExport, wilaya_id: e.target.value })} style={inputStyle}>
+                <option value="">الكل</option>
+                {wilayas.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+              </select>
+            </div>
+
+            <div style={{ marginTop: '14px' }}>
+              <label style={labelStyle}>المستوى</label>
+              <select value={fullExport.niveau} onChange={e => setFullExport({ ...fullExport, niveau: e.target.value })} style={inputStyle}>
+                <option value="">الكل</option>
+                {Object.entries(NIVEAU_LABELS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
+              <button onClick={downloadFullExport} disabled={fullExportLoading} style={{
+                flex: 1, padding: '10px', borderRadius: '6px', border: 'none',
+                backgroundColor: fullExportLoading ? '#cbd5e1' : '#0ea5e9', color: 'white',
+                cursor: fullExportLoading ? 'not-allowed' : 'pointer', fontWeight: 'bold'
+              }}>{fullExportLoading ? 'جارٍ التصدير...' : 'تحميل'}</button>
+              <button onClick={() => setShowFullExportModal(false)} style={{
+                flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ddd',
+                backgroundColor: 'white', cursor: 'pointer'
+              }}>إغلاق</button>
+            </div>
           </div>
         </div>
       )}

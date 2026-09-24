@@ -4,7 +4,8 @@ class Api::ContractsController < ApplicationController
   before_action -> { require_permission('contracts:update') }, only: [:update]
   before_action -> { require_permission('contracts:delete') }, only: [:destroy]
   before_action -> { require_permission('contracts:download') }, only: [:download]
-  before_action -> { require_permission('contracts:export') }, only: [:recruitment_batches, :recruitment_batch_breakdown]
+  before_action -> { require_permission('contracts:export') }, only: [:recruitment_batch_breakdown]
+  before_action :require_batch_list_permission, only: [:recruitment_batches]
   before_action :set_contract, only: [:update, :destroy, :download]
 
   # Distinct recruitment batches (e.g. ministry competitions) with how many
@@ -76,6 +77,12 @@ class Api::ContractsController < ApplicationController
   end
 
   private
+
+  def require_batch_list_permission
+    return if current_user.has_permission?('contracts:export') || current_user.has_permission?('employees:export')
+
+    render json: { error: 'Access denied: missing permission' }, status: :forbidden
+  end
 
   def set_contract
     @contract = Contract.find(params[:id])

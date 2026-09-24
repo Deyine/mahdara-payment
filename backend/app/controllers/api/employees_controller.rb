@@ -4,7 +4,7 @@ class Api::EmployeesController < ApplicationController
   before_action -> { require_permission('employees:create') }, only: [:create]
   before_action -> { require_permission('employees:update') }, only: [:update]
   before_action -> { require_permission('employees:delete') }, only: [:destroy]
-  before_action -> { require_permission('employees:export') }, only: [:export]
+  before_action -> { require_permission('employees:export') }, only: [:export, :export_full]
   before_action :set_employee, only: [:show, :update, :destroy]
 
   SORT_COLUMNS = {
@@ -144,6 +144,22 @@ class Api::EmployeesController < ApplicationController
     send_data package.to_stream.read,
               type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
               disposition: "attachment; filename=\"#{filename}\""
+  end
+
+  def export_full
+    niveau = params[:niveau].presence
+    if niveau && !Mahdara::NIVEAUX.include?(niveau)
+      return render json: { error: 'مستوى غير صالح' }, status: :bad_request
+    end
+
+    xlsx = FullEmployeesExportService.generate(
+      recruitment_batch: params[:recruitment_batch],
+      wilaya_id: params[:wilaya_id],
+      niveau: niveau
+    )
+    send_data xlsx,
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              disposition: "attachment; filename=\"export-complet-#{Date.today}.xlsx\""
   end
 
   def lookup_nni

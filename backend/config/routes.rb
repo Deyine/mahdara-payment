@@ -17,6 +17,7 @@ Rails.application.routes.draw do
       collection do
         get 'lookup_nni'
         get 'export'
+        get 'export_full'
       end
       resources :employee_documents, only: [:update, :destroy]
     end

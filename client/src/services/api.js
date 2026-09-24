@@ -69,6 +69,7 @@ export const employeesAPI = {
   delete: (id) => api.delete(`/employees/${id}`),
   lookupNni: (nni) => api.get(`/employees/lookup_nni?nni=${nni}`),
   export: (params) => api.get('/employees/export', { params, responseType: 'blob' }),
+  exportFull: (params) => api.get('/employees/export_full', { params, responseType: 'blob' }),
 };
 
 const buildMahdaraFD = (data, file) => {
