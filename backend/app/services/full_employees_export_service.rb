@@ -50,7 +50,7 @@ class FullEmployeesExportService
       sheet.column_widths(*Array.new(HEADERS.size, 18))
 
       row_count = 0
-      scope.find_each do |employee|
+      scope.each do |employee|
         values = row_for(employee)
         types = Array.new(values.size)
         TEXT_COLUMNS.each { |i| types[i] = :string }
